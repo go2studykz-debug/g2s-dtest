@@ -26,7 +26,7 @@ export default function LandingPage() {
   const [formData, setFormData] = useState({
     name: '',
     city: '',
-    whatsapp: '+77',
+    whatsapp: '',
     classNumber: '4',
     language: 'ru',
   });
@@ -38,11 +38,12 @@ export default function LandingPage() {
       return;
     }
     
+    // Проверка корректности номера (минимум +77 и 9 цифр)
     if (formData.whatsapp.length < 12) {
       toast({ 
         variant: 'destructive', 
         title: 'Неверный формат', 
-        description: 'Пожалуйста, введите полный номер телефона в формате +77071234567.' 
+        description: 'Пожалуйста, введите полный номер телефона в формате +7 7XX XXX XX XX.' 
       });
       return;
     }
@@ -163,13 +164,18 @@ export default function LandingPage() {
                     <Input 
                       id="whatsapp" 
                       placeholder="+7 7XX XXX XX XX" 
-                      className="pl-10 h-12 border-[#e3e8ee]"
+                      className="pl-10 h-12 border-[#e3e8ee] focus:border-[#14bf96] focus:ring-1 focus:ring-[#14bf96]"
                       required 
                       value={formData.whatsapp}
                       onChange={e => {
                         let val = e.target.value;
                         val = val.replace(/[^0-9+]/g, '');
-                        if (!val.startsWith('+77')) val = '+77';
+                        // Если начали вводить и это не пустое поле, принудительно ставим +77
+                        if (val && !val.startsWith('+77')) {
+                          if (val.startsWith('8')) val = '+77' + val.substring(1);
+                          else if (val.startsWith('7')) val = '+7' + val;
+                          else val = '+77' + val;
+                        }
                         setFormData({...formData, whatsapp: val});
                       }}
                     />
