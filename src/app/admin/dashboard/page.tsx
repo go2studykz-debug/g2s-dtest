@@ -33,7 +33,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     setMounted(true);
     loadData();
-    // Refresh data every minute to update "abandoned" status accurately
     const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -59,27 +58,28 @@ export default function AdminDashboard() {
     }
   };
 
-  const todayStr = useMemo(() => {
-    if (!mounted) return '';
-    return new Date().toLocaleDateString();
-  }, [mounted]);
+  // Stable date comparison helper
+  const isSameDay = (date1: Date | string | number, date2: Date | string | number) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
 
-  // Helper to check if session is abandoned (in progress > test time limit)
+  const today = useMemo(() => new Date(), []);
+
   const isAbandoned = (r: StudentResult) => {
     if (r.status !== 'in_progress') return false;
     const startTime = new Date(r.started_at).getTime();
     const now = new Date().getTime();
-    const limitMinutes = testDurations[r.test_id] || 60; // Fallback to 60 min
+    const limitMinutes = testDurations[r.test_id] || 60;
     const limitMs = limitMinutes * 60000;
-    
-    // Test is abandoned if current time exceeds started_at + time limit
     return (now - startTime) > limitMs;
   };
 
   const stats = useMemo(() => {
-    if (!mounted) return { starts: 0, ready: 0, abandoned: 0, noConsult: 0, total_today: 0 };
-    
-    const todayResults = results.filter(r => new Date(r.started_at).toLocaleDateString() === todayStr);
+    const todayResults = results.filter(r => isSameDay(r.started_at, today));
     
     return {
       starts: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
@@ -88,21 +88,20 @@ export default function AdminDashboard() {
       noConsult: todayResults.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
     };
-  }, [results, todayStr, mounted, testDurations]);
+  }, [results, today, testDurations]);
 
   const filteredResults = useMemo(() => {
     let list = results;
 
-    if (!mounted) return list;
-
-    // Filter by type
     if (filter !== 'all') {
       list = results.filter(r => {
-        const isToday = new Date(r.started_at).toLocaleDateString() === todayStr;
+        const isToday = isSameDay(r.started_at, today);
         
         if (filter === 'all_completed') return r.status === 'completed';
         
+        // Widgets are focused on today's performance as requested
         if (!isToday) return false;
+        
         if (filter === 'today_starts') return r.status === 'in_progress' && !isAbandoned(r);
         if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
         if (filter === 'today_abandoned') return isAbandoned(r);
@@ -111,7 +110,6 @@ export default function AdminDashboard() {
       });
     }
 
-    // Filter by search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       list = list.filter(r => 
@@ -121,7 +119,7 @@ export default function AdminDashboard() {
     }
 
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, todayStr, searchTerm, mounted, testDurations]);
+  }, [results, filter, today, searchTerm, testDurations]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
@@ -168,7 +166,7 @@ export default function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm">
-              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? todayStr : '--.--.----'}
+              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? today.toLocaleDateString() : '--.--.----'}
             </Badge>
           </div>
           <h1 className="text-4xl font-headline font-bold tracking-tight text-[#081d3a]">Матрица go2study</h1>
