@@ -40,10 +40,10 @@ const TRANSLATIONS = {
     btn_start: "Начать тестирование",
     stats_students: "1240+",
     stats_students_label: "Учеников обучено",
-    stats_params: "NIS Standard",
-    stats_params_label: "100% совпадение с НИШ",
+    stats_params: "100%",
+    stats_params_label: "Совпадение с тестами НИШ",
     stats_cities: "20",
-    stats_cities_label: "Весь казахстан",
+    stats_cities_label: "Городов",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
     how_step1_desc: "Мгновенный доступ к системе",
@@ -74,10 +74,10 @@ const TRANSLATIONS = {
     btn_start: "Тестілеуді бастау",
     stats_students: "1240+",
     stats_students_label: "Оқушы оқытылды",
-    stats_params: "NIS Standard",
-    stats_params_label: "НЗМ-мен 100% сәйкестік",
+    stats_params: "100%",
+    stats_params_label: "НЗМ тестерімен сәйкестік",
     stats_cities: "20",
-    stats_cities_label: "Барлық қазақстан",
+    stats_cities_label: "Қала",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
     how_step1_desc: "Жүйеге жылдам қол жеткізу",
@@ -219,9 +219,7 @@ export default function LandingPage() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-primary tracking-tight leading-none flex items-center gap-1">
-                    NIS Standard <Globe className="w-5 h-5" />
-                  </div>
+                  <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_params}</div>
                   <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">{t.stats_params_label}</div>
                 </div>
               </div>
