@@ -40,8 +40,8 @@ const TRANSLATIONS = {
     btn_start: "Запустить диагностику",
     stats_students: "1240+",
     stats_students_label: "Учеников обучено",
-    stats_params: "NIS Standard",
-    stats_params_label: "100% совпадение с НИШ",
+    stats_params: "100%",
+    stats_params_label: "совпадение с тестами ниш",
     stats_cities: "20 городов",
     stats_cities_label: "Весь Казахстан",
     how_title: "Как строится ваш успех",
@@ -74,7 +74,7 @@ const TRANSLATIONS = {
     btn_start: "Диагностиканы бастау",
     stats_students: "1240+",
     stats_students_label: "Оқушы оқытылды",
-    stats_params: "NIS Standard",
+    stats_params: "100%",
     stats_params_label: "НЗМ-мен 100% сәйкестік",
     stats_cities: "20 қала",
     stats_cities_label: "Бүкіл Қазақстан",
@@ -203,37 +203,36 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             
-            {/* Статистика с иконками и выравниванием */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
               <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6" />
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
+                  <Users className="w-7 h-7" />
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#081d3a] tracking-tight">{t.stats_students}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5">{t.stats_students_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_students_label}</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="w-6 h-6" />
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
+                  <ShieldCheck className="w-7 h-7" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-primary tracking-tight leading-none uppercase">
-                    NIS<br/>Standard
+                  <div className="text-3xl font-bold text-primary tracking-tight leading-none">
+                    {t.stats_params}
                   </div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5">{t.stats_params_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_params_label}</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform">
-                  <Globe className="w-6 h-6" />
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
+                  <Globe className="w-7 h-7" />
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#081d3a] tracking-tight">{t.stats_cities}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5">{t.stats_cities_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_cities_label}</div>
                 </div>
               </div>
             </div>
