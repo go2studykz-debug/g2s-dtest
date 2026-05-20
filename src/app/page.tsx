@@ -169,13 +169,30 @@ export default function LandingPage() {
                       value={formData.whatsapp}
                       onChange={e => {
                         let val = e.target.value;
+                        const prevVal = formData.whatsapp;
+
+                        // Если поле очищено полностью
+                        if (!val) {
+                          setFormData({...formData, whatsapp: ''});
+                          return;
+                        }
+
+                        // Если идет удаление (нажат backspace), позволяем стирать без авто-префикса
+                        if (val.length < prevVal.length) {
+                          setFormData({...formData, whatsapp: val});
+                          return;
+                        }
+
+                        // Очистка от лишних символов
                         val = val.replace(/[^0-9+]/g, '');
-                        // Если начали вводить и это не пустое поле, принудительно ставим +77
-                        if (val && !val.startsWith('+77')) {
+
+                        // Авто-подстановка префикса только при наборе новых цифр
+                        if (val && !val.startsWith('+')) {
                           if (val.startsWith('8')) val = '+77' + val.substring(1);
-                          else if (val.startsWith('7')) val = '+7' + val;
+                          else if (val.startsWith('7')) val = '+77' + val.substring(1);
                           else val = '+77' + val;
                         }
+                        
                         setFormData({...formData, whatsapp: val});
                       }}
                     />
