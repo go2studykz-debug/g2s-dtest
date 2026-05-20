@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -37,10 +36,10 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
-  const today = new Date().toLocaleDateString();
+  const todayStr = new Date().toLocaleDateString();
 
   const stats = useMemo(() => {
-    const todayResults = results.filter(r => new Date(r.started_at).toLocaleDateString() === today);
+    const todayResults = results.filter(r => new Date(r.started_at).toLocaleDateString() === todayStr);
     
     return {
       starts: todayResults.filter(r => r.status === 'in_progress').length,
@@ -48,13 +47,13 @@ export default function AdminDashboard() {
       abandoned: todayResults.filter(r => r.status === 'in_progress' && (new Date().getTime() - new Date(r.started_at).getTime() > 3600000)).length, 
       total_today: todayResults.length
     };
-  }, [results, today]);
+  }, [results, todayStr]);
 
   const filteredResults = useMemo(() => {
     let list = results;
     if (filter !== 'all') {
       list = results.filter(r => {
-        const isToday = new Date(r.started_at).toLocaleDateString() === today;
+        const isToday = new Date(r.started_at).toLocaleDateString() === todayStr;
         if (!isToday) return false;
         if (filter === 'today_starts') return r.status === 'in_progress';
         if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
@@ -63,16 +62,16 @@ export default function AdminDashboard() {
       });
     }
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, today]);
+  }, [results, filter, todayStr]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
     try {
       await analyzeResult(id);
       await loadData();
-      toast({ title: 'Успех', description: 'AI отчет успешно сформирован.' });
+      toast({ title: 'Успех', description: 'Анализ завершен успешно.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Ошибка анализа', description: 'Произошел сбой при генерации AI отчета.' });
+      toast({ variant: 'destructive', title: 'Ошибка анализа', description: 'Не удалось сгенерировать отчет ИИ.' });
     }
   };
 
@@ -80,25 +79,25 @@ export default function AdminDashboard() {
     try {
       await updateResultCRM(id, updates);
       setResults(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
-      toast({ title: 'Обновлено', description: 'Статус CRM изменен.' });
+      toast({ title: 'Обновлено', description: 'CRM статус успешно изменен.' });
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось обновить статус.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Сбой при обновлении статуса.' });
     }
   };
 
   const getPotentialBadge = (percentage: number) => {
     if (percentage >= 80) return (
-      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 text-[10px] h-6 px-2 font-bold">
+      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
         <TrendingUp className="w-3 h-3" /> High Potential
       </Badge>
     );
     if (percentage >= 40) return (
-      <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1 text-[10px] h-6 px-2 font-bold">
+      <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
         <Minus className="w-3 h-3" /> Medium
       </Badge>
     );
     return (
-      <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[10px] h-6 px-2 font-bold">
+      <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
         <TrendingDown className="w-3 h-3" /> Hard Case
       </Badge>
     );
@@ -110,29 +109,28 @@ export default function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm">
-              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> {today}
+              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {todayStr}
             </Badge>
           </div>
           <h1 className="text-4xl font-headline font-bold tracking-tight text-[#081d3a]">Матрица go2study</h1>
-          <p className="text-[#3b3e40] text-base mt-1 font-medium opacity-80">Панель оперативного управления лидами и AI-диагностики.</p>
+          <p className="text-[#3b3e40] text-base mt-1 font-medium opacity-80">Оперативный центр управления лидами и AI-диагностики.</p>
         </div>
         <div className="flex gap-3">
           <Button onClick={() => router.push('/admin/tests')} className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]">
-            <Layout className="w-5 h-5 mr-2" /> Управление обучением
+            <Layout className="w-5 h-5 mr-2" /> Конфигурация тестов
           </Button>
-          <Button variant="outline" className="border-[#081d3a] bg-white h-12 w-12 p-0 rounded-xl">
+          <Button variant="outline" className="border-[#081d3a] bg-white h-12 w-12 p-0 rounded-xl shadow-sm">
             <Settings className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
-      {/* Виджеты воронки продаж */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           { 
             label: 'Новые лиды (Старты)', 
             val: stats.starts, 
-            sub: 'В процессе прямо сейчас',
+            sub: 'В процессе прохождения',
             icon: Zap, 
             color: 'text-primary',
             bg: 'bg-primary/5',
@@ -141,7 +139,7 @@ export default function AdminDashboard() {
           { 
             label: 'Готовы к звонку', 
             val: stats.ready, 
-            sub: 'Анализ завершен',
+            sub: 'Анализ сформирован',
             icon: BrainCircuit, 
             color: 'text-green-500',
             bg: 'bg-green-500/5',
@@ -167,7 +165,7 @@ export default function AdminDashboard() {
           >
             <CardContent className="p-7 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-[#3b3e40] uppercase tracking-widest opacity-60">{stat.label}</p>
+                <p className="text-[10px] font-black text-[#3b3e40] uppercase tracking-widest opacity-40">{stat.label}</p>
                 <div className="flex items-baseline gap-2 mt-2">
                   <p className="text-5xl font-bold font-headline">{stat.val}</p>
                 </div>
@@ -178,26 +176,24 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
             {filter === stat.filter && (
-              <div className="bg-primary text-white text-[11px] font-black py-2 text-center uppercase tracking-widest flex items-center justify-center gap-2">
-                <MousePointer2 className="w-3.5 h-3.5" /> Активный фильтр
+              <div className="bg-primary text-white text-[10px] font-black py-2.5 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                <MousePointer2 className="w-4 h-4" /> Активный фильтр
               </div>
             )}
           </Card>
         ))}
       </div>
 
-      <Card className="border-border bg-white shadow-sm rounded-2xl overflow-hidden border-none">
+      <Card className="border-none bg-white shadow-xl rounded-2xl overflow-hidden">
         <CardHeader className="py-6 px-8 flex flex-row items-center justify-between border-b bg-white">
           <div className="space-y-1">
-            <CardTitle className="font-headline flex items-center gap-3 text-2xl font-bold">
+            <CardTitle className="font-headline flex items-center gap-3 text-2xl font-bold text-[#081d3a]">
               <Users className="w-7 h-7 text-primary" />
-              {filter === 'all' ? 'Все результаты' : 'Отфильтрованные результаты'}
+              {filter === 'all' ? 'Все результаты' : 'Отфильтрованные записи'}
             </CardTitle>
-            <div className="flex items-center gap-3">
-              <p className="text-xs text-[#3b3e40] uppercase font-bold tracking-widest opacity-60">
-                Записей в списке: {filteredResults.length}
-              </p>
-            </div>
+            <p className="text-[10px] text-[#3b3e40] uppercase font-black tracking-widest opacity-40">
+              Количество в списке: {filteredResults.length}
+            </p>
           </div>
           {filter !== 'all' && (
             <Button 
@@ -205,7 +201,7 @@ export default function AdminDashboard() {
               className="bg-[#081d3a] hover:bg-[#0a264a] text-white font-bold rounded-xl h-11 px-6 shadow-md transition-all group"
             >
               <X className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> 
-              Показать все результаты
+              Сбросить фильтр
             </Button>
           )}
         </CardHeader>
@@ -213,39 +209,37 @@ export default function AdminDashboard() {
           <Table>
             <TableHeader className="bg-[#f8fafc]">
               <TableRow className="hover:bg-transparent border-b">
-                <TableHead className="pl-8 h-14 font-black uppercase text-[11px] w-[320px] tracking-widest text-[#3b3e40] opacity-50">Студент</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[11px] w-[200px] tracking-widest text-[#3b3e40] opacity-50">Квалификация</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[11px] w-[160px] tracking-widest text-[#3b3e40] opacity-50">AI Анализ</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[11px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-50">Связь</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[11px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-50">Конс.</TableHead>
-                <TableHead className="h-14 text-right pr-8 font-black uppercase text-[11px] tracking-widest text-[#3b3e40] opacity-50">Действия</TableHead>
+                <TableHead className="pl-8 h-14 font-black uppercase text-[10px] w-[320px] tracking-widest text-[#3b3e40] opacity-40">Студент</TableHead>
+                <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Потенциал</TableHead>
+                <TableHead className="h-14 font-black uppercase text-[10px] w-[160px] tracking-widest text-[#3b3e40] opacity-40">Диагностика ИИ</TableHead>
+                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-40">Связь</TableHead>
+                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-40">Конс.</TableHead>
+                <TableHead className="h-14 text-right pr-8 font-black uppercase text-[10px] tracking-widest text-[#3b3e40] opacity-40">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredResults.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-40 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-40">
                     <div className="flex flex-col items-center gap-6">
-                      <div className="p-6 rounded-full bg-muted/20">
-                        <Search className="w-16 h-16 opacity-10" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-xl font-bold text-[#081d3a]">Ничего не найдено</p>
-                      </div>
+                      <Search className="w-16 h-16 opacity-5" />
+                      <p className="text-xl font-bold text-[#081d3a] opacity-30">Данные отсутствуют</p>
                       <Button variant="outline" onClick={() => setFilter('all')} className="rounded-xl font-bold">Вернуться ко всем</Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredResults.map((r) => (
-                  <TableRow key={r.id} className="hover:bg-[#f4f7f9]/30 transition-colors border-b last:border-none group">
+                  <TableRow key={r.id} className="hover:bg-[#f4f7f9]/50 transition-colors border-b last:border-none group">
                     <TableCell className="pl-8 py-5">
                       <div className="flex flex-col">
-                        <span className="font-bold text-xl text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <Badge variant="secondary" className="text-[10px] h-5 font-bold bg-[#f1f3f5] text-[#3b3e40] px-2 rounded-sm border-none">{r.student_city}</Badge>
-                          <span className="text-[11px] text-[#3b3e40] font-bold uppercase tracking-tight opacity-40">
-                            {r.class_number} Класс • {r.language.toUpperCase()}
+                        <span className="font-bold text-lg text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <Badge variant="secondary" className="text-[9px] h-4.5 font-bold bg-[#f1f3f5] text-[#3b3e40] px-2 rounded-sm border-none">
+                            {r.student_city}
+                          </Badge>
+                          <span className="text-[10px] text-[#3b3e40] font-black uppercase tracking-tighter opacity-30">
+                            {r.class_number} Класс &bull; {r.language.toUpperCase()}
                           </span>
                         </div>
                       </div>
@@ -256,14 +250,14 @@ export default function AdminDashboard() {
                           <span className="font-bold text-xl text-[#081d3a]">{r.percentage}%</span>
                           {getPotentialBadge(r.percentage)}
                         </div>
-                        <p className="text-[10px] text-[#3b3e40] font-bold uppercase tracking-widest opacity-30">{r.total_score} баллов набрано</p>
+                        <p className="text-[10px] text-[#3b3e40] font-black uppercase tracking-widest opacity-30">{r.total_score} баллов</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       {r.is_analysed ? (
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f9f7] text-[#14bf96] font-bold border border-[#14bf96]/10">
-                          <Zap className="w-3.5 h-3.5" />
-                          <span className="text-[10px] uppercase tracking-widest">Анализ</span>
+                          <BrainCircuit className="w-3.5 h-3.5" />
+                          <span className="text-[10px] uppercase tracking-widest">Готово</span>
                         </div>
                       ) : r.status === 'completed' ? (
                         <Button 
@@ -275,8 +269,8 @@ export default function AdminDashboard() {
                           <Zap className="w-3 h-3 mr-1" /> Анализ
                         </Button>
                       ) : (
-                        <div className="text-[#3b3e40] text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 opacity-30">
-                          <Clock className="w-3.5 h-3.5" /> В процессе
+                        <div className="text-[#3b3e40] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-20">
+                          <Clock className="w-3.5 h-3.5" /> В работе
                         </div>
                       )}
                     </TableCell>
@@ -303,7 +297,7 @@ export default function AdminDashboard() {
                         variant="ghost" 
                         size="sm" 
                         onClick={() => router.push(`/admin/results/${r.id}`)}
-                        className="font-bold text-[11px] gap-1 hover:text-primary transition-all uppercase tracking-widest"
+                        className="font-bold text-[10px] gap-1 hover:text-primary transition-all uppercase tracking-widest"
                       >
                         Детали <ArrowUpRight className="w-3.5 h-3.5" />
                       </Button>
