@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -14,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { 
   Users, BrainCircuit, Calendar, Zap, Clock, 
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, ArrowUpRight, X, Phone, User, CalendarDays
+  Layout, ArrowUpRight, X, Phone, CalendarDays
 } from 'lucide-react';
 import { getAllResults, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -24,10 +23,16 @@ import { cn } from '@/lib/utils';
 export default function AdminDashboard() {
   const [results, setResults] = useState<StudentResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_ready' | 'today_abandoned' | 'today_no_consult'>('all');
+  const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_ready' | 'today_abandoned' | 'today_no_consult' | 'all_completed'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    loadData();
+  }, []);
 
   const loadData = async () => {
     const data = await getAllResults();
@@ -35,13 +40,14 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const todayStr = new Date().toLocaleDateString();
+  const todayStr = useMemo(() => {
+    if (!mounted) return '';
+    return new Date().toLocaleDateString();
+  }, [mounted]);
 
   const stats = useMemo(() => {
+    if (!mounted) return { starts: 0, ready: 0, abandoned: 0, noConsult: 0, total_today: 0 };
+    
     const todayResults = results.filter(r => new Date(r.started_at).toLocaleDateString() === todayStr);
     
     return {
@@ -51,19 +57,24 @@ export default function AdminDashboard() {
       noConsult: todayResults.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
     };
-  }, [results, todayStr]);
+  }, [results, todayStr, mounted]);
 
   const filteredResults = useMemo(() => {
     let list = results;
+
+    if (!mounted) return list;
 
     // Filter by type
     if (filter !== 'all') {
       list = results.filter(r => {
         const isToday = new Date(r.started_at).toLocaleDateString() === todayStr;
+        
+        if (filter === 'all_completed') return r.status === 'completed';
+        
         if (!isToday) return false;
         if (filter === 'today_starts') return r.status === 'in_progress';
         if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
-        if (filter === 'today_abandoned') return r.status === 'in_progress';
+        if (filter === 'today_abandoned') return r.status === 'in_progress' && (new Date().getTime() - new Date(r.started_at).getTime() > 3600000);
         if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
         return true;
       });
@@ -79,7 +90,7 @@ export default function AdminDashboard() {
     }
 
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, todayStr, searchTerm]);
+  }, [results, filter, todayStr, searchTerm, mounted]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
@@ -126,7 +137,7 @@ export default function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm">
-              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {todayStr}
+              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? todayStr : '--.--.----'}
             </Badge>
           </div>
           <h1 className="text-4xl font-headline font-bold tracking-tight text-[#081d3a]">Матрица go2study</h1>
@@ -190,7 +201,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-[10px] font-black text-[#3b3e40] uppercase tracking-widest opacity-40">{stat.label}</p>
                 <div className="flex items-baseline gap-2 mt-2">
-                  <p className="text-4xl font-bold font-headline">{stat.val}</p>
+                  <p className="text-4xl font-bold font-headline">{mounted ? stat.val : '0'}</p>
                 </div>
                 <p className="text-sm text-[#3b3e40] font-bold mt-1 opacity-70">{stat.sub}</p>
               </div>
@@ -290,7 +301,7 @@ export default function AdminDashboard() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        {r.completed_at ? (
+                        {mounted && r.completed_at ? (
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-[#081d3a] flex items-center gap-1.5">
                               <CalendarDays className="w-3.5 h-3.5 text-primary" />
@@ -300,10 +311,12 @@ export default function AdminDashboard() {
                               {new Date(r.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                        ) : (
+                        ) : !r.completed_at && mounted ? (
                           <div className="text-[#3b3e40] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-20">
                             <Clock className="w-3.5 h-3.5" /> В процессе
                           </div>
+                        ) : (
+                          <div className="h-4 w-20 bg-muted/20 animate-pulse rounded" />
                         )}
                       </div>
                     </TableCell>

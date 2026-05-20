@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,10 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const [data, setData] = useState<{ result: StudentResult, answers: StudentAnswer[], logs: AntiCheatLog[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     async function load() {
       const res = await getResultDetail(id);
       setData(res as any);
@@ -200,7 +202,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                         <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                         <div>
                           <p className="font-bold text-sm text-[#081d3a]">{log.event_type === 'tab_switch' ? 'Смена вкладки' : 'Потеря фокуса'}</p>
-                          <p className="text-xs text-[#3b3e40] font-medium opacity-60 mt-1">Вопрос #{log.question_number} &bull; {new Date(log.created_at).toLocaleTimeString()}</p>
+                          <p className="text-xs text-[#3b3e40] font-medium opacity-60 mt-1">Вопрос #{log.question_number} &bull; {mounted ? new Date(log.created_at).toLocaleTimeString() : '--:--'}</p>
                         </div>
                       </div>
                     ))}
@@ -224,12 +226,12 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase font-black tracking-widest opacity-40">Начало</p>
-                  <p className="text-xs font-bold">{new Date(result.started_at).toLocaleTimeString()}</p>
+                  <p className="text-xs font-bold">{mounted ? new Date(result.started_at).toLocaleTimeString() : '--:--'}</p>
                 </div>
                 <div className="space-y-1 text-right">
                   <p className="text-[10px] uppercase font-black tracking-widest opacity-40">Длительность</p>
                   <p className="text-xs font-bold">
-                    {result.completed_at ? 
+                    {result.completed_at && mounted ? 
                       `${Math.round((new Date(result.completed_at).getTime() - new Date(result.started_at).getTime()) / 60000)} мин.` : 
                       'Активно'
                     }
