@@ -121,7 +121,7 @@ Please analyze the provided data and generate a JSON output that adheres strictl
 Ensure the output is a single, valid JSON object. Do not include any other text or formatting outside the JSON.`,
   config: {
     responseMimeType: 'application/json',
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-1.5-flash',
   }
 });
 

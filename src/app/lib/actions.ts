@@ -1,4 +1,3 @@
-
 'use server';
 
 import { 
@@ -35,16 +34,16 @@ if (process.env.NODE_ENV !== 'production') {
   globalForStore.logsStore = logsStore;
   globalForStore.testsStore = testsStore;
   globalForStore.questionsStore = questionsStore;
-  
-  // Initialize with mocks if empty
-  if (Object.keys(testsStore).length === 0) {
-    MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
-  }
-  if (Object.keys(questionsStore).length === 0) {
-    const allQuestions: Question[] = [];
-    Object.values(MOCK_QUESTIONS).forEach(qs => allQuestions.push(...qs));
-    questionsStore['all'] = allQuestions;
-  }
+}
+
+// Ensure mocks are loaded
+if (Object.keys(testsStore).length === 0) {
+  MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
+}
+if (!questionsStore['all'] || questionsStore['all'].length === 0) {
+  const allQuestions: Question[] = [];
+  Object.values(MOCK_QUESTIONS).forEach(qs => allQuestions.push(...qs));
+  questionsStore['all'] = allQuestions;
 }
 
 export async function getTests(): Promise<Test[]> {
@@ -54,8 +53,8 @@ export async function getTests(): Promise<Test[]> {
 export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
   const all = questionsStore['all'] || [];
   return all.filter(q => {
-    if (classNumber === 6 && language === 'ru') return q.test_id === 'test-1';
-    return false;
+    // Basic filter logic for prototype
+    return true; 
   });
 }
 
@@ -67,7 +66,7 @@ export async function saveQuestion(question: Question): Promise<Question> {
   } else {
     all.push(question);
   }
-  questionsStore['all'] = all;
+  questionsStore['all'] = [...all];
   return question;
 }
 
@@ -232,14 +231,14 @@ export async function analyzeResult(resultId: string) {
       return {
         questionNumber: a.question_number,
         subject: a.subject,
-        questionText: qObj?.question_text || "",
-        optionA: qObj?.option_a,
-        optionB: qObj?.option_b,
-        optionC: qObj?.option_c,
-        optionD: qObj?.option_d,
-        optionE: qObj?.option_e,
-        studentAnswer: a.student_answer,
-        correctAnswer: a.correct_answer,
+        questionText: qObj?.question_text || "Вопрос не найден в базе",
+        optionA: qObj?.option_a || "Вариант A",
+        optionB: qObj?.option_b || "Вариант B",
+        optionC: qObj?.option_c || "Вариант C",
+        optionD: qObj?.option_d || "Вариант D",
+        optionE: qObj?.option_e || null,
+        studentAnswer: a.student_answer || "Нет ответа",
+        correctAnswer: a.correct_answer || "Не указано",
         isCorrect: a.is_correct,
         timeSpentSeconds: a.time_spent_seconds,
       };
@@ -253,19 +252,24 @@ export async function analyzeResult(resultId: string) {
     })),
   };
 
-  const analysis = await analyzeStudentResult(analysisInput);
-  
-  result.is_analysed = true;
-  result.ai_analysis = {
-    id: Math.random().toString(36).substr(2, 9),
-    result_id: resultId,
-    analysis_json: analysis,
-    student_name: result.student_name,
-    class_number: result.class_number,
-    percentage: result.percentage,
-  };
+  try {
+    const analysis = await analyzeStudentResult(analysisInput);
+    
+    result.is_analysed = true;
+    result.ai_analysis = {
+      id: Math.random().toString(36).substr(2, 9),
+      result_id: resultId,
+      analysis_json: analysis,
+      student_name: result.student_name,
+      class_number: result.class_number,
+      percentage: result.percentage,
+    };
 
-  return result.ai_analysis;
+    return result.ai_analysis;
+  } catch (error) {
+    console.error("Analysis flow error:", error);
+    throw error;
+  }
 }
 
 export async function getAllResults() {
