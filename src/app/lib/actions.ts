@@ -25,20 +25,93 @@ import {
   orderBy,
   addDoc,
   Timestamp,
-  serverTimestamp
+  serverTimestamp,
+  limit
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
-// Инициализируем Firebase один раз на стороне сервера
 const { firestore: db } = initializeFirebase();
 
-// Хелпер для сериализации данных для предотвращения ошибок Next.js 15
 function serializeData<T>(data: T): T {
   return JSON.parse(JSON.stringify(data));
 }
 
+/**
+ * Инициализирует демонстрационные данные, если база пуста.
+ */
+async function ensureSampleData() {
+  const testsSnap = await getDocs(query(collection(db, 'tests'), limit(1)));
+  if (testsSnap.empty) {
+    const testId = 'test-1';
+    const sampleTest: Test = {
+      id: testId,
+      name: 'Вступительная диагностика НИШ (Математика и Логика)',
+      class_number: 6,
+      language: 'ru',
+      is_active: true,
+      total_time_minutes: 60,
+      blocks: [
+        { subject: 'math', question_count: 2, time_limit_minutes: 30 },
+        { subject: 'logic', question_count: 1, time_limit_minutes: 30 }
+      ],
+      created_at: new Date()
+    };
+    await setDoc(doc(db, 'tests', testId), { ...sampleTest, created_at: serverTimestamp() });
+
+    const sampleQuestions = [
+      {
+        test_id: testId,
+        question_number: 1,
+        subject: 'math',
+        question_text: 'Решите уравнение: 2x + 5 = 15',
+        option_a: '3',
+        option_b: '5',
+        option_c: '10',
+        option_d: '7',
+        option_e: '4',
+        correct_answer: 'B',
+        class_number: 6,
+        language: 'ru'
+      },
+      {
+        test_id: testId,
+        question_number: 2,
+        subject: 'math',
+        question_text: 'Чему равен корень из 144?',
+        option_a: '10',
+        option_b: '12',
+        option_c: '14',
+        option_d: '16',
+        option_e: '11',
+        correct_answer: 'B',
+        class_number: 6,
+        language: 'ru'
+      },
+      {
+        test_id: testId,
+        question_number: 3,
+        subject: 'logic',
+        question_text: 'Какое число следующее в последовательности: 2, 4, 8, 16, ...?',
+        option_a: '24',
+        option_b: '30',
+        option_c: '32',
+        option_d: '64',
+        option_e: '48',
+        correct_answer: 'C',
+        class_number: 6,
+        language: 'ru'
+      }
+    ];
+
+    for (const q of sampleQuestions) {
+      await addDoc(collection(db, 'questions'), q);
+    }
+  }
+}
+
 export async function getTests(): Promise<Test[]> {
   try {
+    await ensureSampleData();
     const querySnapshot = await getDocs(collection(db, 'tests'));
     const tests = querySnapshot.docs.map(d => ({
       id: d.id,
@@ -105,7 +178,12 @@ export async function startTest(data: {
   classNumber: number;
   language: 'kk' | 'ru';
 }): Promise<{ result: StudentResult; questions: Question[] }> {
+  await ensureSampleData();
   const questions = await getQuestionsByTestId(data.testId);
+
+  if (questions.length === 0) {
+    throw new Error('No questions found for this test');
+  }
 
   const resultData = {
     test_id: data.testId,
@@ -128,7 +206,6 @@ export async function startTest(data: {
 
   const docRef = await addDoc(collection(db, 'results'), resultData);
   
-  // Возвращаем результат с ISO датой для клиента
   const result = { 
     id: docRef.id, 
     ...resultData, 

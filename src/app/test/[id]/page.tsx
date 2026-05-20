@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, XCircle } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, XCircle, Home } from 'lucide-react';
 import { getResultDetail, submitAnswer, logAntiCheat, finishTest, getQuestionsByTestId, getTestById } from '@/app/lib/actions';
 import { StudentResult, Question, Test } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -26,8 +26,8 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const [timeLeft, setTimeLeft] = useState<number | null>(null); 
   const [isFinishing, setIsFinishing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // Состояния для жесткого прокторинга
   const [showViolationModal, setShowViolationModal] = useState(false);
   const [violationType, setViolationType] = useState<'tab_switch' | 'window_blur' | null>(null);
   const [antiCheatCount, setAntiCheatCount] = useState(0);
@@ -52,6 +52,13 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           setTestInfo(t);
 
           const qs = await getQuestionsByTestId(data.result.test_id);
+          
+          if (qs.length === 0) {
+            setError("В данном тесте еще нет вопросов. Пожалуйста, обратитесь к администратору.");
+            setLoading(false);
+            return;
+          }
+          
           setQuestions(qs);
 
           const existingAnswers: Record<string, string> = {};
@@ -69,11 +76,11 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           
           setTimeLeft(remaining);
         } else {
-          toast({ variant: 'destructive', title: 'Ошибка', description: 'Сессия не найдена.' });
-          router.push('/');
+          setError("Сессия тестирования не найдена.");
         }
       } catch (err) {
         console.error("Load error:", err);
+        setError("Произошла ошибка при загрузке теста.");
       } finally {
         setLoading(false);
       }
@@ -97,7 +104,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     return () => clearInterval(timer);
   }, [timeLeft, isFinishing]);
 
-  // Жесткий прокторинг и защита контента
   useEffect(() => {
     if (loading || !result || questions.length === 0) return;
 
@@ -116,7 +122,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
         
         setAntiCheatCount(prev => prev + 1);
       } else if (document.visibilityState === 'visible' && lastHiddenTime.current) {
-        // Когда вернулся - показываем жесткое предупреждение
         setViolationType('tab_switch');
         setShowViolationModal(true);
         lastHiddenTime.current = null;
@@ -129,7 +134,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Запрет Copy (Ctrl+C), Paste (Ctrl+V), Cut (Ctrl+X), PrintScreen
       if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) {
         e.preventDefault();
         toast({ variant: 'destructive', title: 'Запрещено', description: 'Данное действие заблокировано системой прокторинга.' });
@@ -186,11 +190,25 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  if (loading || !result || questions.length === 0 || timeLeft === null) return (
+  if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#14bf96]" />
         <p className="text-sm font-bold text-muted-foreground animate-pulse">Загрузка сессии...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="mx-auto w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center">
+          <AlertTriangle className="w-10 h-10" />
+        </div>
+        <h2 className="text-2xl font-bold text-[#081d3a]">{error}</h2>
+        <Button onClick={() => router.push('/')} className="w-full h-12 bg-primary">
+          <Home className="w-4 h-4 mr-2" /> Вернуться на главную
+        </Button>
       </div>
     </div>
   );
@@ -200,7 +218,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
   return (
     <div className="min-h-screen bg-[#f9fafb] flex flex-col select-none">
-      {/* Жесткое предупреждение при нарушении */}
       <Dialog open={showViolationModal} onOpenChange={setShowViolationModal}>
         <DialogContent className="max-w-md bg-red-600 border-none text-white overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-white/20 animate-pulse" />
@@ -246,10 +263,10 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           </div>
           <div className={cn(
             "flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold transition-colors",
-            timeLeft < 300 ? "bg-red-50 text-red-500 animate-pulse" : "bg-muted/50 text-[#3b3e40]"
+            (timeLeft || 0) < 300 ? "bg-red-50 text-red-500 animate-pulse" : "bg-muted/50 text-[#3b3e40]"
           )}>
             <Clock className="w-4 h-4" />
-            <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
+            <span className="font-mono text-lg">{formatTime(timeLeft || 0)}</span>
           </div>
           <Button 
             variant="outline" 
