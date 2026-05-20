@@ -41,7 +41,6 @@ if (process.env.NODE_ENV !== 'production') {
     MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
   }
   if (Object.keys(questionsStore).length === 0) {
-    // We'll store all questions in a flat array for easier filtering in this demo
     const allQuestions: Question[] = [];
     Object.values(MOCK_QUESTIONS).forEach(qs => allQuestions.push(...qs));
     questionsStore['all'] = allQuestions;
@@ -54,11 +53,7 @@ export async function getTests(): Promise<Test[]> {
 
 export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
   const all = questionsStore['all'] || [];
-  // In a real app, we'd filter by the test assigned to this class/lang
-  // For this prototype, we filter questions directly by their properties if they had them
-  // Since our mock questions don't have class/lang, we'll return a subset or simulate
   return all.filter(q => {
-    // For demo: questions with 'test-1' are 6 class RU
     if (classNumber === 6 && language === 'ru') return q.test_id === 'test-1';
     return false;
   });
@@ -121,11 +116,23 @@ export async function startTest(data: {
     started_at: new Date(),
     is_analysed: false,
     anti_cheat_count: 0,
+    is_contacted: false,
+    is_consulted: false,
   };
 
   resultsStore[resultId] = result;
   
   return { result, questions: questions.map(({ correct_answer, ...q }) => q as Question) };
+}
+
+export async function updateResultCRM(id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) {
+  const result = resultsStore[id];
+  if (result) {
+    if (updates.is_contacted !== undefined) result.is_contacted = updates.is_contacted;
+    if (updates.is_consulted !== undefined) result.is_consulted = updates.is_consulted;
+    resultsStore[id] = { ...result };
+  }
+  return result;
 }
 
 export async function submitAnswer(data: {

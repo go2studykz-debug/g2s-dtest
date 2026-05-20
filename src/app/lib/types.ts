@@ -60,6 +60,8 @@ export interface StudentResult {
   is_analysed: boolean;
   anti_cheat_count: number;
   ai_analysis?: AIAnalysis | null;
+  is_contacted: boolean;
+  is_consulted: boolean;
 }
 
 export interface StudentAnswer {
