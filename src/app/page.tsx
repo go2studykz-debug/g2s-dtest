@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { 
   GraduationCap, BookOpen, CheckCircle2, User, Phone, 
-  Target, HeartHandshake, FileSearch, Sparkles, ExternalLink, ArrowRight, BrainCircuit
+  Target, HeartHandshake, FileSearch, Sparkles, ExternalLink, ArrowRight, BrainCircuit,
+  Users, ShieldCheck, Globe
 } from 'lucide-react';
 import { startTest } from './lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -71,7 +72,7 @@ const TRANSLATIONS = {
     field_lang: "Тест тілі",
     btn_start: "Диагностиканы бастау",
     stats_students: "1240+",
-    stats_students_label: "Оқушылар саны",
+    stats_students_label: "Оқудан өтті",
     stats_params: "NIS Standard",
     stats_params_label: "НЗМ тестерімен 100% сәйкестік",
     stats_cities: "20 қала",
@@ -200,17 +201,27 @@ export default function LandingPage() {
               {t.hero_title.split('. ')[0]}. <br/><span className="text-primary">{t.hero_title.split('. ')[1]}</span>
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
-            <div className="grid grid-cols-3 gap-6 pt-4">
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-[#081d3a]">{t.stats_students}</span>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary opacity-60" />
+                  <span className="text-2xl font-bold text-[#081d3a]">{t.stats_students}</span>
+                </div>
                 <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_students_label}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-primary">{t.stats_params}</span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-primary opacity-60" />
+                  <span className="text-2xl font-bold text-primary">{t.stats_params}</span>
+                </div>
                 <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_params_label}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities}</span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-primary opacity-60" />
+                  <span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities}</span>
+                </div>
                 <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_cities_label}</span>
               </div>
             </div>
