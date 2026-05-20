@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Brain, Shield, Clock, BookOpen, AlertCircle, 
-  ChevronLeft, BarChart2, CheckCircle2, XCircle, Phone
+  ChevronLeft, BarChart2, CheckCircle2, XCircle, Phone,
+  BrainCircuit
 } from 'lucide-react';
 import { getResultDetail } from '@/app/lib/actions';
 import { StudentResult, StudentAnswer, AntiCheatLog } from '@/app/lib/types';
