@@ -382,10 +382,11 @@ export default function AdminDashboard() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleAnalyze(r.id)} 
-                              className="h-8 w-8 p-0 text-primary hover:bg-primary/10 rounded-full"
+                              className="h-8 px-2 text-primary hover:bg-primary/10 rounded-md gap-1"
                               title="Запустить AI Анализ"
                             >
-                              <Zap className="w-4 h-4" />
+                              <Zap className="w-3.5 h-3.5" />
+                              <span className="text-[10px] font-bold uppercase">AI</span>
                             </Button>
                           )}
                           <Button 
