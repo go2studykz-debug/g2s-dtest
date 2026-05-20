@@ -27,7 +27,7 @@ const CITIES = [
 
 const TRANSLATIONS = {
   ru: {
-    hero_title: "Ваш первый шаг к поступлению в НИШ",
+    hero_title: "Ваш первый шаг к поступлению в НИШ.",
     hero_subtitle: "Глубокая академическая диагностика, которая выявит пробелы, определит сильные стороны и станет фундаментом вашего личного учебного плана.",
     cta_title: "Начать путь",
     cta_desc: "Заполни анкету, чтобы приступить к профессиональному тестированию.",
@@ -51,8 +51,8 @@ const TRANSLATIONS = {
     how_step2_desc: "Глубокий аудит знаний (до 120 мин)",
     how_step3: "Экспертный разбор",
     how_step3_desc: "Анализ от экспертов (отправим вам)",
-    how_step4: "Сопровождение",
-    how_step4_desc: "Ведем вас до самого поступления",
+    how_step4: "Поступление в НИШ",
+    how_step4_desc: "Профподготовка по лучшим стандартам",
     preview_title: "Что вы получите",
     preview_summary: "Результаты диагностики от go2study — это фундамент, без которого нельзя строить подготовку. Мы выявим ваши 'слепые зоны' и превратим их в точки роста.",
     go2site: "о go2study",
@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     value_3: "Карта навыков по всем предметам НИШ"
   },
   kk: {
-    hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз",
+    hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз.",
     hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін иә жеке оқу жоспарыңыздың негезі болатын терең академиялық диагностика.",
     cta_title: "Жолды бастау",
     cta_desc: "Кәсіби тестілеуді бастау үшін сауалнаманы толтырыңыз.",
@@ -85,8 +85,8 @@ const TRANSLATIONS = {
     how_step2_desc: "Терең білім тексеру (120 мин дейін)",
     how_step3: "Сарапшы талдауы",
     how_step3_desc: "Сарапшылардың талдауы (сізге жібереміз)",
-    how_step4: "Қолдау көрсету",
-    how_step4_desc: "Оқуға түскенше бірге боламыз",
+    how_step4: "НЗМ-ге түсу",
+    how_step4_desc: "Үздік стандарттар бойынша кәсіби дайындық",
     preview_title: "Сіз не аласыз",
     preview_summary: "go2study диагностикасының нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
     go2site: "go2study туралы",
@@ -199,7 +199,7 @@ export default function LandingPage() {
           <div className="space-y-8 order-2 lg:order-1">
             <Badge variant="secondary" className="bg-primary/10 text-primary border-none px-4 py-1 font-bold text-sm uppercase tracking-wider">Профессиональная диагностика НИШ</Badge>
             <h1 className="text-4xl md:text-6xl font-headline font-bold text-[#081d3a] leading-[1.15]">
-              {t.hero_title}.
+              {t.hero_title}
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             
@@ -241,7 +241,7 @@ export default function LandingPage() {
               <div className="bg-primary h-2 w-full" />
               <CardHeader className="p-8 pb-4">
                 <CardTitle className="text-2xl font-bold text-[#081d3a]">{t.cta_title}</CardTitle>
-                <CardDescription className="text-[#3b3e40] font-medium">{t.cta_desc}</CardDescription>
+                <CardTitle className="text-sm font-medium text-[#3b3e40] mt-1">{t.cta_desc}</CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-0">
                 <form onSubmit={handleSubmit} className="space-y-6">
