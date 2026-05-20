@@ -38,12 +38,11 @@ export default function LandingPage() {
       return;
     }
     
-    // Простая проверка длины номера (минимум +77XXXXXXXXX - 12 символов)
     if (formData.whatsapp.length < 12) {
       toast({ 
         variant: 'destructive', 
         title: 'Неверный формат', 
-        description: 'Пожалуйста, введите полный номер телефона (например, +77071234567).' 
+        description: 'Пожалуйста, введите полный номер телефона в формате +77071234567.' 
       });
       return;
     }
@@ -163,20 +162,18 @@ export default function LandingPage() {
                     <Phone className="absolute left-3 top-3 w-4 h-4 text-[#14bf96]" />
                     <Input 
                       id="whatsapp" 
-                      placeholder="+7 (7xx) xxx-xx-xx" 
+                      placeholder="+7 7XX XXX XX XX" 
                       className="pl-10 h-12 border-[#e3e8ee]"
                       required 
                       value={formData.whatsapp}
                       onChange={e => {
                         let val = e.target.value;
-                        // Разрешаем только цифры и знак плюс в начале
                         val = val.replace(/[^0-9+]/g, '');
                         if (!val.startsWith('+77')) val = '+77';
                         setFormData({...formData, whatsapp: val});
                       }}
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground italic mt-1">Формат: +7 707 123 45 67 (без пробелов)</p>
                 </div>
               </div>
 
