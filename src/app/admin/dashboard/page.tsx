@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { 
   Users, BrainCircuit, Calendar, Zap, Clock, 
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, ArrowUpRight, X, Phone, CalendarDays
+  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle
 } from 'lucide-react';
 import { getAllResults, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -32,6 +32,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     setMounted(true);
     loadData();
+    // Refresh data every 5 minutes to update "abandoned" status
+    const interval = setInterval(loadData, 300000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
@@ -45,15 +48,23 @@ export default function AdminDashboard() {
     return new Date().toLocaleDateString();
   }, [mounted]);
 
+  // Helper to check if session is abandoned (in progress > 1 hour)
+  const isAbandoned = (r: StudentResult) => {
+    if (r.status !== 'in_progress') return false;
+    const startTime = new Date(r.started_at).getTime();
+    const now = new Date().getTime();
+    return (now - startTime) > 3600000; // 1 hour threshold
+  };
+
   const stats = useMemo(() => {
     if (!mounted) return { starts: 0, ready: 0, abandoned: 0, noConsult: 0, total_today: 0 };
     
     const todayResults = results.filter(r => new Date(r.started_at).toLocaleDateString() === todayStr);
     
     return {
-      starts: todayResults.filter(r => r.status === 'in_progress').length,
+      starts: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
       ready: todayResults.filter(r => r.status === 'completed' && r.is_analysed).length,
-      abandoned: todayResults.filter(r => r.status === 'in_progress' && (new Date().getTime() - new Date(r.started_at).getTime() > 3600000)).length, 
+      abandoned: todayResults.filter(r => isAbandoned(r)).length, 
       noConsult: todayResults.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
     };
@@ -72,9 +83,9 @@ export default function AdminDashboard() {
         if (filter === 'all_completed') return r.status === 'completed';
         
         if (!isToday) return false;
-        if (filter === 'today_starts') return r.status === 'in_progress';
+        if (filter === 'today_starts') return r.status === 'in_progress' && !isAbandoned(r);
         if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
-        if (filter === 'today_abandoned') return r.status === 'in_progress' && (new Date().getTime() - new Date(r.started_at).getTime() > 3600000);
+        if (filter === 'today_abandoned') return isAbandoned(r);
         if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
         return true;
       });
@@ -275,94 +286,101 @@ export default function AdminDashboard() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredResults.map((r) => (
-                  <TableRow key={r.id} className="hover:bg-[#f4f7f9]/50 transition-colors border-b last:border-none group">
-                    <TableCell className="pl-8 py-5">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-lg text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <Badge variant="secondary" className="text-[9px] h-4.5 font-bold bg-[#f1f3f5] text-[#3b3e40] px-2 rounded-sm border-none">
-                            {r.student_city}
-                          </Badge>
-                          <span className="text-[10px] text-[#3b3e40] font-black uppercase tracking-tighter opacity-40 flex items-center gap-1">
-                            <Phone className="w-2.5 h-2.5" /> {r.parent_whatsapp}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-xl text-[#081d3a]">{r.percentage}%</span>
-                          {getPotentialBadge(r.percentage)}
-                        </div>
-                        <p className="text-[10px] text-[#3b3e40] font-black uppercase tracking-widest opacity-30">{r.total_score} баллов &bull; {r.class_number} Класс</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {mounted && r.completed_at ? (
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-[#081d3a] flex items-center gap-1.5">
-                              <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                              {new Date(r.completed_at).toLocaleDateString()}
-                            </span>
-                            <span className="text-[10px] font-black uppercase text-[#3b3e40] opacity-40 ml-5">
-                              {new Date(r.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                filteredResults.map((r) => {
+                  const abandoned = isAbandoned(r);
+                  return (
+                    <TableRow key={r.id} className="hover:bg-[#f4f7f9]/50 transition-colors border-b last:border-none group">
+                      <TableCell className="pl-8 py-5">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-lg text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge variant="secondary" className="text-[9px] h-4.5 font-bold bg-[#f1f3f5] text-[#3b3e40] px-2 rounded-sm border-none">
+                              {r.student_city}
+                            </Badge>
+                            <span className="text-[10px] text-[#3b3e40] font-black uppercase tracking-tighter opacity-40 flex items-center gap-1">
+                              <Phone className="w-2.5 h-2.5" /> {r.parent_whatsapp}
                             </span>
                           </div>
-                        ) : !r.completed_at && mounted ? (
-                          <div className="text-[#3b3e40] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-20">
-                            <Clock className="w-3.5 h-3.5" /> В процессе
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-xl text-[#081d3a]">{r.percentage}%</span>
+                            {getPotentialBadge(r.percentage)}
                           </div>
-                        ) : (
-                          <div className="h-4 w-20 bg-muted/20 animate-pulse rounded" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center">
-                        <Checkbox 
-                          checked={r.is_contacted} 
-                          onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
-                          className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center">
-                        <Checkbox 
-                          checked={r.is_consulted} 
-                          onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
-                          className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <div className="flex items-center justify-end gap-3">
-                        {!r.is_analysed && r.status === 'completed' && (
+                          <p className="text-[10px] text-[#3b3e40] font-black uppercase tracking-widest opacity-30">{r.total_score} баллов &bull; {r.class_number} Класс</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {mounted && r.completed_at ? (
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-[#081d3a] flex items-center gap-1.5">
+                                <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                                {new Date(r.completed_at).toLocaleDateString()}
+                              </span>
+                              <span className="text-[10px] font-black uppercase text-[#3b3e40] opacity-40 ml-5">
+                                {new Date(r.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          ) : abandoned && mounted ? (
+                            <div className="text-red-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 bg-red-50 px-2 py-1 rounded w-fit">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Брошен
+                            </div>
+                          ) : !r.completed_at && mounted ? (
+                            <div className="text-[#3b3e40] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-20">
+                              <Clock className="w-3.5 h-3.5" /> В процессе
+                            </div>
+                          ) : (
+                            <div className="h-4 w-20 bg-muted/20 animate-pulse rounded" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center">
+                          <Checkbox 
+                            checked={r.is_contacted} 
+                            onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
+                            className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center">
+                          <Checkbox 
+                            checked={r.is_consulted} 
+                            onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
+                            className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex items-center justify-end gap-3">
+                          {!r.is_analysed && r.status === 'completed' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleAnalyze(r.id)} 
+                              className="h-8 w-8 p-0 text-primary hover:bg-primary/10 rounded-full"
+                              title="Запустить AI Анализ"
+                            >
+                              <Zap className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            onClick={() => handleAnalyze(r.id)} 
-                            className="h-8 w-8 p-0 text-primary hover:bg-primary/10 rounded-full"
-                            title="Запустить AI Анализ"
+                            onClick={() => router.push(`/admin/results/${r.id}`)}
+                            className="font-bold text-[10px] gap-1 hover:text-primary transition-all uppercase tracking-widest"
                           >
-                            <Zap className="w-4 h-4" />
+                            Детали <ArrowUpRight className="w-3.5 h-3.5" />
                           </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => router.push(`/admin/results/${r.id}`)}
-                          className="font-bold text-[10px] gap-1 hover:text-primary transition-all uppercase tracking-widest"
-                        >
-                          Детали <ArrowUpRight className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
