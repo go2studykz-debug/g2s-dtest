@@ -11,7 +11,6 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    /* Khan Academy Teal/Green */
     --primary: 166 81% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
@@ -39,6 +38,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight font-bold text-[#081d3a];
   }
+}
+
+@keyframes pulse-subtle {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 191, 150, 0.4); }
+  70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(20, 191, 150, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 191, 150, 0); }
+}
+
+.animate-pulse-cta {
+  animation: pulse-subtle 2s infinite;
 }
 
 .khan-card {
