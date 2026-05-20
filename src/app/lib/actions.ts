@@ -204,7 +204,9 @@ export async function getResultDetail(id: string) {
     if (!res) return null;
     const ans = answersStore[id] || [];
     const logs = logsStore[id] || [];
-    return serializeData({ result: res, answers: ans, logs });
+    const all = questionsStore['all'] || [];
+    const testQuestions = all.filter(q => q.test_id === res.test_id);
+    return serializeData({ result: res, answers: ans, logs, testQuestions });
   } catch (e) {
     return null;
   }
