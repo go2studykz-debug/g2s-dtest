@@ -7,7 +7,9 @@ import {
   StudentAnswer, 
   AntiCheatLog, 
   AIAnalysis,
-  Test
+  Test,
+  Subject,
+  Language
 } from './types';
 import { MOCK_TESTS, MOCK_QUESTIONS } from './mock-data';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
@@ -18,27 +20,65 @@ const globalForStore = global as unknown as {
   answersStore: Record<string, StudentAnswer[]>;
   logsStore: Record<string, AntiCheatLog[]>;
   testsStore: Record<string, Test>;
+  questionsStore: Record<string, Question[]>; // questions grouped by testId or similar
 };
 
 const resultsStore = globalForStore.resultsStore || {};
 const answersStore = globalForStore.answersStore || {};
 const logsStore = globalForStore.logsStore || {};
 const testsStore = globalForStore.testsStore || {};
+const questionsStore = globalForStore.questionsStore || {};
 
 if (process.env.NODE_ENV !== 'production') {
   globalForStore.resultsStore = resultsStore;
   globalForStore.answersStore = answersStore;
   globalForStore.logsStore = logsStore;
   globalForStore.testsStore = testsStore;
+  globalForStore.questionsStore = questionsStore;
   
   // Initialize with mocks if empty
   if (Object.keys(testsStore).length === 0) {
     MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
   }
+  if (Object.keys(questionsStore).length === 0) {
+    // We'll store all questions in a flat array for easier filtering in this demo
+    const allQuestions: Question[] = [];
+    Object.values(MOCK_QUESTIONS).forEach(qs => allQuestions.push(...qs));
+    questionsStore['all'] = allQuestions;
+  }
 }
 
 export async function getTests(): Promise<Test[]> {
   return Object.values(testsStore);
+}
+
+export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
+  const all = questionsStore['all'] || [];
+  // In a real app, we'd filter by the test assigned to this class/lang
+  // For this prototype, we filter questions directly by their properties if they had them
+  // Since our mock questions don't have class/lang, we'll return a subset or simulate
+  return all.filter(q => {
+    // For demo: questions with 'test-1' are 6 class RU
+    if (classNumber === 6 && language === 'ru') return q.test_id === 'test-1';
+    return false;
+  });
+}
+
+export async function saveQuestion(question: Question): Promise<Question> {
+  const all = questionsStore['all'] || [];
+  const idx = all.findIndex(q => q.id === question.id);
+  if (idx !== -1) {
+    all[idx] = question;
+  } else {
+    all.push(question);
+  }
+  questionsStore['all'] = all;
+  return question;
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  const all = questionsStore['all'] || [];
+  questionsStore['all'] = all.filter(q => q.id !== id);
 }
 
 export async function getTestById(id: string): Promise<Test | null> {
@@ -63,6 +103,8 @@ export async function startTest(data: {
   
   if (!test) throw new Error('Test not found');
 
+  const questions = (questionsStore['all'] || []).filter(q => q.test_id === data.testId);
+
   const result: StudentResult = {
     id: resultId,
     test_id: data.testId,
@@ -73,7 +115,7 @@ export async function startTest(data: {
     language: data.language,
     status: 'in_progress',
     total_correct: 0,
-    total_questions: MOCK_QUESTIONS[data.testId]?.length || 0,
+    total_questions: questions.length,
     percentage: 0,
     total_score: 0,
     started_at: new Date(),
@@ -83,9 +125,7 @@ export async function startTest(data: {
 
   resultsStore[resultId] = result;
   
-  const questions = (MOCK_QUESTIONS[data.testId] || []).map(({ correct_answer, ...q }) => q as Question);
-
-  return { result, questions };
+  return { result, questions: questions.map(({ correct_answer, ...q }) => q as Question) };
 }
 
 export async function submitAnswer(data: {
@@ -97,10 +137,8 @@ export async function submitAnswer(data: {
   const result = resultsStore[data.resultId];
   if (!result) throw new Error('Result not found');
 
-  const testQuestions = MOCK_QUESTIONS[result.test_id];
-  if (!testQuestions) return;
-  
-  const question = testQuestions.find(q => q.id === data.questionId);
+  const all = questionsStore['all'] || [];
+  const question = all.find(q => q.id === data.questionId);
   if (!question) throw new Error('Question not found');
 
   const studentAnswer: StudentAnswer = {
@@ -161,7 +199,7 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
   result.status = 'completed';
   result.completed_at = new Date();
   result.total_correct = correctCount;
-  result.percentage = Math.round((correctCount / result.total_questions) * 100);
+  result.percentage = result.total_questions > 0 ? Math.round((correctCount / result.total_questions) * 100) : 0;
   result.total_score = correctCount * 10;
 
   return result;
@@ -174,6 +212,8 @@ export async function analyzeResult(resultId: string) {
 
   if (!result) throw new Error('Result not found');
 
+  const all = questionsStore['all'] || [];
+
   const analysisInput = {
     studentName: result.student_name,
     classNumber: result.class_number,
@@ -181,7 +221,7 @@ export async function analyzeResult(resultId: string) {
     totalCorrect: result.total_correct,
     totalQuestions: result.total_questions,
     answers: answers.map(a => {
-      const qObj = MOCK_QUESTIONS[result.test_id]?.find(q => q.id === a.question_id);
+      const qObj = all.find(q => q.id === a.question_id);
       return {
         questionNumber: a.question_number,
         subject: a.subject,
