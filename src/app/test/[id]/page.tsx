@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Send, AlertCircle, GraduationCap } from 'lucide-react';
 import { getResultDetail, submitAnswer, logAntiCheat, finishTest } from '@/app/lib/actions';
 import { StudentResult, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -35,9 +35,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
         const data = await getResultDetail(id);
         if (data && data.result) {
           setResult(data.result);
-          // Assuming the detail endpoint returns questions or we fetch them based on test_id
-          // For the prototype, we rely on the action logic
-          const { result: res, questions: qs } = await import('@/app/lib/actions').then(m => m.startTest({
+          const { questions: qs } = await import('@/app/lib/actions').then(m => m.startTest({
             testId: data.result.test_id,
             name: data.result.student_name,
             city: data.result.student_city,
@@ -79,8 +77,8 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
         });
         toast({
           variant: 'destructive',
-          title: 'Система контроля',
-          description: 'Переключение вкладок зафиксировано.',
+          title: 'Внимание',
+          description: 'Пожалуйста, не переключайте вкладки во время теста.',
         });
       }
     };
@@ -139,62 +137,66 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   };
 
   if (loading || !result || questions.length === 0) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#1E293B]" />
+    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#14bf96]" />
     </div>
   );
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
-  const SUBJECT_MAP: Record<string, string> = {
-    'math': 'МАТЕМАТИКА',
-    'logic': 'ЛОГИКА',
-    'english': 'АНГЛИЙСКИЙ',
-    'second_lang': 'ВТОРОЙ ЯЗЫК'
-  };
-
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-[#1E293B]">
-      {/* Header */}
-      <header className="bg-white border-b px-6 h-16 flex items-center justify-between sticky top-0 z-50">
+    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
+      {/* Academy Header */}
+      <header className="bg-white border-b border-[#e3e8ee] px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tight text-[#1E293B]">
-            go<span className="text-[#FF4D00]">2</span>study
+          <GraduationCap className="w-6 h-6 text-[#14bf96]" />
+          <span className="text-xl font-bold tracking-tight text-[#081d3a]">
+            go2study
           </span>
         </div>
-        <div className="flex items-center gap-2 bg-[#F1F5F9] px-4 py-2 rounded-lg border">
-          <Clock className="w-5 h-5 text-[#64748B]" />
-          <span className="font-mono font-bold text-lg">{formatTime(timeLeft)}</span>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-[#3b3e40] font-bold">
+            <Clock className="w-4 h-4" />
+            <span className="font-mono text-lg">{formatTime(timeLeft)}</span>
+          </div>
+          <Button 
+            variant="outline" 
+            className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold hidden md:flex"
+            onClick={handleFinish}
+          >
+            Сдать тест
+          </Button>
         </div>
       </header>
 
-      <Progress value={progress} className="h-1.5 rounded-none bg-[#E2E8F0] [&>div]:bg-[#1E293B]" />
+      <div className="h-1.5 w-full bg-[#e3e8ee]">
+        <div 
+          className="h-full bg-[#14bf96] transition-all duration-300" 
+          style={{ width: `${progress}%` }}
+        />
+      </div>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Question */}
+      <main className="flex-1 max-w-6xl mx-auto w-full p-4 md:p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex justify-between items-center text-sm font-medium text-[#64748B]">
-            <span>{currentIndex + 1} / {questions.length}</span>
-          </div>
-
-          <div className="bg-white rounded-2xl border p-8 shadow-sm space-y-8 min-h-[500px] flex flex-col justify-between">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <p className="text-[#64748B] text-sm">Вопрос {currentIndex + 1} из {questions.length}</p>
-                <Badge className="bg-[#E2E8F0] text-[#475569] hover:bg-[#E2E8F0] border-none px-3 py-1 font-bold rounded-md">
-                  {SUBJECT_MAP[currentQuestion.subject] || currentQuestion.subject}
-                </Badge>
+          <div className="bg-white rounded-2xl border border-[#e3e8ee] p-6 md:p-10 shadow-sm flex flex-col justify-between min-h-[500px]">
+            <div className="space-y-8">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-[#3b3e40]/60 uppercase tracking-widest">Вопрос {currentIndex + 1} из {questions.length}</p>
+                  <h3 className="text-[#14bf96] font-bold text-sm uppercase tracking-wider">{currentQuestion.subject === 'math' ? 'Математика' : currentQuestion.subject === 'logic' ? 'Логика' : currentQuestion.subject}</h3>
+                </div>
               </div>
 
-              <h2 className="text-2xl font-bold leading-snug">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#081d3a] leading-tight">
                 {currentQuestion.question_text}
               </h2>
 
               <RadioGroup 
                 value={answers[currentQuestion.id] || ""} 
                 onValueChange={handleAnswer}
-                className="grid gap-4"
+                className="grid gap-3"
               >
                 {['A', 'B', 'C', 'D', 'E'].map((letter) => {
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
@@ -207,21 +209,21 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                     <Label
                       key={letter}
                       className={cn(
-                        "flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer",
+                        "flex items-center gap-4 p-5 rounded-xl border-2 transition-all cursor-pointer",
                         isSelected 
-                          ? "border-[#1E293B] bg-slate-50 shadow-sm" 
-                          : "border-[#F1F5F9] hover:border-[#E2E8F0]"
+                          ? "border-[#14bf96] bg-[#f0f9f7]" 
+                          : "border-[#f0f1f2] hover:border-[#e3e8ee] hover:bg-[#f9fafb]"
                       )}
                     >
                       <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border-2",
+                        "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border-2 transition-colors",
                         isSelected 
-                          ? "bg-[#1E293B] text-white border-[#1E293B]" 
-                          : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]"
+                          ? "bg-[#14bf96] text-white border-[#14bf96]" 
+                          : "bg-white text-[#3b3e40] border-[#e3e8ee]"
                       )}>
                         {letter}
                       </div>
-                      <span className="text-lg font-medium">{optionValue}</span>
+                      <span className="text-lg font-medium text-[#081d3a]">{optionValue}</span>
                       <RadioGroupItem value={letter} className="sr-only" />
                     </Label>
                   );
@@ -229,42 +231,43 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
               </RadioGroup>
             </div>
 
-            <div className="flex items-center justify-between pt-8">
+            <div className="flex items-center justify-between pt-10 border-t border-[#f0f1f2] mt-10">
               <Button 
-                variant="outline" 
-                className="h-12 px-8 rounded-xl border-[#E2E8F0] font-bold text-[#64748B]"
+                variant="ghost" 
+                className="h-12 px-6 text-[#3b3e40] font-bold"
                 onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
                 disabled={currentIndex === 0}
               >
-                <ChevronLeft className="w-5 h-5 mr-2" /> Назад
+                <ChevronLeft className="w-5 h-5 mr-1" /> Назад
               </Button>
 
-              {currentIndex === questions.length - 1 ? (
-                <Button 
-                  className="h-12 px-8 rounded-xl bg-[#1E293B] hover:bg-[#0F172A] text-white font-bold"
-                  onClick={handleFinish} 
-                  disabled={isFinishing}
-                >
-                  Завершить <Send className="ml-2 w-4 h-4" />
-                </Button>
-              ) : (
-                <Button 
-                  className="h-12 px-8 rounded-xl bg-[#1E293B] hover:bg-[#0F172A] text-white font-bold"
-                  onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-                >
-                  Далее <ChevronRight className="ml-2 w-5 h-5" />
-                </Button>
-              )}
+              <div className="flex gap-4">
+                {currentIndex === questions.length - 1 ? (
+                  <Button 
+                    className="h-12 px-8 bg-[#14bf96] hover:bg-[#11a381] text-white font-bold rounded-lg shadow-sm"
+                    onClick={handleFinish} 
+                    disabled={isFinishing}
+                  >
+                    Завершить тест <Send className="ml-2 w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    className="h-12 px-8 bg-[#14bf96] hover:bg-[#11a381] text-white font-bold rounded-lg shadow-sm"
+                    onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+                  >
+                    Далее <ChevronRight className="ml-2 w-5 h-5" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Navigation */}
-        <div className="lg:col-span-4">
-          <div className="bg-white rounded-2xl border p-6 shadow-sm sticky top-24">
-            <h3 className="text-sm font-bold text-[#475569] uppercase tracking-wider mb-6">Навигация по вопросам</h3>
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white rounded-2xl border border-[#e3e8ee] p-6 shadow-sm sticky top-24">
+            <h3 className="text-xs font-bold text-[#081d3a]/60 uppercase tracking-widest mb-6">Ваш прогресс</h3>
             
-            <div className="grid grid-cols-5 sm:grid-cols-10 lg:grid-cols-5 gap-3 mb-8">
+            <div className="grid grid-cols-5 gap-3 mb-8">
               {questions.map((q, idx) => {
                 const isAnswered = !!answers[q.id];
                 const isCurrent = idx === currentIndex;
@@ -274,11 +277,12 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                     key={q.id}
                     onClick={() => setCurrentIndex(idx)}
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                      isCurrent ? "ring-2 ring-[#1E293B] ring-offset-2" : "",
-                      isAnswered 
-                        ? "bg-[#1E293B] text-white" 
-                        : "bg-[#F1F5F9] text-[#94A3B8] hover:bg-[#E2E8F0]"
+                      "w-full aspect-square rounded-lg flex items-center justify-center text-sm font-bold transition-all border-2",
+                      isCurrent 
+                        ? "border-[#14bf96] text-[#14bf96] ring-2 ring-[#14bf96]/10" 
+                        : isAnswered 
+                          ? "bg-[#14bf96] border-[#14bf96] text-white" 
+                          : "bg-white border-[#f0f1f2] text-[#3b3e40] hover:border-[#e3e8ee]"
                     )}
                   >
                     {idx + 1}
@@ -287,26 +291,33 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
               })}
             </div>
 
-            <div className="flex flex-col gap-3 pt-6 border-t">
-              <div className="flex items-center gap-3 text-sm font-medium text-[#64748B]">
-                <div className="w-4 h-4 rounded bg-[#1E293B]" />
-                <span>Отвечен</span>
+            <div className="space-y-3 pt-6 border-t border-[#f0f1f2]">
+              <div className="flex items-center gap-3 text-xs font-bold text-[#3b3e40]/60 uppercase">
+                <div className="w-3 h-3 rounded bg-[#14bf96]" />
+                <span>Отвечено</span>
               </div>
-              <div className="flex items-center gap-3 text-sm font-medium text-[#64748B]">
-                <div className="w-4 h-4 rounded bg-[#F1F5F9] border" />
-                <span>Пропущен</span>
+              <div className="flex items-center gap-3 text-xs font-bold text-[#3b3e40]/60 uppercase">
+                <div className="w-3 h-3 rounded border-2 border-[#f0f1f2] bg-white" />
+                <span>Пропущено</span>
               </div>
             </div>
+
+            <Button 
+              className="w-full mt-8 bg-white border-2 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold"
+              onClick={handleFinish}
+            >
+              Завершить досрочно
+            </Button>
+          </div>
+          
+          <div className="bg-[#f0f9f7] p-4 rounded-xl border border-[#14bf96]/10 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#14bf96] shrink-0 mt-0.5" />
+            <p className="text-xs text-[#081d3a]/70 leading-relaxed">
+              Не волнуйтесь, ваш прогресс сохраняется автоматически после каждого ответа.
+            </p>
           </div>
         </div>
       </main>
-
-      <footer className="p-4 border-t bg-white flex justify-center">
-        <div className="flex items-center gap-2 text-[#94A3B8] text-xs font-bold uppercase tracking-widest">
-          <AlertTriangle className="w-4 h-4" />
-          Не обновляйте страницу • Прогресс сохраняется автоматически
-        </div>
-      </footer>
     </div>
   );
 }

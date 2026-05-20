@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Rocket, Brain, ShieldCheck, ArrowRight, User, Phone } from 'lucide-react';
+import { GraduationCap, BookOpen, ShieldCheck, ArrowRight, User, Phone } from 'lucide-react';
 import { startTest } from './lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -58,64 +58,70 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-[#f9fafb] flex flex-col items-center">
+      {/* Navbar Style Header */}
+      <header className="w-full bg-white border-b border-[#e3e8ee] py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-8 h-8 text-[#14bf96]" />
+          <span className="text-2xl font-bold tracking-tight text-[#081d3a]">
+            go<span className="text-[#14bf96]">2</span>study
+          </span>
+        </div>
+        <nav className="hidden md:flex gap-8 text-sm font-bold text-[#081d3a]/70 uppercase tracking-wide">
+          <button className="hover:text-[#14bf96] transition-colors">О платформе</button>
+          <button className="hover:text-[#14bf96] transition-colors">Для школ</button>
+          <button onClick={() => router.push('/admin')} className="hover:text-[#14bf96] transition-colors">Вход для учителей</button>
+        </nav>
+      </header>
 
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center z-10">
-        <div className="space-y-8 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-medium text-sm">
-            <Rocket className="w-4 h-4" />
-            <span>Тестирование нового поколения</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-headline font-bold leading-tight">
-            Раскрой свой <span className="text-primary">потенциал</span> с go2study
+      <main className="w-full max-w-6xl px-6 py-12 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="space-y-8">
+          <h1 className="text-4xl md:text-6xl font-headline font-bold text-[#081d3a] leading-[1.1]">
+            Для каждого ученика. <br/>Для каждого <span className="text-[#14bf96]">будущего</span>.
           </h1>
           
-          <p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
-            Интеллектуальная диагностическая платформа, созданная для выявления ваших сильных сторон и построения пути к успеху.
+          <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg">
+            Бесплатная диагностика знаний для поступающих в НИШ. Пойми свои сильные стороны и получи персональный план развития.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left">
-            <div className="flex items-start gap-4">
-              <div className="p-2 rounded-lg bg-secondary border border-border">
-                <Brain className="w-6 h-6 text-primary" />
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#f0f9f7] flex items-center justify-center shrink-0">
+                <BookOpen className="w-6 h-6 text-[#14bf96]" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">AI Анализ</h3>
-                <p className="text-sm text-muted-foreground">Персонализированная обратная связь по каждой ошибке.</p>
+                <h3 className="font-bold text-[#081d3a]">Персонализированное обучение</h3>
+                <p className="text-sm text-[#3b3e40]">Анализируем пробелы и даем точные рекомендации.</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="p-2 rounded-lg bg-secondary border border-border">
-                <ShieldCheck className="w-6 h-6 text-accent" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#f0f9f7] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-6 h-6 text-[#14bf96]" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Защита Proctor</h3>
-                <p className="text-sm text-muted-foreground">Встроенная система контроля честности тестирования.</p>
+                <h3 className="font-bold text-[#081d3a]">Надежные результаты</h3>
+                <p className="text-sm text-[#3b3e40]">Система прокторинга гарантирует честность оценки.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <Card className="glass-morphism border-none shadow-2xl">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-headline">Регистрация</CardTitle>
-            <CardDescription>Введите свои данные, чтобы начать диагностический тест.</CardDescription>
+        <Card className="border border-[#e3e8ee] shadow-lg rounded-2xl overflow-hidden bg-white">
+          <div className="bg-[#14bf96] h-2 w-full" />
+          <CardHeader className="p-8 pb-4">
+            <CardTitle className="text-2xl font-bold text-[#081d3a]">Начни сейчас</CardTitle>
+            <CardDescription className="text-[#3b3e40]">Заполни анкету, чтобы приступить к тесту.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="p-8 pt-0">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name">ФИО Ученика</Label>
+                <Label htmlFor="name" className="text-xs font-bold uppercase text-[#081d3a]/60">ФИО Ученика</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 w-4 h-4 text-[#14bf96]" />
                   <Input 
                     id="name" 
-                    placeholder="Иван Иванов" 
-                    className="pl-10" 
+                    placeholder="Алия Смагулова" 
+                    className="pl-10 h-12 border-[#e3e8ee] focus:border-[#14bf96] focus:ring-1 focus:ring-[#14bf96]" 
                     required 
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -125,13 +131,13 @@ export default function LandingPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">Город НИШ</Label>
+                  <Label htmlFor="city" className="text-xs font-bold uppercase text-[#081d3a]/60">Город НИШ</Label>
                   <Select 
                     value={formData.city}
                     onValueChange={val => setFormData({...formData, city: val})}
                   >
-                    <SelectTrigger id="city">
-                      <SelectValue placeholder="Выберите город" />
+                    <SelectTrigger id="city" className="h-12 border-[#e3e8ee]">
+                      <SelectValue placeholder="Выбрать" />
                     </SelectTrigger>
                     <SelectContent>
                       {CITIES.map(city => (
@@ -141,13 +147,13 @@ export default function LandingPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="whatsapp">WhatsApp номер родителя</Label>
+                  <Label htmlFor="whatsapp" className="text-xs font-bold uppercase text-[#081d3a]/60">WhatsApp Родителя</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-[#14bf96]" />
                     <Input 
                       id="whatsapp" 
                       placeholder="+7 77x xxx xx xx" 
-                      className="pl-10"
+                      className="pl-10 h-12 border-[#e3e8ee]"
                       required 
                       value={formData.whatsapp}
                       onChange={e => {
@@ -162,13 +168,13 @@ export default function LandingPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="class">Класс обучения</Label>
+                  <Label htmlFor="class" className="text-xs font-bold uppercase text-[#081d3a]/60">Класс</Label>
                   <Select 
                     value={formData.classNumber} 
                     onValueChange={val => setFormData({...formData, classNumber: val})}
                   >
-                    <SelectTrigger id="class">
-                      <SelectValue placeholder="Выберите класс" />
+                    <SelectTrigger id="class" className="h-12 border-[#e3e8ee]">
+                      <SelectValue placeholder="Класс" />
                     </SelectTrigger>
                     <SelectContent>
                       {[4, 5, 6].map(c => (
@@ -178,12 +184,12 @@ export default function LandingPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="language">Язык теста</Label>
+                  <Label htmlFor="language" className="text-xs font-bold uppercase text-[#081d3a]/60">Язык</Label>
                   <Select 
                     value={formData.language}
                     onValueChange={val => setFormData({...formData, language: val})}
                   >
-                    <SelectTrigger id="language">
+                    <SelectTrigger id="language" className="h-12 border-[#e3e8ee]">
                       <SelectValue placeholder="Язык" />
                     </SelectTrigger>
                     <SelectContent>
@@ -194,18 +200,26 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90 transition-all" disabled={loading}>
-                {loading ? 'Инициализация...' : 'Начать диагностику'}
+              <Button type="submit" className="w-full h-14 text-lg font-bold bg-[#14bf96] hover:bg-[#11a381] shadow-md" disabled={loading}>
+                {loading ? 'Загрузка...' : 'Начать диагностику'}
                 {!loading && <ArrowRight className="ml-2 w-5 h-5" />}
               </Button>
             </form>
           </CardContent>
         </Card>
-      </div>
+      </main>
 
-      <footer className="absolute bottom-8 text-muted-foreground text-sm flex gap-6">
-        <button onClick={() => router.push('/admin')} className="hover:text-primary transition-colors">Admin Matrix</button>
-        <span>&copy; 2024 go2study Diagnostic Systems</span>
+      <footer className="w-full border-t border-[#e3e8ee] bg-white py-12 mt-auto">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="w-6 h-6 text-[#14bf96]" />
+            <span className="text-xl font-bold text-[#081d3a]">go2study</span>
+          </div>
+          <p className="text-[#3b3e40] text-sm">&copy; 2024 go2study. Миссия: дать каждому ученику шанс на успех.</p>
+          <div className="flex gap-4">
+            <button onClick={() => router.push('/admin')} className="text-sm font-bold text-[#081d3a]/60 hover:text-[#14bf96]">Панель управления</button>
+          </div>
+        </div>
       </footer>
     </div>
   );
