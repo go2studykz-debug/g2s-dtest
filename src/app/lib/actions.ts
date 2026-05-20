@@ -33,7 +33,6 @@ import { initializeFirebase } from '@/firebase';
 
 /**
  * Хелпер для получения инстанса Firestore внутри серверного экшена.
- * Это предотвращает зависание при инициализации на уровне модуля.
  */
 function getDb(): Firestore {
   const { firestore } = initializeFirebase();
@@ -42,7 +41,6 @@ function getDb(): Firestore {
 
 /**
  * Глубокая сериализация данных для Next.js 15.
- * Превращает все объекты дат и Timestamp в строки ISO.
  */
 function serializeData<T>(data: T): T {
   return JSON.parse(JSON.stringify(data, (key, value) => {
@@ -58,14 +56,16 @@ function serializeData<T>(data: T): T {
 
 /**
  * Инициализирует демонстрационные данные, если база пуста.
+ * Усиленная версия: проверяет наличие конкретного теста test-1.
  */
 async function ensureSampleData() {
   const db = getDb();
   try {
-    const testsSnap = await getDocs(query(collection(db, 'tests'), limit(1)));
-    if (testsSnap.empty) {
-      console.log("Initializing sample data...");
-      const testId = 'test-1';
+    const testId = 'test-1';
+    const testDoc = await getDoc(doc(db, 'tests', testId));
+    
+    if (!testDoc.exists()) {
+      console.log("Initializing sample data for test-1...");
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -127,7 +127,9 @@ async function ensureSampleData() {
       ];
 
       for (const q of sampleQuestions) {
-        await addDoc(collection(db, 'questions'), q);
+        // Добавляем вопросы с предсказуемыми ID для стабильности
+        const qId = `q-${testId}-${q.question_number}`;
+        await setDoc(doc(db, 'questions', qId), q);
       }
       console.log("Sample data initialization complete.");
     }
@@ -165,13 +167,37 @@ export async function getTestById(id: string): Promise<Test | null> {
   return null;
 }
 
+/**
+ * Получает вопросы теста. 
+ * Использует фильтрацию в памяти, чтобы избежать проблем с индексами Firestore в прототипе.
+ */
 export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
   const db = getDb();
   try {
-    const q = query(collection(db, 'questions'), where('test_id', '==', testId));
-    const querySnapshot = await getDocs(q);
-    const qs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Question[];
-    // Сортировка в памяти сервера вместо Firestore индекса
+    const querySnapshot = await getDocs(collection(db, 'questions'));
+    const qs = querySnapshot.docs
+      .map(d => ({ id: d.id, ...d.data() } as Question))
+      .filter(q => q.test_id === testId);
+    
+    return serializeData(qs.sort((a, b) => a.question_number - b.question_number));
+  } catch (e) {
+    console.error("Error fetching questions:", e);
+    return [];
+  }
+}
+
+/**
+ * Хелпер для получения всех вопросов (для админки).
+ */
+export async function getQuestions(classNum?: number, lang?: string): Promise<Question[]> {
+  const db = getDb();
+  try {
+    const querySnapshot = await getDocs(collection(db, 'questions'));
+    let qs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Question));
+    
+    if (classNum) qs = qs.filter(q => (q as any).class_number === classNum);
+    if (lang) qs = qs.filter(q => (q as any).language === lang);
+    
     return serializeData(qs.sort((a, b) => a.question_number - b.question_number));
   } catch (e) {
     console.error("Error fetching questions:", e);
@@ -190,11 +216,15 @@ export async function startTest(data: {
   const db = getDb();
   try {
     console.log("Starting test for:", data.name);
+    // Сначала гарантируем наличие данных
     await ensureSampleData();
     
+    // Получаем вопросы
     const questions = await getQuestionsByTestId(data.testId);
+    
     if (questions.length === 0) {
-      throw new Error('Вопросы для этого теста еще не добавлены. Попробуйте обновить страницу позже.');
+      // Если даже после инициализации пусто, кидаем ошибку
+      throw new Error('В базе данных нет вопросов для этого теста. Пожалуйста, создайте вопросы в админ-панели.');
     }
 
     const resultData = {
@@ -218,7 +248,7 @@ export async function startTest(data: {
 
     const docRef = await addDoc(collection(db, 'results'), resultData);
     
-    // Возвращаем результат без секретных ответов
+    // Возвращаем результат (скрываем правильные ответы)
     const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
     
     return serializeData({ 
@@ -226,7 +256,7 @@ export async function startTest(data: {
       questions: secureQuestions 
     });
   } catch (error: any) {
-    console.error("Failed to start test:", error);
+    console.error("Failed to start test action:", error);
     throw new Error(error.message || "Ошибка при подключении к базе данных.");
   }
 }
