@@ -14,30 +14,29 @@ import {
 import { MOCK_TESTS, MOCK_QUESTIONS } from './mock-data';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
 
-// Use global object to persist data between hot reloads in development
+// Используем глобальный объект для сохранения данных между перезагрузками в разработке
 const globalForStore = global as unknown as {
-  resultsStore: Record<string, StudentResult>;
-  answersStore: Record<string, StudentAnswer[]>;
-  logsStore: Record<string, AntiCheatLog[]>;
-  testsStore: Record<string, Test>;
-  questionsStore: Record<string, Question[]>; 
+  resultsStore: Record<string, any>;
+  answersStore: Record<string, any[]>;
+  logsStore: Record<string, any[]>;
+  testsStore: Record<string, any>;
+  questionsStore: Record<string, any[]>; 
 };
 
-const resultsStore = globalForStore.resultsStore || {};
-const answersStore = globalForStore.answersStore || {};
-const logsStore = globalForStore.logsStore || {};
-const testsStore = globalForStore.testsStore || {};
-const questionsStore = globalForStore.questionsStore || {};
+// Инициализация хранилища
+globalForStore.resultsStore = globalForStore.resultsStore || {};
+globalForStore.answersStore = globalForStore.answersStore || {};
+globalForStore.logsStore = globalForStore.logsStore || {};
+globalForStore.testsStore = globalForStore.testsStore || {};
+globalForStore.questionsStore = globalForStore.questionsStore || {};
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForStore.resultsStore = resultsStore;
-  globalForStore.answersStore = answersStore;
-  globalForStore.logsStore = logsStore;
-  globalForStore.testsStore = testsStore;
-  globalForStore.questionsStore = questionsStore;
-}
+const resultsStore = globalForStore.resultsStore;
+const answersStore = globalForStore.answersStore;
+const logsStore = globalForStore.logsStore;
+const testsStore = globalForStore.testsStore;
+const questionsStore = globalForStore.questionsStore;
 
-// Ensure mocks are loaded
+// Загрузка моков, если хранилище пустое
 if (Object.keys(testsStore).length === 0) {
   MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
 }
@@ -47,18 +46,23 @@ if (!questionsStore['all'] || questionsStore['all'].length === 0) {
   questionsStore['all'] = allQuestions;
 }
 
+// Хелпер для сериализации дат (Next.js 15 может капризничать с Date объектами в некоторых случаях)
+function serializeData<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data));
+}
+
 export async function getTests(): Promise<Test[]> {
-  return Object.values(testsStore);
+  return serializeData(Object.values(testsStore));
 }
 
 export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
   const all = questionsStore['all'] || [];
-  return all.filter(q => true);
+  return serializeData(all);
 }
 
 export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
   const all = questionsStore['all'] || [];
-  return all.filter(q => q.test_id === testId);
+  return serializeData(all.filter(q => q.test_id === testId));
 }
 
 export async function saveQuestion(question: Question): Promise<Question> {
@@ -70,7 +74,7 @@ export async function saveQuestion(question: Question): Promise<Question> {
     all.push(question);
   }
   questionsStore['all'] = [...all];
-  return question;
+  return serializeData(question);
 }
 
 export async function deleteQuestion(id: string): Promise<void> {
@@ -79,12 +83,13 @@ export async function deleteQuestion(id: string): Promise<void> {
 }
 
 export async function getTestById(id: string): Promise<Test | null> {
-  return testsStore[id] || null;
+  const test = testsStore[id];
+  return test ? serializeData(test) : null;
 }
 
 export async function saveTest(test: Test): Promise<Test> {
   testsStore[test.id] = test;
-  return test;
+  return serializeData(test);
 }
 
 export async function startTest(data: {
@@ -124,7 +129,7 @@ export async function startTest(data: {
 
   resultsStore[resultId] = result;
   
-  return { result, questions: questions.map(({ correct_answer, ...q }) => q as Question) };
+  return serializeData({ result, questions: questions.map(({ correct_answer, ...q }) => q as Question) });
 }
 
 export async function updateResultCRM(id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) {
@@ -134,7 +139,7 @@ export async function updateResultCRM(id: string, updates: { is_contacted?: bool
     if (updates.is_consulted !== undefined) result.is_consulted = updates.is_consulted;
     resultsStore[id] = { ...result };
   }
-  return result;
+  return result ? serializeData(result) : null;
 }
 
 export async function submitAnswer(data: {
@@ -144,11 +149,11 @@ export async function submitAnswer(data: {
   timeSpent: number;
 }) {
   const result = resultsStore[data.resultId];
-  if (!result) throw new Error('Result not found');
+  if (!result) return;
 
   const all = questionsStore['all'] || [];
   const question = all.find(q => q.id === data.questionId);
-  if (!question) throw new Error('Question not found');
+  if (!question) return;
 
   const studentAnswer: StudentAnswer = {
     id: Math.random().toString(36).substr(2, 9),
@@ -215,7 +220,7 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
   };
 
   resultsStore[resultId] = updatedResult;
-  return updatedResult;
+  return serializeData(updatedResult);
 }
 
 export async function analyzeResult(resultId: string) {
@@ -272,33 +277,33 @@ export async function analyzeResult(resultId: string) {
       percentage: result.percentage,
     };
 
-    return result.ai_analysis;
+    return serializeData(result.ai_analysis);
   } catch (error) {
-    console.warn("AI Analysis failed (missing API key?), using mock data for prototype:", error);
+    console.warn("AI Analysis failed, using mock data:", error);
     
     const mockAnalysis = {
-      performanceSummary: `${result.student_name} продемонстрировал(а) уверенные знания в большинстве тем. Однако выявлены пробелы в сложных логических задачах и математическом анализе. Рекомендуется сфокусироваться на развитии критического мышления.`,
+      performanceSummary: `${result.student_name} продемонстрировал(а) уверенные знания в большинстве тем. Однако выявлены пробелы в сложных логических задачах.`,
       detailedAnalysis: [
         {
           questionNumber: 1,
           subject: 'math',
-          topic: 'Решение линейных уравнений',
+          topic: 'Решение уравнений',
           studentAnswer: 'A',
           correctAnswer: 'B',
           status: 'Ошибка',
-          errorType: 'Невнимательность при вычислениях',
-          examInfluence: 'Линейные уравнения составляют 15% блока математики. Ошибка здесь критична для итогового балла.',
-          recommendation: 'Повторить алгоритм переноса слагаемых и выполнить 20 тренировочных упражнений.'
+          errorType: 'Невнимательность',
+          examInfluence: 'Часто встречается в НИШ.',
+          recommendation: 'Повторить алгоритмы.'
         }
       ],
       learningPathwaySuggestions: [
         { 
-          area: 'Логика и Мышление', 
-          suggestion: 'Пройти дополнительный курс по логическим задачам НИШ.',
-          resources: ['Задачи на ряды', 'Геометрическая логика']
+          area: 'Логика', 
+          suggestion: 'Пройти курс логики.',
+          resources: ['Задачи на ряды']
         }
       ],
-      antiCheatBehaviorAnalysis: 'Критическая подозрительная активность не обнаружена. Сессия прошла в нормальном режиме.'
+      antiCheatBehaviorAnalysis: 'Нарушений не обнаружено.'
     };
 
     result.is_analysed = true;
@@ -311,17 +316,17 @@ export async function analyzeResult(resultId: string) {
       percentage: result.percentage,
     };
 
-    return result.ai_analysis;
+    return serializeData(result.ai_analysis);
   }
 }
 
 export async function getAllResults() {
-  return Object.values(resultsStore);
+  return serializeData(Object.values(resultsStore));
 }
 
 export async function getResultDetail(id: string) {
   const res = resultsStore[id];
   const ans = answersStore[id] || [];
   const logs = logsStore[id] || [];
-  return { result: res, answers: ans, logs };
+  return serializeData({ result: res, answers: ans, logs });
 }
