@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -26,13 +27,18 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_active' | 'all_no_consult' | 'all_abandoned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState(new Date());
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
     loadData();
-    const interval = setInterval(loadData, 60000);
+    // Обновляем "сейчас" и данные каждую минуту для точности таймеров
+    const interval = setInterval(() => {
+      setNow(new Date());
+      loadData();
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -67,13 +73,13 @@ export default function AdminDashboard() {
 
   const today = useMemo(() => new Date(), []);
 
-  const isAbandoned = (r: StudentResult) => {
+  // Стабильная функция проверки брошенного статуса
+  const checkIsAbandoned = (r: StudentResult, currentTime: Date) => {
     if (r.status !== 'in_progress') return false;
     const startTime = new Date(r.started_at).getTime();
-    const now = new Date().getTime();
     const limitMinutes = testDurations[r.test_id] || 60;
     const limitMs = limitMinutes * 60000;
-    return (now - startTime) > limitMs;
+    return (currentTime.getTime() - startTime) > limitMs;
   };
 
   const stats = useMemo(() => {
@@ -81,11 +87,11 @@ export default function AdminDashboard() {
     
     return {
       startsToday: todayResults.length,
-      activeToday: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
+      activeToday: todayResults.filter(r => r.status === 'in_progress' && !checkIsAbandoned(r, now)).length,
       noConsultTotal: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
-      abandonedTotal: results.filter(r => isAbandoned(r) && !r.is_contacted).length
+      abandonedTotal: results.filter(r => checkIsAbandoned(r, now) && !r.is_contacted).length
     };
-  }, [results, today, testDurations]);
+  }, [results, today, testDurations, now]);
 
   const filteredResults = useMemo(() => {
     let list = results;
@@ -93,13 +99,13 @@ export default function AdminDashboard() {
     if (filter !== 'all') {
       list = results.filter(r => {
         if (filter === 'all_no_consult') return r.status === 'completed' && !r.is_consulted;
-        if (filter === 'all_abandoned') return isAbandoned(r) && !r.is_contacted;
+        if (filter === 'all_abandoned') return checkIsAbandoned(r, now) && !r.is_contacted;
         
         const isToday = isSameDay(r.started_at, today);
         if (!isToday) return false;
         
         if (filter === 'today_starts') return true;
-        if (filter === 'today_active') return r.status === 'in_progress' && !isAbandoned(r);
+        if (filter === 'today_active') return r.status === 'in_progress' && !checkIsAbandoned(r, now);
         
         return true;
       });
@@ -114,7 +120,7 @@ export default function AdminDashboard() {
     }
 
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, today, searchTerm, testDurations]);
+  }, [results, filter, today, searchTerm, testDurations, now]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
@@ -308,7 +314,7 @@ export default function AdminDashboard() {
                 </TableRow>
               ) : (
                 filteredResults.map((r) => {
-                  const abandoned = isAbandoned(r);
+                  const isAbandoned = checkIsAbandoned(r, now);
                   return (
                     <TableRow key={r.id} className="hover:bg-[#f4f7f9]/50 transition-colors border-b last:border-none group">
                       <TableCell className="pl-8 py-5">
@@ -345,7 +351,7 @@ export default function AdminDashboard() {
                                 {new Date(r.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                          ) : abandoned && mounted ? (
+                          ) : isAbandoned && !r.is_contacted && mounted ? (
                             <div className="text-red-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 bg-red-50 px-2 py-1 rounded w-fit">
                               <AlertTriangle className="w-3.5 h-3.5" /> Брошен
                             </div>
