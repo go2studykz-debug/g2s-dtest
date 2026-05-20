@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Brain, Shield, Clock, BookOpen, AlertCircle, 
-  ChevronLeft, BarChart2, CheckCircle2, XCircle
+  ChevronLeft, BarChart2, CheckCircle2, XCircle, Phone
 } from 'lucide-react';
 import { getResultDetail } from '@/app/lib/actions';
 import { StudentResult, StudentAnswer, AntiCheatLog } from '@/app/lib/types';
@@ -28,7 +28,11 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
     load();
   }, [id]);
 
-  if (loading || !data) return null;
+  if (loading || !data) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
+    </div>
+  );
 
   const { result, answers, logs } = data;
   const analysis = result.ai_analysis?.analysis_json;
@@ -44,7 +48,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
     <div className="min-h-screen bg-background p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-4">
-          <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-foreground -ml-2">
+          <Button variant="ghost" onClick={() => router.push('/admin/dashboard')} className="text-muted-foreground hover:text-foreground -ml-2">
             <ChevronLeft className="w-4 h-4 mr-1" /> Назад в дашборд
           </Button>
           <div>
@@ -74,11 +78,11 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
         <div className="lg:col-span-2 space-y-8">
           <Card className="border-border bg-secondary/10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline">
-                <Brain className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 font-headline text-primary">
+                <Brain className="w-5 h-5" />
                 AI Диагностический отчет
               </CardTitle>
-              <CardDescription>Генеративный анализ паттернов ошибок и поведенческой динамики.</CardDescription>
+              <CardDescription>Генеративный анализ паттернов ошибок и траектория развития.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {analysis ? (
@@ -92,7 +96,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
 
                   <div className="space-y-4">
                     <h4 className="font-bold flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-accent" /> Пути обучения
+                      <BookOpen className="w-4 h-4 text-accent" /> Пути обучения (Suggestions)
                     </h4>
                     <div className="grid gap-3">
                       {analysis.learningPathwaySuggestions.map((s: any, i: number) => (
@@ -112,8 +116,10 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   </div>
                 </>
               ) : (
-                <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
-                  AI анализ еще не был сгенерирован для этого результата.
+                <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl flex flex-col items-center gap-4">
+                  <BrainCircuit className="w-12 h-12 opacity-20" />
+                  <p>AI анализ еще не был сгенерирован для этого результата.</p>
+                  <Button variant="secondary" size="sm" onClick={() => router.refresh()}>Обновить страницу</Button>
                 </div>
               )}
             </CardContent>
@@ -134,7 +140,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">{SUBJECT_MAP[a.subject] || a.subject}</span>
-                        <span className="text-sm font-medium">Ответ: {a.student_answer || 'Пропущен'} | Верно: {a.correct_answer}</span>
+                        <span className="text-sm font-medium">Ваш ответ: {a.student_answer || 'Пропущен'} | Правильно: {a.correct_answer}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -151,8 +157,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
         <div className="space-y-8">
           <Card className="border-border bg-secondary/10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline">
-                <Shield className="w-5 h-5 text-destructive" />
+              <CardTitle className="flex items-center gap-2 font-headline text-destructive">
+                <Shield className="w-5 h-5" />
                 Контроль честности
               </CardTitle>
             </CardHeader>
@@ -167,16 +173,18 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               {logs.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-muted-foreground uppercase">Лог активности</p>
-                  {logs.map((log, i) => (
-                    <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-background border border-border">
-                      <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-xs">{log.event_type === 'tab_switch' ? 'ПЕРЕКЛЮЧЕНИЕ ВКЛАДКИ' : 'ПОТЕРЯ ФОКУСА'}</p>
-                        <p className="text-xs text-muted-foreground">{log.details}</p>
-                        <p className="text-[10px] text-muted-foreground/60 mt-1">Вопрос {log.question_number} &bull; {new Date(log.created_at).toLocaleTimeString()}</p>
+                  <div className="space-y-2">
+                    {logs.map((log, i) => (
+                      <div key={i} className="flex gap-3 text-sm p-3 rounded-lg bg-background border border-border">
+                        <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-xs uppercase">{log.event_type === 'tab_switch' ? 'Смена вкладки' : 'Потеря фокуса'}</p>
+                          <p className="text-xs text-muted-foreground">{log.details}</p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-1">Вопрос {log.question_number} &bull; {new Date(log.created_at).toLocaleTimeString()}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -188,8 +196,10 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground">WhatsApp Родителя</p>
-                <p className="font-medium">{result.parent_whatsapp}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                  <Phone className="w-3 h-3" /> WhatsApp Родителя
+                </p>
+                <p className="font-medium text-primary">{result.parent_whatsapp}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Начало сессии</p>

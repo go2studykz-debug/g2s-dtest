@@ -33,14 +33,14 @@ export default function AdminDashboard() {
   }, []);
 
   const handleAnalyze = async (id: string) => {
-    toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны ошибок...' });
+    toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
     try {
       await analyzeResult(id);
       const updated = await getAllResults();
       setResults(updated);
-      toast({ title: 'Успех', description: 'AI анализ успешно сгенерирован.' });
+      toast({ title: 'Успех', description: 'AI отчет успешно сформирован.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Ошибка AI анализа' });
+      toast({ variant: 'destructive', title: 'Ошибка анализа', description: 'Произошел сбой при генерации AI отчета.' });
     }
   };
 
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-headline font-bold">Матрица go2study</h1>
-          <p className="text-muted-foreground">Мониторинг сессий в реальном времени и диагностические результаты.</p>
+          <p className="text-muted-foreground">Мониторинг диагностических сессий и поведенческого анализа.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline"><Filter className="w-4 h-4 mr-2" /> Фильтр</Button>
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
           { label: 'Активные сессии', val: results.filter(r => r.status === 'in_progress').length, icon: Activity, color: 'text-primary' },
           { label: 'Завершенные тесты', val: results.filter(r => r.status === 'completed').length, icon: Users, color: 'text-green-500' },
           { label: 'Ср. балл', val: results.length > 0 ? `${Math.round(results.reduce((acc, r) => acc + r.percentage, 0) / results.length)}%` : '0%', icon: BarChart3, color: 'text-accent' },
-          { label: 'Нарушения честности', val: results.reduce((acc, r) => acc + r.anti_cheat_count, 0), icon: Shield, color: 'text-destructive' },
+          { label: 'Нарушения', val: results.reduce((acc, r) => acc + r.anti_cheat_count, 0), icon: Shield, color: 'text-destructive' },
         ].map((stat, i) => (
           <Card key={i} className="bg-secondary/50 border-border">
             <CardContent className="p-6 flex items-center justify-between">
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead>Студент</TableHead>
-                  <TableHead>Город</TableHead>
+                  <TableHead>Город НИШ</TableHead>
                   <TableHead>Результат</TableHead>
                   <TableHead>Статус</TableHead>
                   <TableHead>Честность</TableHead>
