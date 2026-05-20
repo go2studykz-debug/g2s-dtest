@@ -33,14 +33,14 @@ export default function AdminDashboard() {
   }, []);
 
   const handleAnalyze = async (id: string) => {
-    toast({ title: 'AI Analysis Started', description: 'Computing error patterns...' });
+    toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны ошибок...' });
     try {
       await analyzeResult(id);
       const updated = await getAllResults();
       setResults(updated);
-      toast({ title: 'Success', description: 'AI analysis generated successfully.' });
+      toast({ title: 'Успех', description: 'AI анализ успешно сгенерирован.' });
     } catch (error) {
-      toast({ variant: 'destructive', title: 'AI analysis failed' });
+      toast({ variant: 'destructive', title: 'Ошибка AI анализа' });
     }
   };
 
@@ -49,26 +49,30 @@ export default function AdminDashboard() {
     return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
   };
 
+  const statusMap: Record<string, string> = {
+    'completed': 'Завершен',
+    'in_progress': 'В процессе'
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-10 space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-headline font-bold">Admin Matrix</h1>
-          <p className="text-muted-foreground">Monitor real-time session performance and diagnostic results.</p>
+          <h1 className="text-4xl font-headline font-bold">Матрица go2study</h1>
+          <p className="text-muted-foreground">Мониторинг сессий в реальном времени и диагностические результаты.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline"><Filter className="w-4 h-4 mr-2" /> Filter</Button>
-          <Button><Search className="w-4 h-4 mr-2" /> Quick Search</Button>
+          <Button variant="outline"><Filter className="w-4 h-4 mr-2" /> Фильтр</Button>
+          <Button><Search className="w-4 h-4 mr-2" /> Поиск</Button>
         </div>
       </header>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Active Sessions', val: results.filter(r => r.status === 'in_progress').length, icon: Activity, color: 'text-primary' },
-          { label: 'Completed Tests', val: results.filter(r => r.status === 'completed').length, icon: Users, color: 'text-green-500' },
-          { label: 'Avg. Score', val: '74%', icon: BarChart3, color: 'text-accent' },
-          { label: 'Integrity Alerts', val: results.reduce((acc, r) => acc + r.anti_cheat_count, 0), icon: Shield, color: 'text-destructive' },
+          { label: 'Активные сессии', val: results.filter(r => r.status === 'in_progress').length, icon: Activity, color: 'text-primary' },
+          { label: 'Завершенные тесты', val: results.filter(r => r.status === 'completed').length, icon: Users, color: 'text-green-500' },
+          { label: 'Ср. балл', val: results.length > 0 ? `${Math.round(results.reduce((acc, r) => acc + r.percentage, 0) / results.length)}%` : '0%', icon: BarChart3, color: 'text-accent' },
+          { label: 'Нарушения честности', val: results.reduce((acc, r) => acc + r.anti_cheat_count, 0), icon: Shield, color: 'text-destructive' },
         ].map((stat, i) => (
           <Card key={i} className="bg-secondary/50 border-border">
             <CardContent className="p-6 flex items-center justify-between">
@@ -84,12 +88,11 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Results Table */}
       <Card className="border-border bg-secondary/20">
         <CardHeader>
           <CardTitle className="font-headline flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-primary" />
-            Student Performance Logs
+            Журнал результатов
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -97,20 +100,20 @@ export default function AdminDashboard() {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Integrity</TableHead>
-                  <TableHead>AI Insight</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead>Студент</TableHead>
+                  <TableHead>Город</TableHead>
+                  <TableHead>Результат</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead>Честность</TableHead>
+                  <TableHead>AI Анализ</TableHead>
+                  <TableHead className="text-right">Детали</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {results.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                      No active records found in the system.
+                      Записи отсутствуют.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -119,43 +122,43 @@ export default function AdminDashboard() {
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-semibold">{r.student_name}</span>
-                          <span className="text-xs text-muted-foreground">{r.class_number} Class | {r.language.toUpperCase()}</span>
+                          <span className="text-xs text-muted-foreground">{r.class_number} Класс | {r.language.toUpperCase()}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{r.student_city}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-primary">{r.total_score} pts</span>
+                          <span className="font-mono font-bold text-primary">{r.total_score} баллов</span>
                           <span className="text-xs text-muted-foreground">({r.percentage}%)</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getStatusColor(r.status)}>
-                          {r.status}
+                          {statusMap[r.status] || r.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {r.anti_cheat_count > 0 ? (
                           <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-                            {r.anti_cheat_count} Alerts
+                            {r.anti_cheat_count} Сигналов
                           </Badge>
                         ) : (
                           <span className="text-muted-foreground text-xs flex items-center gap-1">
-                            <Shield className="w-3 h-3 text-green-500" /> Secure
+                            <Shield className="w-3 h-3 text-green-500" /> Чисто
                           </span>
                         )}
                       </TableCell>
                       <TableCell>
                         {r.is_analysed ? (
                           <Badge className="bg-accent/10 text-accent border-accent/20">
-                            Ready
+                            Готов
                           </Badge>
                         ) : r.status === 'completed' ? (
                           <Button variant="ghost" size="sm" onClick={() => handleAnalyze(r.id)} className="text-accent hover:text-accent hover:bg-accent/10 h-7 text-xs">
-                            <BrainCircuit className="w-3 h-3 mr-1" /> Generate
+                            <BrainCircuit className="w-3 h-3 mr-1" /> Анализ
                           </Button>
                         ) : (
-                          <span className="text-muted-foreground text-xs italic">Pending Finish</span>
+                          <span className="text-muted-foreground text-xs italic">Ожидание</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

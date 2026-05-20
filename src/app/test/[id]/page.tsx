@@ -22,7 +22,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [timeLeft, setTimeLeft] = useState(3600); // 1 hour default
+  const [timeLeft, setTimeLeft] = useState(3600); 
   const [isFinishing, setIsFinishing] = useState(false);
   
   const questionStartRef = useRef<number>(Date.now());
@@ -31,8 +31,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   useEffect(() => {
     async function load() {
       const { result: res, answers: ans } = await getResultDetail(id);
-      // In this demo, we refetch everything. In reality, startTest would pass questions.
-      // Since it's a prototype, we rely on our store.
       const { MOCK_QUESTIONS } = await import('@/app/lib/mock-data');
       if (res) {
         setResult(res);
@@ -47,7 +45,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     load();
   }, [id]);
 
-  // Anti-Cheat: Tab Switch & Window Blur Detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && antiCheatActive.current) {
@@ -55,13 +52,13 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           resultId: id,
           eventType: 'tab_switch',
           questionNumber: questions[currentIndex]?.question_number || 0,
-          duration: 0, // Simplified for demo
-          details: 'Student switched to another tab'
+          duration: 0,
+          details: 'Студент переключил вкладку'
         });
         toast({
           variant: 'destructive',
-          title: 'Warning: Anti-Cheat Alert',
-          description: 'Tab switching is strictly monitored.',
+          title: 'Внимание: Анти-чит система',
+          description: 'Переключение вкладок строго отслеживается.',
         });
       }
     };
@@ -73,7 +70,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           eventType: 'window_blur',
           questionNumber: questions[currentIndex]?.question_number || 0,
           duration: 0,
-          details: 'Student focused another window'
+          details: 'Студент сфокусировался на другом окне'
         });
       }
     };
@@ -86,7 +83,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     };
   }, [id, currentIndex, questions, toast]);
 
-  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -124,7 +120,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       await finishTest(id);
       router.push(`/test/${id}/complete`);
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Error finishing test' });
+      toast({ variant: 'destructive', title: 'Ошибка при завершении теста' });
     } finally {
       setIsFinishing(false);
     }
@@ -145,13 +141,19 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const SUBJECT_MAP: Record<string, string> = {
+    'math': 'Математика',
+    'logic': 'Логика',
+    'english': 'Английский',
+    'second_lang': 'Второй язык'
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Testing Header */}
       <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="font-headline font-bold text-xl text-primary">ExamIQ</span>
+            <span className="font-headline font-bold text-xl text-primary">go2study</span>
             <div className="h-6 w-px bg-border" />
             <span className="text-sm font-medium text-muted-foreground hidden md:inline">
               {result.student_name}
@@ -165,22 +167,21 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             </div>
             <Button variant="destructive" size="sm" onClick={handleFinish} disabled={isFinishing}>
               <Send className="w-4 h-4 mr-2" />
-              Finish
+              Завершить
             </Button>
           </div>
         </div>
         <Progress value={progress} className="h-1 rounded-none bg-secondary" />
       </header>
 
-      {/* Main Container */}
       <main className="flex-1 focus-centered-container">
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="px-3 py-1 uppercase tracking-widest text-xs font-bold border-primary/50 text-primary">
-              Subject: {currentQuestion.subject}
+              Предмет: {SUBJECT_MAP[currentQuestion.subject] || currentQuestion.subject}
             </Badge>
             <span className="text-sm font-medium text-muted-foreground">
-              Question {currentIndex + 1} of {questions.length}
+              Вопрос {currentIndex + 1} из {questions.length}
             </span>
           </div>
 
@@ -225,14 +226,13 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             </RadioGroup>
           </div>
 
-          {/* Navigation Controls */}
           <div className="flex items-center justify-between pt-8">
             <Button 
               variant="outline" 
               onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
               disabled={currentIndex === 0}
             >
-              <ChevronLeft className="w-4 h-4 mr-2" /> Previous
+              <ChevronLeft className="w-4 h-4 mr-2" /> Назад
             </Button>
             
             <div className="flex gap-2">
@@ -248,11 +248,11 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
             {currentIndex === questions.length - 1 ? (
               <Button onClick={handleFinish} disabled={isFinishing}>
-                Finalize Test <Send className="ml-2 w-4 h-4" />
+                Завершить тест <Send className="ml-2 w-4 h-4" />
               </Button>
             ) : (
               <Button onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}>
-                Next Question <ChevronRight className="ml-2 w-4 h-4" />
+                Следующий вопрос <ChevronRight className="ml-2 w-4 h-4" />
               </Button>
             )}
           </div>
@@ -262,7 +262,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       <footer className="p-4 flex justify-center border-t bg-secondary/30">
         <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium">
           <AlertTriangle className="w-3 h-3 text-accent" />
-          DO NOT REFRESH THE PAGE. YOUR PROGRESS IS AUTOMATICALLY SAVED.
+          НЕ ОБНОВЛЯЙТЕ СТРАНИЦУ. ВАШ ПРОГРЕСС СОХРАНЯЕТСЯ АВТОМАТИЧЕСКИ.
         </div>
       </footer>
     </div>
