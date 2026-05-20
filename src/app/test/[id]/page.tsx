@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Clock, ChevronRight, ChevronLeft, Send, AlertCircle, GraduationCap } from 'lucide-react';
-import { getResultDetail, submitAnswer, logAntiCheat, finishTest } from '@/app/lib/actions';
+import { getResultDetail, submitAnswer, logAntiCheat, finishTest, getQuestionsByTestId } from '@/app/lib/actions';
 import { StudentResult, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -32,19 +32,16 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   useEffect(() => {
     async function load() {
       try {
+        // 1. Получаем детали сессии по ID
         const data = await getResultDetail(id);
         if (data && data.result) {
           setResult(data.result);
-          const { questions: qs } = await import('@/app/lib/actions').then(m => m.startTest({
-            testId: data.result.test_id,
-            name: data.result.student_name,
-            city: data.result.student_city,
-            whatsapp: data.result.parent_whatsapp,
-            classNumber: data.result.class_number,
-            language: data.result.language
-          }));
           
+          // 2. Получаем вопросы для теста (БЕЗ создания новой сессии!)
+          const qs = await getQuestionsByTestId(data.result.test_id);
           setQuestions(qs);
+
+          // 3. Заполняем уже данные ответы, если они есть
           const existingAnswers: Record<string, string> = {};
           data.answers.forEach(a => {
             if (a.student_answer) existingAnswers[a.question_id] = a.student_answer;
@@ -55,7 +52,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           router.push('/');
         }
       } catch (err) {
-        console.error(err);
+        console.error("Load error:", err);
       } finally {
         setLoading(false);
       }
@@ -118,6 +115,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   };
 
   const handleFinish = async () => {
+    if (isFinishing) return;
     setIsFinishing(true);
     antiCheatActive.current = false;
     try {
@@ -125,7 +123,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       router.push(`/test/${id}/complete`);
     } catch (error) {
       toast({ variant: 'destructive', title: 'Ошибка завершения' });
-    } finally {
       setIsFinishing(false);
     }
   };
@@ -147,7 +144,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
   return (
     <div className="min-h-screen bg-[#f9fafb] flex flex-col">
-      {/* Academy Header */}
       <header className="bg-white border-b border-[#e3e8ee] px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-6 h-6 text-[#14bf96]" />
@@ -165,8 +161,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             variant="outline" 
             className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold hidden md:flex"
             onClick={handleFinish}
+            disabled={isFinishing}
           >
-            Сдать тест
+            {isFinishing ? 'Завершение...' : 'Сдать тест'}
           </Button>
         </div>
       </header>
@@ -185,7 +182,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-[#3b3e40]/60 uppercase tracking-widest">Вопрос {currentIndex + 1} из {questions.length}</p>
-                  <h3 className="text-[#14bf96] font-bold text-sm uppercase tracking-wider">{currentQuestion.subject === 'math' ? 'Математика' : currentQuestion.subject === 'logic' ? 'Логика' : currentQuestion.subject}</h3>
+                  <h3 className="text-[#14bf96] font-bold text-sm uppercase tracking-wider">{currentQuestion.subject}</h3>
                 </div>
               </div>
 
@@ -248,7 +245,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                     onClick={handleFinish} 
                     disabled={isFinishing}
                   >
-                    Завершить тест <Send className="ml-2 w-4 h-4" />
+                    {isFinishing ? 'Загрузка...' : 'Завершить тест'} <Send className="ml-2 w-4 h-4" />
                   </Button>
                 ) : (
                   <Button 
@@ -305,8 +302,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             <Button 
               className="w-full mt-8 bg-white border-2 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold"
               onClick={handleFinish}
+              disabled={isFinishing}
             >
-              Завершить досрочно
+              {isFinishing ? '...' : 'Завершить досрочно'}
             </Button>
           </div>
           

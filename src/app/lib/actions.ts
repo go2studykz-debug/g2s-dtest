@@ -1,3 +1,4 @@
+
 'use server';
 
 import { 
@@ -53,6 +54,11 @@ export async function getTests(): Promise<Test[]> {
 export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
   const all = questionsStore['all'] || [];
   return all.filter(q => true);
+}
+
+export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
+  const all = questionsStore['all'] || [];
+  return all.filter(q => q.test_id === testId);
 }
 
 export async function saveQuestion(question: Question): Promise<Question> {
@@ -199,13 +205,17 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
   const answers = answersStore[resultId] || [];
   const correctCount = answers.filter(a => a.is_correct).length;
   
-  result.status = 'completed';
-  result.completed_at = new Date();
-  result.total_correct = correctCount;
-  result.percentage = result.total_questions > 0 ? Math.round((correctCount / result.total_questions) * 100) : 0;
-  result.total_score = correctCount * 10;
+  const updatedResult = {
+    ...result,
+    status: 'completed' as const,
+    completed_at: new Date(),
+    total_correct: correctCount,
+    percentage: result.total_questions > 0 ? Math.round((correctCount / result.total_questions) * 100) : 0,
+    total_score: correctCount * 10
+  };
 
-  return result;
+  resultsStore[resultId] = updatedResult;
+  return updatedResult;
 }
 
 export async function analyzeResult(resultId: string) {
@@ -266,19 +276,19 @@ export async function analyzeResult(resultId: string) {
   } catch (error) {
     console.warn("AI Analysis failed (missing API key?), using mock data for prototype:", error);
     
-    // Demo fallback data for prototype
     const mockAnalysis = {
       performanceSummary: `${result.student_name} продемонстрировал(а) уверенные знания в большинстве тем. Однако выявлены пробелы в сложных логических задачах и математическом анализе. Рекомендуется сфокусироваться на развитии критического мышления.`,
-      errorPatterns: [
+      detailedAnalysis: [
         {
+          questionNumber: 1,
           subject: 'math',
-          incorrectAnswers: [],
-          analysis: 'В целом математический блок выполнен хорошо. Ошибки носят единичный характер и связаны скорее с невнимательностью.'
-        },
-        {
-          subject: 'logic',
-          incorrectAnswers: [],
-          analysis: 'Наблюдаются систематические сложности с задачами на пространственное мышление и числовые ряды.'
+          topic: 'Решение линейных уравнений',
+          studentAnswer: 'A',
+          correctAnswer: 'B',
+          status: 'Ошибка',
+          errorType: 'Невнимательность при вычислениях',
+          examInfluence: 'Линейные уравнения составляют 15% блока математики. Ошибка здесь критична для итогового балла.',
+          recommendation: 'Повторить алгоритм переноса слагаемых и выполнить 20 тренировочных упражнений.'
         }
       ],
       learningPathwaySuggestions: [
@@ -286,11 +296,6 @@ export async function analyzeResult(resultId: string) {
           area: 'Логика и Мышление', 
           suggestion: 'Пройти дополнительный курс по логическим задачам НИШ.',
           resources: ['Задачи на ряды', 'Геометрическая логика']
-        },
-        { 
-          area: 'Математика', 
-          suggestion: 'Повторить темы уравнений и текстовых задач повышенной сложности.',
-          resources: ['Текстовые задачи', 'Уравнения']
         }
       ],
       antiCheatBehaviorAnalysis: 'Критическая подозрительная активность не обнаружена. Сессия прошла в нормальном режиме.'
