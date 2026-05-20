@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { 
   Users, BrainCircuit, Calendar, Zap, Clock, 
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle
+  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity
 } from 'lucide-react';
 import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -24,7 +24,7 @@ export default function AdminDashboard() {
   const [results, setResults] = useState<StudentResult[]>([]);
   const [testDurations, setTestDurations] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_ready' | 'today_abandoned' | 'today_no_consult' | 'all_completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_active' | 'all_no_consult' | 'all_abandoned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
@@ -81,11 +81,10 @@ export default function AdminDashboard() {
     const todayResults = results.filter(r => isSameDay(r.started_at, today));
     
     return {
-      starts: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
-      ready: todayResults.filter(r => r.status === 'completed' && r.is_analysed).length,
-      abandoned: results.filter(r => isAbandoned(r)).length, 
-      noConsult: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
-      total_today: todayResults.length
+      startsToday: todayResults.length,
+      activeToday: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
+      noConsultTotal: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
+      abandonedTotal: results.filter(r => isAbandoned(r)).length
     };
   }, [results, today, testDurations]);
 
@@ -94,16 +93,14 @@ export default function AdminDashboard() {
 
     if (filter !== 'all') {
       list = results.filter(r => {
+        if (filter === 'all_no_consult') return r.status === 'completed' && !r.is_consulted;
+        if (filter === 'all_abandoned') return isAbandoned(r);
+        
         const isToday = isSameDay(r.started_at, today);
-        
-        if (filter === 'all_completed') return r.status === 'completed';
-        if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
-        if (filter === 'today_abandoned') return isAbandoned(r);
-        
         if (!isToday) return false;
         
-        if (filter === 'today_starts') return r.status === 'in_progress' && !isAbandoned(r);
-        if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
+        if (filter === 'today_starts') return true;
+        if (filter === 'today_active') return r.status === 'in_progress' && !isAbandoned(r);
         
         return true;
       });
@@ -163,11 +160,6 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-[#f4f7f9] p-6 md:p-10 space-y-8 text-[#081d3a]">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm">
-              <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? today.toLocaleDateString() : '--.--.----'}
-            </Badge>
-          </div>
           <h1 className="text-4xl font-headline font-bold tracking-tight text-[#081d3a]">Матрица go2study</h1>
           <p className="text-[#3b3e40] text-base mt-1 font-medium opacity-80">Оперативный центр управления лидами и AI-диагностики.</p>
         </div>
@@ -178,72 +170,80 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { 
-            label: 'Новые лиды', 
-            val: stats.starts, 
-            sub: 'В процессе сегодня',
-            icon: Zap, 
-            color: 'text-primary',
-            bg: 'bg-primary/5',
-            filter: 'today_starts'
-          },
-          { 
-            label: 'Готовы к звонку', 
-            val: stats.ready, 
-            sub: 'AI готов за сегодня',
-            icon: BrainCircuit, 
-            color: 'text-green-500',
-            bg: 'bg-green-500/5',
-            filter: 'today_ready'
-          },
-          { 
-            label: 'Конс. не назначена', 
-            val: stats.noConsult, 
-            sub: 'Всего долгов по звонкам',
-            icon: Phone, 
-            color: 'text-blue-500',
-            bg: 'bg-blue-500/5',
-            filter: 'today_no_consult'
-          },
-          { 
-            label: 'Нужна помощь', 
-            val: stats.abandoned, 
-            sub: 'Всего брошенных тестов',
-            icon: Clock, 
-            color: 'text-orange-500',
-            bg: 'bg-orange-500/5',
-            filter: 'today_abandoned'
-          },
-        ].map((stat, i) => (
-          <Card 
-            key={i} 
-            className={cn(
-              "cursor-pointer transition-all hover:shadow-lg border-2 rounded-2xl relative overflow-hidden",
-              filter === stat.filter ? "border-primary shadow-md bg-white ring-4 ring-primary/5" : "border-transparent bg-white shadow-sm"
-            )}
-            onClick={() => setFilter(filter === stat.filter ? 'all' : stat.filter as any)}
-          >
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black text-[#3b3e40] uppercase tracking-widest opacity-40">{stat.label}</p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <p className="text-4xl font-bold font-headline">{mounted ? stat.val : '0'}</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm rounded-lg">
+            <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? today.toLocaleDateString() : '--.--.----'}
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { 
+              label: 'Начали тест', 
+              val: stats.startsToday, 
+              sub: 'Всего за сегодня',
+              icon: Users, 
+              color: 'text-primary',
+              bg: 'bg-primary/5',
+              filter: 'today_starts'
+            },
+            { 
+              label: 'В процессе', 
+              val: stats.activeToday, 
+              sub: 'Активны сегодня',
+              icon: Activity, 
+              color: 'text-green-500',
+              bg: 'bg-green-500/5',
+              filter: 'today_active'
+            },
+            { 
+              label: 'Долги по конс.', 
+              val: stats.noConsultTotal, 
+              sub: 'Не назначено всего',
+              icon: Phone, 
+              color: 'text-blue-500',
+              bg: 'bg-blue-500/5',
+              filter: 'all_no_consult'
+            },
+            { 
+              label: 'Нужна помощь', 
+              val: stats.abandonedTotal, 
+              sub: 'Брошено всего',
+              icon: AlertTriangle, 
+              color: 'text-orange-500',
+              bg: 'bg-orange-500/5',
+              filter: 'all_abandoned'
+            },
+          ].map((stat, i) => (
+            <Card 
+              key={i} 
+              className={cn(
+                "cursor-pointer transition-all hover:shadow-lg border-2 rounded-2xl relative overflow-hidden",
+                filter === stat.filter ? "border-primary shadow-md bg-white ring-4 ring-primary/5" : "border-transparent bg-white shadow-sm"
+              )}
+              onClick={() => setFilter(filter === stat.filter ? 'all' : stat.filter as any)}
+            >
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black text-[#3b3e40] uppercase tracking-widest opacity-40">{stat.label}</p>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <p className="text-4xl font-bold font-headline">{mounted ? stat.val : '0'}</p>
+                  </div>
+                  <p className="text-sm text-[#3b3e40] font-bold mt-1 opacity-70">{stat.sub}</p>
                 </div>
-                <p className="text-sm text-[#3b3e40] font-bold mt-1 opacity-70">{stat.sub}</p>
-              </div>
-              <div className={cn("p-4 rounded-xl border border-border shadow-inner", stat.bg, stat.color)}>
-                <stat.icon className="w-8 h-8" />
-              </div>
-            </CardContent>
-            {filter === stat.filter && (
-              <div className="bg-primary text-white text-[10px] font-black py-1.5 text-center uppercase tracking-widest flex items-center justify-center gap-2">
-                <MousePointer2 className="w-3 h-3" /> Активный фильтр
-              </div>
-            )}
-          </Card>
-        ))}
+                <div className={cn("p-4 rounded-xl border border-border shadow-inner", stat.bg, stat.color)}>
+                  <stat.icon className="w-8 h-8" />
+                </div>
+              </CardContent>
+              {filter === stat.filter && (
+                <div className="bg-primary text-white text-[10px] font-black py-1.5 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                  <MousePointer2 className="w-3 h-3" /> Активный фильтр
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
             className="bg-white border-primary text-primary hover:bg-primary/5 font-bold rounded-xl h-12 px-6 shadow-sm transition-all group"
           >
             <X className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" /> 
-            Сбросить фильтры
+            Показать все результаты
           </Button>
         )}
       </div>
@@ -369,7 +369,7 @@ export default function AdminDashboard() {
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleAnalyze(r.id)} 
-                              className="h-8 px-2 text-primary hover:bg-primary/10 rounded-md gap-1"
+                              className="h-8 px-2 text-primary hover:bg-primary/10 rounded-md gap-1 border border-primary/20"
                               title="Запустить AI Анализ"
                             >
                               <Zap className="w-3.5 h-3.5" />
