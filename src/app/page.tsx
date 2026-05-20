@@ -62,7 +62,7 @@ const TRANSLATIONS = {
   },
   kk: {
     hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз.",
-    hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін иә жеке оқу жоспарыңыздың негізі болатын терең академиялық диагностика.",
+    hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін иә жеке оқу жоспарыңыздың негезі болатын терең академиялық диагностика.",
     cta_title: "Жолды бастау",
     cta_desc: "Кәсіби тестілеуді бастау үшін сауалнаманы толтырыңыз.",
     field_name: "Оқушының аты-жөні",
@@ -184,7 +184,7 @@ export default function LandingPage() {
           <span className="text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="https://go2study.kz/" target="_blank" className="text-sm font-medium text-[#081d3a]/60 hover:text-primary flex items-center gap-1.5 transition-colors">
+          <a href="https://go2study.kz/" target="_blank" className="text-sm font-medium text-[#081d3a]/70 hover:text-primary flex items-center gap-1.5 transition-colors lowercase">
             <ExternalLink className="w-3.5 h-3.5" /> {t.go2site}
           </a>
           <div className="flex bg-muted p-1 rounded-lg">
@@ -203,36 +203,36 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
-              <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
-                  <Users className="w-7 h-7" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shrink-0 w-12 h-12">
+                  <Users className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_students}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_students_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">{t.stats_students_label}</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
-                  <ShieldCheck className="w-7 h-7" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shrink-0 w-12 h-12">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-primary tracking-tight leading-none">
                     {t.stats_params}
                   </div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_params_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">100% совпадение с ниш</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform flex items-center justify-center shrink-0 w-14 h-14">
-                  <Globe className="w-7 h-7" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-primary/5 text-primary flex items-center justify-center shrink-0 w-12 h-12">
+                  <Globe className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_cities}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_cities_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">Весь казахстан</div>
                 </div>
               </div>
             </div>
@@ -371,4 +371,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
