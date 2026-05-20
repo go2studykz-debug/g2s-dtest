@@ -56,7 +56,6 @@ function serializeData<T>(data: T): T {
 
 /**
  * Инициализирует демонстрационные данные, если база пуста.
- * Усиленная версия: проверяет наличие конкретного теста test-1.
  */
 async function ensureSampleData() {
   const db = getDb();
@@ -65,7 +64,7 @@ async function ensureSampleData() {
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
     if (!testDoc.exists()) {
-      console.log("Initializing sample data for test-1...");
+      console.log("Initializing fixed sample data for test-1...");
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -73,8 +72,8 @@ async function ensureSampleData() {
         is_active: true,
         total_time_minutes: 60,
         blocks: [
-          { subject: 'math', question_count: 15, time_limit_minutes: 30 },
-          { subject: 'logic', question_count: 10, time_limit_minutes: 30 }
+          { subject: 'math', question_count: 3, time_limit_minutes: 30 },
+          { subject: 'logic', question_count: 3, time_limit_minutes: 30 }
         ],
         created_at: serverTimestamp()
       };
@@ -82,6 +81,7 @@ async function ensureSampleData() {
       await setDoc(doc(db, 'tests', testId), sampleTest);
 
       const sampleQuestions = [
+        // МАТЕМАТИКА
         {
           test_id: testId,
           question_number: 1,
@@ -100,7 +100,7 @@ async function ensureSampleData() {
           test_id: testId,
           question_number: 2,
           subject: 'math',
-          question_text: 'Чему равен корень из 144?',
+          question_text: 'Чему равен квадратный корень из числа 144?',
           option_a: '10',
           option_b: '12',
           option_c: '14',
@@ -113,8 +113,23 @@ async function ensureSampleData() {
         {
           test_id: testId,
           question_number: 3,
+          subject: 'math',
+          question_text: 'Вычислите: (15 + 25) / 5 * 2',
+          option_a: '16',
+          option_b: '8',
+          option_c: '20',
+          option_d: '12',
+          option_e: '10',
+          correct_answer: 'A',
+          class_number: 6,
+          language: 'ru'
+        },
+        // ЛОГИКА
+        {
+          test_id: testId,
+          question_number: 4,
           subject: 'logic',
-          question_text: 'Какое число следующее в последовательности: 2, 4, 8, 16, ...?',
+          question_text: 'Какое число должно быть следующим в последовательности: 2, 4, 8, 16, ...?',
           option_a: '24',
           option_b: '30',
           option_c: '32',
@@ -123,15 +138,42 @@ async function ensureSampleData() {
           correct_answer: 'C',
           class_number: 6,
           language: 'ru'
+        },
+        {
+          test_id: testId,
+          question_number: 5,
+          subject: 'logic',
+          question_text: 'Если все коты — животные, а Барсик — кот, то какой вывод является верным?',
+          option_a: 'Барсик — животное',
+          option_b: 'Все животные — коты',
+          option_c: 'Барсик — не животное',
+          option_d: 'Коты не являются животными',
+          option_e: 'Барсик — собака',
+          correct_answer: 'A',
+          class_number: 6,
+          language: 'ru'
+        },
+        {
+          test_id: testId,
+          question_number: 6,
+          subject: 'logic',
+          question_text: 'Укажите лишнее слово в списке: Яблоко, Груша, Банан, Морковь, Персик.',
+          option_a: 'Яблоко',
+          option_b: 'Груша',
+          option_c: 'Банан',
+          option_d: 'Морковь',
+          option_e: 'Персик',
+          correct_answer: 'D',
+          class_number: 6,
+          language: 'ru'
         }
       ];
 
       for (const q of sampleQuestions) {
-        // Добавляем вопросы с предсказуемыми ID для стабильности
         const qId = `q-${testId}-${q.question_number}`;
         await setDoc(doc(db, 'questions', qId), q);
       }
-      console.log("Sample data initialization complete.");
+      console.log("Fixed sample data initialization complete.");
     }
   } catch (error) {
     console.error("Critical error during data initialization:", error);
@@ -167,10 +209,6 @@ export async function getTestById(id: string): Promise<Test | null> {
   return null;
 }
 
-/**
- * Получает вопросы теста. 
- * Использует фильтрацию в памяти, чтобы избежать проблем с индексами Firestore в прототипе.
- */
 export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
   const db = getDb();
   try {
@@ -186,9 +224,6 @@ export async function getQuestionsByTestId(testId: string): Promise<Question[]> 
   }
 }
 
-/**
- * Хелпер для получения всех вопросов (для админки).
- */
 export async function getQuestions(classNum?: number, lang?: string): Promise<Question[]> {
   const db = getDb();
   try {
@@ -215,16 +250,11 @@ export async function startTest(data: {
 }) {
   const db = getDb();
   try {
-    console.log("Starting test for:", data.name);
-    // Сначала гарантируем наличие данных
     await ensureSampleData();
-    
-    // Получаем вопросы
     const questions = await getQuestionsByTestId(data.testId);
     
     if (questions.length === 0) {
-      // Если даже после инициализации пусто, кидаем ошибку
-      throw new Error('В базе данных нет вопросов для этого теста. Пожалуйста, создайте вопросы в админ-панели.');
+      throw new Error("Вопросы для этого теста еще не добавлены. Пожалуйста, обратитесь к администрации.");
     }
 
     const resultData = {
@@ -247,8 +277,6 @@ export async function startTest(data: {
     };
 
     const docRef = await addDoc(collection(db, 'results'), resultData);
-    
-    // Возвращаем результат (скрываем правильные ответы)
     const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
     
     return serializeData({ 
@@ -256,7 +284,7 @@ export async function startTest(data: {
       questions: secureQuestions 
     });
   } catch (error: any) {
-    console.error("Failed to start test action:", error);
+    console.error("Failed to start test:", error);
     throw new Error(error.message || "Ошибка при подключении к базе данных.");
   }
 }
@@ -324,7 +352,6 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
     };
 
     await updateDoc(resultRef, updateData);
-    
     const finalSnap = await getDoc(resultRef);
     return serializeData({ id: resultId, ...finalSnap.data() }) as any;
   } catch (error: any) {
@@ -343,11 +370,7 @@ export async function getResultDetail(id: string) {
     const logsSnap = await getDocs(collection(db, 'results', id, 'logs'));
     
     const resultData = resultSnap.data();
-    const result = {
-      id: resultSnap.id,
-      ...resultData
-    };
-
+    const result = { id: resultSnap.id, ...resultData };
     const questions = await getQuestionsByTestId(result.test_id as string);
 
     return serializeData({ 
@@ -366,10 +389,7 @@ export async function getAllResults() {
   const db = getDb();
   try {
     const qSnapshot = await getDocs(collection(db, 'results'));
-    const results = qSnapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+    const results = qSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     return serializeData(results) as any;
   } catch (e) {
     console.error("Error getting all results:", e);
