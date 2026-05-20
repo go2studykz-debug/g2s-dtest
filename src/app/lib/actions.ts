@@ -1,4 +1,3 @@
-
 'use server';
 
 import { 
@@ -11,40 +10,27 @@ import {
   Subject,
   Language
 } from './types';
-import { MOCK_TESTS, MOCK_QUESTIONS } from './mock-data';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy,
+  addDoc,
+  Timestamp,
+  serverTimestamp
+} from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 
-// Используем глобальный объект для сохранения данных между перезагрузками в разработке
-const globalForStore = global as unknown as {
-  resultsStore: Record<string, any>;
-  answersStore: Record<string, any[]>;
-  logsStore: Record<string, any[]>;
-  testsStore: Record<string, any>;
-  questionsStore: Record<string, any[]>; 
-};
-
-// Инициализация хранилища
-globalForStore.resultsStore = globalForStore.resultsStore || {};
-globalForStore.answersStore = globalForStore.answersStore || {};
-globalForStore.logsStore = globalForStore.logsStore || {};
-globalForStore.testsStore = globalForStore.testsStore || {};
-globalForStore.questionsStore = globalForStore.questionsStore || {};
-
-const resultsStore = globalForStore.resultsStore;
-const answersStore = globalForStore.answersStore;
-const logsStore = globalForStore.logsStore;
-const testsStore = globalForStore.testsStore;
-const questionsStore = globalForStore.questionsStore;
-
-// Загрузка моков, если хранилище пустое
-if (Object.keys(testsStore).length === 0) {
-  MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
-}
-if (!questionsStore['all'] || questionsStore['all'].length === 0) {
-  const allQuestions: Question[] = [];
-  Object.values(MOCK_QUESTIONS).forEach(qs => allQuestions.push(...qs));
-  questionsStore['all'] = allQuestions;
-}
+// Инициализируем Firebase один раз на стороне сервера
+const { firestore: db } = initializeFirebase();
 
 // Хелпер для сериализации данных для предотвращения ошибок Next.js 15
 function serializeData<T>(data: T): T {
@@ -52,41 +38,43 @@ function serializeData<T>(data: T): T {
 }
 
 export async function getTests(): Promise<Test[]> {
-  try {
-    return serializeData(Object.values(testsStore));
-  } catch (e) {
-    return [];
-  }
+  const querySnapshot = await getDocs(collection(db, 'tests'));
+  const tests = querySnapshot.docs.map(d => ({
+    id: d.id,
+    ...d.data(),
+    created_at: d.data().created_at?.toDate() || new Date()
+  })) as Test[];
+  return serializeData(tests);
 }
 
 export async function getTestById(id: string): Promise<Test | null> {
-  try {
-    const test = testsStore[id];
-    return test ? serializeData(test) : null;
-  } catch (e) {
-    return null;
+  const docRef = doc(db, 'tests', id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return serializeData({
+      id: docSnap.id,
+      ...docSnap.data(),
+      created_at: docSnap.data().created_at?.toDate() || new Date()
+    } as Test);
   }
+  return null;
 }
 
 export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
-  try {
-    const all = questionsStore['all'] || [];
-    return serializeData(all.filter(q => {
-      const test = testsStore[q.test_id];
-      return test && test.class_number === classNumber && test.language === language;
-    }));
-  } catch (e) {
-    return [];
-  }
+  const q = query(
+    collection(db, 'questions'),
+    where('class_number', '==', classNumber),
+    where('language', '==', language),
+    orderBy('question_number')
+  );
+  const querySnapshot = await getDocs(q);
+  return serializeData(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Question[]);
 }
 
 export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
-  try {
-    const all = questionsStore['all'] || [];
-    return serializeData(all.filter(q => q.test_id === testId));
-  } catch (e) {
-    return [];
-  }
+  const q = query(collection(db, 'questions'), where('test_id', '==', testId), orderBy('question_number'));
+  const querySnapshot = await getDocs(q);
+  return serializeData(querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Question[]);
 }
 
 export async function startTest(data: {
@@ -97,15 +85,9 @@ export async function startTest(data: {
   classNumber: number;
   language: 'kk' | 'ru';
 }): Promise<{ result: StudentResult; questions: Question[] }> {
-  const resultId = Math.random().toString(36).substr(2, 9);
-  const test = testsStore[data.testId] || MOCK_TESTS.find(t => t.id === data.testId);
-  
-  if (!test) throw new Error('Test not found');
+  const questions = await getQuestionsByTestId(data.testId);
 
-  const questions = (questionsStore['all'] || []).filter(q => q.test_id === data.testId);
-
-  const result: StudentResult = {
-    id: resultId,
+  const resultData = {
     test_id: data.testId,
     student_name: data.name,
     student_city: data.city,
@@ -117,16 +99,16 @@ export async function startTest(data: {
     total_questions: questions.length,
     percentage: 0,
     total_score: 0,
-    started_at: new Date(),
+    started_at: serverTimestamp(),
     is_analysed: false,
     anti_cheat_count: 0,
     is_contacted: false,
     is_consulted: false,
   };
 
-  resultsStore[resultId] = result;
+  const docRef = await addDoc(collection(db, 'results'), resultData);
+  const result = { id: docRef.id, ...resultData, started_at: new Date() } as unknown as StudentResult;
   
-  // Возвращаем вопросы без правильных ответов для безопасности фронтенда
   const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
   
   return serializeData({ result, questions: secureQuestions });
@@ -138,24 +120,19 @@ export async function submitAnswer(data: {
   answer: string;
   timeSpent: number;
 }) {
-  const result = resultsStore[data.resultId];
-  if (!result || result.status === 'completed') return;
+  const qSnap = await getDoc(doc(db, 'questions', data.questionId));
+  if (!qSnap.exists()) return;
+  const question = qSnap.data() as Question;
 
-  const all = questionsStore['all'] || [];
-  const question = all.find(q => q.id === data.questionId);
-  if (!question) return;
+  const answerRef = doc(db, 'results', data.resultId, 'answers', data.questionId);
+  const answerSnap = await getDoc(answerRef);
 
-  const existingAnswers = answersStore[data.resultId] || [];
-  const existingIdx = existingAnswers.findIndex(a => a.question_id === data.questionId);
-  
-  // Накопительный учет времени: прибавляем новое время к уже потраченному
   let totalTime = data.timeSpent;
-  if (existingIdx !== -1) {
-    totalTime += existingAnswers[existingIdx].time_spent_seconds;
+  if (answerSnap.exists()) {
+    totalTime += (answerSnap.data().time_spent_seconds || 0);
   }
 
-  const studentAnswer: StudentAnswer = {
-    id: Math.random().toString(36).substr(2, 9),
+  const studentAnswer = {
     result_id: data.resultId,
     question_id: data.questionId,
     question_number: question.question_number,
@@ -164,70 +141,85 @@ export async function submitAnswer(data: {
     correct_answer: question.correct_answer || '',
     is_correct: data.answer === question.correct_answer,
     time_spent_seconds: totalTime,
+    updated_at: serverTimestamp()
   };
 
-  if (!answersStore[data.resultId]) answersStore[data.resultId] = [];
-  
-  if (existingIdx !== -1) {
-    answersStore[data.resultId][existingIdx] = studentAnswer;
-  } else {
-    answersStore[data.resultId].push(studentAnswer);
-  }
-  
+  await setDoc(answerRef, studentAnswer);
   return serializeData({ success: true });
 }
 
 export async function finishTest(resultId: string): Promise<StudentResult> {
-  const result = resultsStore[resultId];
-  if (!result) throw new Error('Result not found');
-  if (result.status === 'completed') return serializeData(result);
-
-  const answers = answersStore[resultId] || [];
+  const resultRef = doc(db, 'results', resultId);
+  const resultSnap = await getDoc(resultRef);
+  if (!resultSnap.exists()) throw new Error('Result not found');
+  
+  const answersSnap = await getDocs(collection(db, 'results', resultId, 'answers'));
+  const answers = answersSnap.docs.map(d => d.data());
   const correctCount = answers.filter(a => a.is_correct).length;
   
-  const updatedResult = {
-    ...result,
-    status: 'completed' as const,
-    completed_at: new Date(),
+  const totalQuestions = resultSnap.data().total_questions || 0;
+  const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+  const updateData = {
+    status: 'completed',
+    completed_at: serverTimestamp(),
     total_correct: correctCount,
-    percentage: result.total_questions > 0 ? Math.round((correctCount / result.total_questions) * 100) : 0,
+    percentage: percentage,
     total_score: correctCount * 10
   };
 
-  resultsStore[resultId] = updatedResult;
-  return serializeData(updatedResult);
+  await updateDoc(resultRef, updateData);
+  
+  const finalResult = { 
+    id: resultId, 
+    ...resultSnap.data(), 
+    ...updateData,
+    started_at: resultSnap.data().started_at?.toDate(),
+    completed_at: new Date()
+  };
+
+  return serializeData(finalResult as unknown as StudentResult);
 }
 
 export async function getResultDetail(id: string) {
-  try {
-    const res = resultsStore[id];
-    if (!res) return null;
-    const ans = answersStore[id] || [];
-    const logs = logsStore[id] || [];
-    const all = questionsStore['all'] || [];
-    const testQuestions = all.filter(q => q.test_id === res.test_id);
-    return serializeData({ result: res, answers: ans, logs, testQuestions });
-  } catch (e) {
-    return null;
-  }
+  const resultSnap = await getDoc(doc(db, 'results', id));
+  if (!resultSnap.exists()) return null;
+
+  const answersSnap = await getDocs(collection(db, 'results', id, 'answers'));
+  const logsSnap = await getDocs(collection(db, 'results', id, 'logs'));
+  
+  const resultData = resultSnap.data();
+  const result = {
+    id: resultSnap.id,
+    ...resultData,
+    started_at: resultData.started_at?.toDate() || new Date(),
+    completed_at: resultData.completed_at?.toDate() || null
+  };
+
+  const questions = await getQuestionsByTestId(result.test_id);
+
+  return serializeData({ 
+    result, 
+    answers: answersSnap.docs.map(d => d.data()), 
+    logs: logsSnap.docs.map(d => ({ id: d.id, ...d.data(), created_at: d.data().created_at?.toDate() })),
+    testQuestions: questions 
+  });
 }
 
 export async function getAllResults() {
-  try {
-    return serializeData(Object.values(resultsStore));
-  } catch (e) {
-    return [];
-  }
+  const qSnapshot = await getDocs(query(collection(db, 'results'), orderBy('started_at', 'desc')));
+  return serializeData(qSnapshot.docs.map(d => ({
+    id: d.id,
+    ...d.data(),
+    started_at: d.data().started_at?.toDate(),
+    completed_at: d.data().completed_at?.toDate()
+  })));
 }
 
 export async function updateResultCRM(id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) {
-  const result = resultsStore[id];
-  if (result) {
-    if (updates.is_contacted !== undefined) result.is_contacted = updates.is_contacted;
-    if (updates.is_consulted !== undefined) result.is_consulted = updates.is_consulted;
-    resultsStore[id] = { ...result };
-  }
-  return result ? serializeData(result) : null;
+  const ref = doc(db, 'results', id);
+  await updateDoc(ref, updates);
+  return serializeData({ id, ...updates });
 }
 
 export async function logAntiCheat(data: {
@@ -237,44 +229,39 @@ export async function logAntiCheat(data: {
   duration: number;
   details: string;
 }) {
-  const result = resultsStore[data.resultId];
-  if (!result || result.status === 'completed') return;
+  const resultRef = doc(db, 'results', data.resultId);
+  const resultSnap = await getDoc(resultRef);
+  if (!resultSnap.exists() || resultSnap.data().status === 'completed') return;
 
-  const log: AntiCheatLog = {
-    id: Math.random().toString(36).substr(2, 9),
+  const log = {
     result_id: data.resultId,
     event_type: data.eventType,
     question_number: data.questionNumber,
     exit_duration_seconds: data.duration,
     details: data.details,
-    created_at: new Date(),
+    created_at: serverTimestamp(),
   };
 
-  if (!logsStore[data.resultId]) logsStore[data.resultId] = [];
-  logsStore[data.resultId].push(log);
-  
-  result.anti_cheat_count += 1;
+  await addDoc(collection(db, 'results', data.resultId, 'logs'), log);
+  await updateDoc(resultRef, {
+    anti_cheat_count: (resultSnap.data().anti_cheat_count || 0) + 1
+  });
+
   return serializeData({ success: true });
 }
 
 export async function analyzeResult(resultId: string) {
-  const result = resultsStore[resultId];
-  if (!result || result.status !== 'completed') throw new Error('Result not ready');
+  const detail = await getResultDetail(resultId);
+  if (!detail || detail.result.status !== 'completed') throw new Error('Result not ready');
 
-  const answers = answersStore[resultId] || [];
-  const logs = logsStore[resultId] || [];
-  const allQuestions = questionsStore['all'] || [];
-  const testQuestions = allQuestions.filter(q => q.test_id === result.test_id);
-
-  // Формируем полный список вопросов для AI, включая пропущенные
   const analysisInput = {
-    studentName: result.student_name,
-    classNumber: result.class_number,
-    percentage: result.percentage,
-    totalCorrect: result.total_correct,
-    totalQuestions: result.total_questions,
-    answers: testQuestions.map(q => {
-      const answer = answers.find(a => a.question_id === q.id);
+    studentName: detail.result.student_name,
+    classNumber: detail.result.class_number,
+    percentage: detail.result.percentage,
+    totalCorrect: detail.result.total_correct,
+    totalQuestions: detail.result.total_questions,
+    answers: detail.testQuestions.map(q => {
+      const answer = detail.answers.find(a => a.question_id === q.id);
       return {
         questionNumber: q.question_number,
         subject: q.subject,
@@ -285,27 +272,28 @@ export async function analyzeResult(resultId: string) {
         timeSpentSeconds: answer ? answer.time_spent_seconds : 0,
       };
     }),
-    antiCheatLogs: logs.map(l => ({
+    antiCheatLogs: detail.logs.map(l => ({
       eventType: l.event_type,
       questionNumber: l.question_number,
       exit_duration_seconds: l.exit_duration_seconds,
       details: l.details,
-      createdAt: l.created_at.toISOString(),
+      createdAt: l.created_at,
     })),
   };
 
   try {
     const analysis = await analyzeStudentResult(analysisInput);
-    result.is_analysed = true;
-    result.ai_analysis = {
-      id: Math.random().toString(36).substr(2, 9),
-      result_id: resultId,
+    const ai_analysis = {
       analysis_json: analysis,
-      student_name: result.student_name,
-      class_number: result.class_number,
-      percentage: result.percentage,
+      student_name: detail.result.student_name,
+      class_number: detail.result.class_number,
+      percentage: detail.result.percentage,
     };
-    return serializeData(result.ai_analysis);
+    await updateDoc(doc(db, 'results', resultId), {
+      is_analysed: true,
+      ai_analysis
+    });
+    return serializeData(ai_analysis);
   } catch (error) {
     console.error("AI Analysis failed:", error);
     throw error;
@@ -313,23 +301,26 @@ export async function analyzeResult(resultId: string) {
 }
 
 export async function saveTest(test: Test): Promise<Test> {
-  testsStore[test.id] = test;
+  const { id, ...data } = test;
+  const docRef = doc(db, 'tests', id);
+  await setDoc(docRef, { ...data, created_at: serverTimestamp() }, { merge: true });
   return serializeData(test);
 }
 
 export async function saveQuestion(question: Question): Promise<Question> {
-  const all = questionsStore['all'] || [];
-  const idx = all.findIndex(q => q.id === question.id);
-  if (idx !== -1) {
-    all[idx] = question;
-  } else {
-    all.push(question);
-  }
-  questionsStore['all'] = [...all];
+  const { id, ...data } = question;
+  const docRef = doc(db, 'questions', id);
+  const testSnap = await getDoc(doc(db, 'tests', question.test_id));
+  const testData = testSnap.data();
+  
+  await setDoc(docRef, { 
+    ...data, 
+    class_number: testData?.class_number,
+    language: testData?.language
+  }, { merge: true });
   return serializeData(question);
 }
 
 export async function deleteQuestion(id: string): Promise<void> {
-  const all = questionsStore['all'] || [];
-  questionsStore['all'] = all.filter(q => q.id !== id);
+  await deleteDoc(doc(db, 'questions', id));
 }

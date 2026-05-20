@@ -1,0 +1,98 @@
+
+{
+  "entities": {
+    "Test": {
+      "title": "Test",
+      "description": "Configuration for a diagnostic test.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "class_number": { "type": "number" },
+        "language": { "type": "string", "enum": ["ru", "kk"] },
+        "is_active": { "type": "boolean" },
+        "total_time_minutes": { "type": "number" },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": { "type": "string" },
+              "question_count": { "type": "number" },
+              "time_limit_minutes": { "type": "number" }
+            }
+          }
+        },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "class_number", "language", "blocks"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "A single test question.",
+      "type": "object",
+      "properties": {
+        "test_id": { "type": "string" },
+        "question_number": { "type": "number" },
+        "subject": { "type": "string" },
+        "question_text": { "type": "string" },
+        "option_a": { "type": "string" },
+        "option_b": { "type": "string" },
+        "option_c": { "type": "string" },
+        "option_d": { "type": "string" },
+        "option_e": { "type": "string" },
+        "correct_answer": { "type": "string" }
+      },
+      "required": ["test_id", "question_number", "subject", "question_text", "correct_answer"]
+    },
+    "StudentResult": {
+      "title": "StudentResult",
+      "description": "A student's test session result.",
+      "type": "object",
+      "properties": {
+        "test_id": { "type": "string" },
+        "student_name": { "type": "string" },
+        "student_city": { "type": "string" },
+        "parent_whatsapp": { "type": "string" },
+        "class_number": { "type": "number" },
+        "language": { "type": "string" },
+        "status": { "type": "string", "enum": ["in_progress", "completed"] },
+        "total_correct": { "type": "number" },
+        "total_questions": { "type": "number" },
+        "percentage": { "type": "number" },
+        "total_score": { "type": "number" },
+        "started_at": { "type": "string", "format": "date-time" },
+        "completed_at": { "type": "string", "format": "date-time" },
+        "is_analysed": { "type": "boolean" },
+        "anti_cheat_count": { "type": "number" },
+        "is_contacted": { "type": "boolean" },
+        "is_consulted": { "type": "boolean" },
+        "ai_analysis": { "type": "object" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/tests/{testId}": {
+      "schema": "Test",
+      "description": "Collection of test configurations."
+    },
+    "/questions": {
+      "schema": "Question",
+      "description": "Flat collection of all questions."
+    },
+    "/results/{resultId}": {
+      "schema": "StudentResult",
+      "description": "Collection of student test results."
+    },
+    "/results/{resultId}/answers/{answerId}": {
+      "schema": { "type": "object" },
+      "description": "Individual answers for a result."
+    },
+    "/results/{resultId}/logs/{logId}": {
+      "schema": { "type": "object" },
+      "description": "Anti-cheat logs for a session."
+    }
+  }
+}

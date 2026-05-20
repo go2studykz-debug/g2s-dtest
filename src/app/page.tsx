@@ -27,7 +27,7 @@ const CITIES = [
 
 const TRANSLATIONS = {
   ru: {
-    hero_title: "Ваш первый шаг к поступлению в НИШ.",
+    hero_title: "Ваш первый шаг к поступлению в НИШ",
     hero_subtitle: "Глубокая академическая диагностика, которая выявит пробелы, определит сильные стороны и станет фундаментом вашего личного учебного плана.",
     cta_title: "Начать путь",
     cta_desc: "Заполни анкету, чтобы приступить к профессиональному тестированию.",
@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     value_3: "Карта навыков по всем предметам НИШ"
   },
   kk: {
-    hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз.",
+    hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз",
     hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін иә жеке оқу жоспарыңыздың негезі болатын терең академиялық диагностика.",
     cta_title: "Жолды бастау",
     cta_desc: "Кәсіби тестілеуді бастау үшін сауалнаманы толтырыңыз.",
@@ -199,7 +199,7 @@ export default function LandingPage() {
           <div className="space-y-8 order-2 lg:order-1">
             <Badge variant="secondary" className="bg-primary/10 text-primary border-none px-4 py-1 font-bold text-sm uppercase tracking-wider">Профессиональная диагностика НИШ</Badge>
             <h1 className="text-4xl md:text-6xl font-headline font-bold text-[#081d3a] leading-[1.15]">
-              {t.hero_title.split('. ')[0]}. <br/><span className="text-primary">{t.hero_title.split('. ')[1]}</span>
+              {t.hero_title}.
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             
