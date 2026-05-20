@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   GraduationCap, BookOpen, ShieldCheck, ArrowRight, User, Phone, 
   CheckCircle2, Users, MapPin, BarChart3, Zap, BrainCircuit, MessageSquare, ExternalLink,
-  Target, Rocket, HeartHandshake
+  Target, Rocket, HeartHandshake, FileText, FileSearch, Sparkles
 } from 'lucide-react';
 import { startTest } from './lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +47,7 @@ const TRANSLATIONS = {
     how_step2: "Диагностика",
     how_step2_desc: "Глубокий срез знаний (до 120 мин)",
     how_step3: "Экспертный разбор",
-    how_step3_desc: "Анализ от ИИ и методистов (отправим вам)",
+    how_step3_desc: "Анализ от экспертов (отправим вам)",
     how_step4: "Сопровождение",
     how_step4_desc: "Ведем вас до самого поступления",
     preview_title: "Что вы получите",
@@ -78,7 +78,7 @@ const TRANSLATIONS = {
     how_step2: "Диагностика",
     how_step2_desc: "Терең білім тексеру (120 мин дейін)",
     how_step3: "Сарапшы талдауы",
-    how_step3_desc: "AI және әдіскерлердің талдауы (сізге жібереміз)",
+    how_step3_desc: "Сарапшылардың талдауы (сізге жібереміз)",
     how_step4: "Қолдау көрсету",
     how_step4_desc: "Оқуға түскенше бірге боламыз",
     preview_title: "Сіз не аласыз",
@@ -185,9 +185,9 @@ export default function LandingPage() {
           </span>
         </div>
         <div className="flex items-center gap-6">
-          <nav className="hidden md:flex gap-8 text-sm font-bold text-[#081d3a]/70 lowercase tracking-wide">
-            <a href="https://go2study.kz/" target="_blank" className="hover:text-primary transition-colors flex items-center gap-2 border-b-2 border-transparent hover:border-primary pb-1">
-              <ExternalLink className="w-4 h-4" /> {t.go2site}
+          <nav className="hidden md:flex gap-8 text-[10px] font-black text-[#081d3a]/40 uppercase tracking-[0.2em]">
+            <a href="https://go2study.kz/" target="_blank" className="hover:text-primary transition-colors flex items-center gap-2">
+              <ExternalLink className="w-3 h-3" /> {t.go2site}
             </a>
           </nav>
           <div className="flex bg-muted p-1 rounded-lg">
@@ -375,34 +375,66 @@ export default function LandingPage() {
           </div>
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl blur-2xl" />
-            <Card className="border-border/50 shadow-2xl rounded-2xl overflow-hidden bg-white rotate-2 hover:rotate-0 transition-transform duration-500 scale-95 md:scale-100">
-              <CardHeader className="bg-[#f8fafc] border-b border-border/50 py-4 px-6">
-                <div className="flex items-center gap-3">
-                  <Rocket className="w-5 h-5 text-primary" />
-                  <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-40">Индивидуальный план</span>
+            <Card className="border-border/50 shadow-2xl rounded-2xl overflow-hidden bg-white rotate-2 hover:rotate-0 transition-transform duration-500 scale-95 md:scale-100 max-w-sm mx-auto">
+              <CardHeader className="bg-[#081d3a] py-6 px-6 text-white relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-[#14bf96]" />
+                    <span className="text-sm font-bold tracking-tight">go2study</span>
+                  </div>
+                  <Badge className="bg-[#14bf96] hover:bg-[#14bf96] text-white text-[8px] border-none uppercase font-black">Official Report</Badge>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Диагностический сертификат</p>
+                  <h4 className="text-xl font-bold font-headline">Алия Смагулова</h4>
                 </div>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#081d3a]">Алия Смагулова</span>
-                    <span className="text-[10px] font-black uppercase opacity-30">6 Класс • Карта навыков</span>
+              <CardContent className="p-6 space-y-6 bg-white">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-[#f8fafc] border border-border/50 flex flex-col items-center">
+                    <span className="text-[8px] font-black uppercase text-[#3b3e40]/40 mb-1">Общий результат</span>
+                    <span className="text-2xl font-bold text-[#14bf96]">84%</span>
                   </div>
-                  <div className="text-2xl font-bold text-primary">84%</div>
+                  <div className="p-3 rounded-xl bg-[#f8fafc] border border-border/50 flex flex-col items-center">
+                    <span className="text-[8px] font-black uppercase text-[#3b3e40]/40 mb-1">Сынып</span>
+                    <span className="text-2xl font-bold text-[#081d3a]">6</span>
+                  </div>
                 </div>
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                  <h4 className="text-[10px] font-black uppercase text-primary mb-2">Глубина знаний</h4>
-                  <p className="text-xs font-medium text-[#081d3a] leading-relaxed italic opacity-80">
-                    "Диагностика выявила 15 пробелов в математической логике. Составлен график ликвидации дефицитов на 3 месяца."
+
+                <div className="space-y-4">
+                  <h5 className="text-[10px] font-black uppercase text-[#081d3a] flex items-center gap-2">
+                    <FileSearch className="w-3 h-3 text-[#14bf96]" /> Анализ навыков
+                  </h5>
+                  <div className="space-y-3">
+                    {[
+                      { label: "Математическая логика", val: 85, color: "bg-[#14bf96]" },
+                      { label: "Критическое мышление", val: 72, color: "bg-[#14bf96]" },
+                      { label: "Естествознание", val: 45, color: "bg-orange-400" }
+                    ].map((skill, i) => (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-[9px] font-bold">
+                          <span>{skill.label}</span>
+                          <span>{skill.val}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-[#f1f3f5] rounded-full overflow-hidden">
+                          <div className={cn("h-full transition-all", skill.color)} style={{ width: `${skill.val}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-primary/5 border border-dashed border-primary/20 space-y-2">
+                  <h5 className="text-[9px] font-black uppercase text-primary flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> Вердикт эксперта
+                  </h5>
+                  <p className="text-[10px] font-medium text-[#081d3a] leading-relaxed italic opacity-80">
+                    "Требуется усиление блока естествознания. Рекомендуется повторить темы биологии и химии за 5 класс..."
                   </p>
                 </div>
-                <div className="space-y-3">
-                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[85%]" />
-                  </div>
-                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-orange-400 w-[60%]" />
-                  </div>
+
+                <div className="flex justify-center">
+                  <div className="w-12 h-12 rounded-full border-4 border-[#14bf96]/20 border-t-[#14bf96] animate-spin" />
                 </div>
               </CardContent>
             </Card>
@@ -423,7 +455,7 @@ export default function LandingPage() {
             <div className="flex flex-col gap-3">
               <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-30">Платформа</span>
               <a href="https://go2study.kz/" target="_blank" className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors lowercase">{t.go2site}</a>
-              <button onClick={() => router.push('/admin')} className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors text-left">панель управления</button>
+              <button onClick={() => router.push('/admin')} className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors text-left lowercase tracking-widest">админ-панель</button>
             </div>
             <div className="flex flex-col gap-3 text-center md:text-right">
               <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-30">Контакты</span>
