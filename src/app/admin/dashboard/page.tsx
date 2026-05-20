@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  Users, Shield, BrainCircuit, Calendar, Zap, Clock, 
+  Users, BrainCircuit, Calendar, Zap, Clock, 
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, Settings, ArrowUpRight, Phone, CheckCircle2
+  Layout, Settings, ArrowUpRight, CheckCircle2
 } from 'lucide-react';
 import { getAllResults, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     return {
       starts: todayResults.filter(r => r.status === 'in_progress').length,
       ready: todayResults.filter(r => r.status === 'completed' && r.is_analysed).length,
-      abandoned: todayResults.filter(r => r.status === 'in_progress').length, 
+      abandoned: todayResults.filter(r => r.status === 'in_progress' && (new Date().getTime() - new Date(r.started_at).getTime() > 3600000)).length, 
       total_today: todayResults.length
     };
   }, [results, today]);
@@ -62,7 +62,6 @@ export default function AdminDashboard() {
         return true;
       });
     }
-    // Сортировка: сначала новые
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
   }, [results, filter, today]);
 
@@ -89,45 +88,40 @@ export default function AdminDashboard() {
 
   const getPotentialBadge = (percentage: number) => {
     if (percentage >= 80) return (
-      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 text-[9px] h-5">
-        <TrendingUp className="w-3 h-3" /> High Potential
+      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 text-[10px] h-6 px-2">
+        <TrendingUp className="w-3.5 h-3.5" /> High Potential
       </Badge>
     );
     if (percentage >= 40) return (
-      <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1 text-[9px] h-5">
-        <Minus className="w-3 h-3" /> Medium
+      <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1 text-[10px] h-6 px-2">
+        <Minus className="w-3.5 h-3.5" /> Medium
       </Badge>
     );
     return (
-      <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[9px] h-5">
-        <TrendingDown className="w-3 h-3" /> Hard Case
+      <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[10px] h-6 px-2">
+        <TrendingDown className="w-3.5 h-3.5" /> Hard Case
       </Badge>
     );
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === 'completed') return 'bg-green-500/10 text-green-500 border-green-500/20';
-    return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-  };
-
   return (
-    <div className="min-h-screen bg-[#f9fafb] p-6 md:p-10 space-y-8 text-[#081d3a]">
+    <div className="min-h-screen bg-[#f4f7f9] p-6 md:p-10 space-y-8 text-[#081d3a]">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="bg-white text-primary border-primary/20 font-bold">
-              <Calendar className="w-3 h-3 mr-1" /> {today}
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-3 py-1">
+              <Calendar className="w-4 h-4 mr-1.5" /> {today}
             </Badge>
           </div>
-          <h1 className="text-4xl font-headline font-bold">Матрица go2study</h1>
-          <p className="text-muted-foreground text-sm">Панель оперативного управления лидами и AI-диагностики.</p>
+          <h1 className="text-4xl font-headline font-bold tracking-tight">Матрица go2study</h1>
+          <p className="text-muted-foreground text-base mt-1">Панель оперативного управления лидами и AI-диагностики.</p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => router.push('/admin/tests')} className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-sm h-11">
-            <Layout className="w-4 h-4 mr-2" /> Управление обучением
+          <Button onClick={() => router.push('/admin/tests')} className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6">
+            <Layout className="w-5 h-5 mr-2" /> Управление обучением
           </Button>
-          <Button variant="outline" className="border-[#081d3a] bg-white h-11">
-            <Settings className="w-4 h-4" />
+          <Button variant="outline" className="border-[#081d3a] bg-white h-12 w-12 p-0">
+            <Settings className="w-5 h-5" />
           </Button>
         </div>
       </header>
@@ -166,43 +160,43 @@ export default function AdminDashboard() {
           <Card 
             key={i} 
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md border-2",
-              filter === stat.filter ? "border-primary shadow-sm" : "border-transparent bg-white shadow-sm"
+              "cursor-pointer transition-all hover:shadow-lg border-2",
+              filter === stat.filter ? "border-primary shadow-md bg-white" : "border-transparent bg-white shadow-sm"
             )}
             onClick={() => setFilter(filter === stat.filter ? 'all' : stat.filter as any)}
           >
             <CardContent className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-4xl font-bold font-headline">{stat.val}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <p className="text-5xl font-bold font-headline">{stat.val}</p>
                 </div>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1">{stat.sub}</p>
+                <p className="text-sm text-muted-foreground font-medium mt-1">{stat.sub}</p>
               </div>
               <div className={cn("p-4 rounded-2xl border border-border", stat.bg, stat.color)}>
-                <stat.icon className="w-8 h-8" />
+                <stat.icon className="w-10 h-10" />
               </div>
             </CardContent>
             {filter === stat.filter && (
-              <div className="bg-primary text-white text-[10px] font-bold py-1 text-center uppercase tracking-widest flex items-center justify-center gap-1">
-                <MousePointer2 className="w-3 h-3" /> Фильтр активен
+              <div className="bg-primary text-white text-[11px] font-bold py-1.5 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                <MousePointer2 className="w-3.5 h-3.5" /> Фильтр активен
               </div>
             )}
           </Card>
         ))}
       </div>
 
-      <Card className="border-border bg-white shadow-sm overflow-hidden">
-        <CardHeader className="pb-4 flex flex-row items-center justify-between border-b bg-muted/5">
+      <Card className="border-border bg-white shadow-md rounded-xl overflow-hidden">
+        <CardHeader className="py-5 px-6 flex flex-row items-center justify-between border-b bg-muted/5">
           <div className="space-y-1">
-            <CardTitle className="font-headline flex items-center gap-2 text-xl">
-              <Users className="w-5 h-5 text-primary" />
+            <CardTitle className="font-headline flex items-center gap-3 text-2xl">
+              <Users className="w-6 h-6 text-primary" />
               {filter === 'all' ? 'Все результаты' : 'Отфильтрованные лиды'}
             </CardTitle>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Найдено записей: {filteredResults.length}</p>
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Найдено записей: {filteredResults.length}</p>
           </div>
           {filter !== 'all' && (
-            <Button variant="ghost" size="sm" onClick={() => setFilter('all')} className="text-xs font-bold uppercase text-primary">
+            <Button variant="ghost" size="sm" onClick={() => setFilter('all')} className="text-xs font-bold uppercase text-primary hover:bg-primary/5">
               Сбросить фильтр
             </Button>
           )}
@@ -210,91 +204,91 @@ export default function AdminDashboard() {
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-muted/10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="pl-6 font-bold uppercase text-[10px] w-[220px]">Студент</TableHead>
-                <TableHead className="font-bold uppercase text-[10px] w-[180px]">Квалификация</TableHead>
-                <TableHead className="font-bold uppercase text-[10px] w-[120px]">AI Отчет</TableHead>
-                <TableHead className="font-bold uppercase text-[10px] text-center w-[100px]">Связался</TableHead>
-                <TableHead className="font-bold uppercase text-[10px] text-center w-[100px]">Конс.</TableHead>
-                <TableHead className="text-right pr-6 font-bold uppercase text-[10px]">Действия</TableHead>
+              <TableRow className="hover:bg-transparent border-b">
+                <TableHead className="pl-8 h-12 font-bold uppercase text-[11px] w-[280px] tracking-wider">Студент</TableHead>
+                <TableHead className="h-12 font-bold uppercase text-[11px] w-[200px] tracking-wider">Квалификация</TableHead>
+                <TableHead className="h-12 font-bold uppercase text-[11px] w-[140px] tracking-wider">AI Отчет</TableHead>
+                <TableHead className="h-12 font-bold uppercase text-[11px] text-center w-[100px] tracking-wider">Связь</TableHead>
+                <TableHead className="h-12 font-bold uppercase text-[11px] text-center w-[100px] tracking-wider">Конс.</TableHead>
+                <TableHead className="h-12 text-right pr-8 font-bold uppercase text-[11px] tracking-wider">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredResults.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-24 text-muted-foreground">
-                    <div className="flex flex-col items-center gap-3">
-                      <Search className="w-10 h-10 opacity-10" />
-                      <p className="font-medium">По вашему запросу ничего не найдено.</p>
+                  <TableCell colSpan={6} className="text-center py-32 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-4">
+                      <Search className="w-12 h-12 opacity-10" />
+                      <p className="text-lg font-medium">По вашему запросу ничего не найдено.</p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredResults.map((r) => (
-                  <TableRow key={r.id} className="hover:bg-muted/5 transition-colors border-border/50">
-                    <TableCell className="pl-6 py-4">
+                  <TableRow key={r.id} className="hover:bg-muted/5 transition-colors border-b group">
+                    <TableCell className="pl-8 py-5">
                       <div className="flex flex-col">
-                        <span className="font-bold text-sm">{r.student_name}</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className="text-[9px] h-4 font-bold bg-[#081d3a]/5">{r.student_city}</Badge>
-                          <span className="text-[9px] text-muted-foreground font-semibold">
-                            {r.class_number} Класс • {r.language === 'ru' ? 'Рус' : 'Каз'}
+                        <span className="font-bold text-lg text-[#081d3a] leading-tight">{r.student_name}</span>
+                        <div className="flex items-center gap-3 mt-2">
+                          <Badge variant="secondary" className="text-[10px] h-5 font-bold bg-[#081d3a]/5 text-[#081d3a] px-2">{r.student_city}</Badge>
+                          <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-tight">
+                            {r.class_number} Класс • {r.language === 'ru' ? 'RU' : 'KK'}
                           </span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-primary">{r.percentage}%</span>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono font-black text-xl text-primary">{r.percentage}%</span>
                           {getPotentialBadge(r.percentage)}
                         </div>
-                        <p className="text-[9px] text-muted-foreground">{r.total_score} баллов</p>
+                        <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-tighter opacity-70">{r.total_score} баллов набрано</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       {r.is_analysed ? (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span className="text-[9px] font-bold uppercase tracking-widest">Готов</span>
+                        <div className="flex items-center gap-2 text-green-600 font-bold">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="text-[10px] uppercase tracking-widest">Готов</span>
                         </div>
                       ) : r.status === 'completed' ? (
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="sm" 
                           onClick={() => handleAnalyze(r.id)} 
-                          className="h-7 text-[9px] font-bold uppercase tracking-wider border border-accent/20 bg-accent/5 text-accent hover:bg-accent/10"
+                          className="h-8 text-[10px] font-bold uppercase tracking-wider border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all"
                         >
-                          <Zap className="w-3 h-3 mr-1" /> Анализ
+                          <Zap className="w-3.5 h-3.5 mr-1.5" /> Анализ
                         </Button>
                       ) : (
-                        <span className="text-muted-foreground text-[9px] italic flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> В тесте
-                        </span>
+                        <div className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                          <Clock className="w-4 h-4" /> В тесте
+                        </div>
                       )}
                     </TableCell>
                     <TableCell className="text-center">
                       <Checkbox 
                         checked={r.is_contacted} 
                         onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
-                        className="data-[state=checked]:bg-primary border-primary/30"
+                        className="w-6 h-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                     </TableCell>
                     <TableCell className="text-center">
                       <Checkbox 
                         checked={r.is_consulted} 
                         onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
-                        className="data-[state=checked]:bg-green-500 border-green-500/30"
+                        className="w-6 h-6 border-2 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
                       />
                     </TableCell>
-                    <TableCell className="text-right pr-6">
+                    <TableCell className="text-right pr-8">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => router.push(`/admin/results/${r.id}`)}
-                        className="font-bold text-xs gap-1 hover:bg-primary/10 hover:text-primary h-8"
+                        className="font-bold text-sm gap-2 hover:bg-primary/10 hover:text-primary h-10 px-4 rounded-lg border border-transparent hover:border-primary/20 transition-all"
                       >
-                        Детали <ArrowUpRight className="w-3.5 h-3.5" />
+                        Детали <ArrowUpRight className="w-4 h-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
