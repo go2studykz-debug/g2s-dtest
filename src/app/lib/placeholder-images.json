@@ -1,0 +1,11 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Abstract futuristic educational background",
+      "imageUrl": "https://picsum.photos/seed/examiq-hero/1200/800",
+      "imageHint": "futuristic education"
+    }
+  ]
+}
