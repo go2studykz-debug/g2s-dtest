@@ -36,9 +36,12 @@ const TRANSLATIONS = {
     field_class: "Класс",
     field_lang: "Язык теста",
     btn_start: "Запустить диагностику",
-    stats_students: "NIS Standard",
-    stats_params: "7 предметов",
-    stats_cities: "120 минут",
+    stats_students: "1240+",
+    stats_students_label: "Прошли обучение",
+    stats_params: "NIS Standard",
+    stats_params_label: "100% совпадение с НИШ",
+    stats_cities: "20 городов",
+    stats_cities_label: "География проекта",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
     how_step1_desc: "Мгновенный доступ к системе",
@@ -67,9 +70,12 @@ const TRANSLATIONS = {
     field_class: "Сынып",
     field_lang: "Тест тілі",
     btn_start: "Диагностиканы бастау",
-    stats_students: "NIS Standard",
-    stats_params: "7 пән",
-    stats_cities: "120 минут",
+    stats_students: "1240+",
+    stats_students_label: "Оқушылар саны",
+    stats_params: "NIS Standard",
+    stats_params_label: "НЗМ тестерімен 100% сәйкестік",
+    stats_cities: "20 қала",
+    stats_cities_label: "Жоба географиясы",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
     how_step1_desc: "Жүйеге жылдам қол жеткізу",
@@ -139,13 +145,21 @@ export default function LandingPage() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     const isDeleting = input.length < formData.whatsapp.length;
-    if (!input) { setFormData(prev => ({ ...prev, whatsapp: '' })); return; }
+    
+    if (!input) {
+      setFormData(prev => ({ ...prev, whatsapp: '' }));
+      return;
+    }
+
     let digits = input.replace(/\D/g, '');
+    
     if (!isDeleting) {
       if (digits.startsWith('8')) digits = '7' + digits.substring(1);
       if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
     }
+
     digits = digits.substring(0, 11);
+
     let formatted = '';
     if (digits.length > 0) {
       formatted += '+7';
@@ -187,9 +201,18 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             <div className="grid grid-cols-3 gap-6 pt-4">
-              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_students}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Академичность</span></div>
-              <div className="flex flex-col"><span className="text-2xl font-bold text-primary">{t.stats_params}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Охват тем</span></div>
-              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Глубина аудита</span></div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-[#081d3a]">{t.stats_students}</span>
+                <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_students_label}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-primary">{t.stats_params}</span>
+                <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_params_label}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities}</span>
+                <span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_cities_label}</span>
+              </div>
             </div>
           </div>
 
