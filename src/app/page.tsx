@@ -43,7 +43,7 @@ const TRANSLATIONS = {
     stats_params: "NIS Standard",
     stats_params_label: "100% совпадение с НИШ",
     stats_cities: "20",
-    stats_cities_label: "Городов",
+    stats_cities_label: "Весь казахстан",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
     how_step1_desc: "Мгновенный доступ к системе",
@@ -77,7 +77,7 @@ const TRANSLATIONS = {
     stats_params: "NIS Standard",
     stats_params_label: "НЗМ-мен 100% сәйкестік",
     stats_cities: "20",
-    stats_cities_label: "Қала",
+    stats_cities_label: "Барлық қазақстан",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
     how_step1_desc: "Жүйеге жылдам қол жеткізу",
@@ -219,8 +219,8 @@ export default function LandingPage() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-primary tracking-tight leading-none">
-                    {t.stats_params}
+                  <div className="text-3xl font-bold text-primary tracking-tight leading-none flex items-center gap-1">
+                    NIS Standard <Globe className="w-5 h-5" />
                   </div>
                   <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">{t.stats_params_label}</div>
                 </div>
@@ -232,7 +232,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_cities}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">Весь казахстан</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">{t.stats_cities_label}</div>
                 </div>
               </div>
             </div>
