@@ -7,11 +7,12 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, ChevronRight, ChevronLeft, Send, AlertCircle, GraduationCap } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, XCircle } from 'lucide-react';
 import { getResultDetail, submitAnswer, logAntiCheat, finishTest, getQuestionsByTestId, getTestById } from '@/app/lib/actions';
 import { StudentResult, Question, Test } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function TestingInterface({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -26,10 +27,15 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const [isFinishing, setIsFinishing] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Состояния для жесткого прокторинга
+  const [showViolationModal, setShowViolationModal] = useState(false);
+  const [violationType, setViolationType] = useState<'tab_switch' | 'window_blur' | null>(null);
+  const [antiCheatCount, setAntiCheatCount] = useState(0);
+
   const questionStartRef = useRef<number>(Date.now());
   const antiCheatActive = useRef(true);
+  const lastHiddenTime = useRef<number | null>(null);
 
-  // Загрузка данных сессии
   useEffect(() => {
     async function load() {
       try {
@@ -41,6 +47,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           }
 
           setResult(data.result);
+          setAntiCheatCount(data.result.anti_cheat_count || 0);
           const t = await getTestById(data.result.test_id);
           setTestInfo(t);
 
@@ -53,7 +60,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           });
           setAnswers(existingAnswers);
 
-          // Инициализация таймера на основе времени старта
           const startTime = new Date(data.result.started_at).getTime();
           const now = Date.now();
           const limitMinutes = t?.total_time_minutes || 60;
@@ -75,7 +81,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     load();
   }, [id, router, toast]);
 
-  // Таймер
   useEffect(() => {
     if (timeLeft === null || timeLeft <= 0 || isFinishing) return;
 
@@ -92,29 +97,58 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     return () => clearInterval(timer);
   }, [timeLeft, isFinishing]);
 
-  // Анти-чит
+  // Жесткий прокторинг и защита контента
   useEffect(() => {
     if (loading || !result || questions.length === 0) return;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && antiCheatActive.current) {
+        lastHiddenTime.current = Date.now();
+        const qNum = questions[currentIndex]?.question_number || 0;
+        
         logAntiCheat({
           resultId: id,
           eventType: 'tab_switch',
-          questionNumber: questions[currentIndex]?.question_number || 0,
+          questionNumber: qNum,
           duration: 0,
-          details: 'Смена вкладки браузера'
+          details: 'Смена вкладки браузера (зафиксировано)'
         });
-        toast({
-          variant: 'destructive',
-          title: 'Внимание',
-          description: 'Переключение вкладок фиксируется системой прокторинга.',
-        });
+        
+        setAntiCheatCount(prev => prev + 1);
+      } else if (document.visibilityState === 'visible' && lastHiddenTime.current) {
+        // Когда вернулся - показываем жесткое предупреждение
+        setViolationType('tab_switch');
+        setShowViolationModal(true);
+        lastHiddenTime.current = null;
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      toast({ variant: 'destructive', title: 'Запрещено', description: 'Правая кнопка мыши отключена в целях безопасности.' });
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Запрет Copy (Ctrl+C), Paste (Ctrl+V), Cut (Ctrl+X), PrintScreen
+      if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        toast({ variant: 'destructive', title: 'Запрещено', description: 'Данное действие заблокировано системой прокторинга.' });
+      }
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        toast({ variant: 'destructive', title: 'Снимок экрана', description: 'Создание скриншотов запрещено.' });
       }
     };
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => window.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [id, currentIndex, questions, toast, loading, result]);
 
   const handleAnswer = async (val: string) => {
@@ -165,14 +199,51 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
+    <div className="min-h-screen bg-[#f9fafb] flex flex-col select-none">
+      {/* Жесткое предупреждение при нарушении */}
+      <Dialog open={showViolationModal} onOpenChange={setShowViolationModal}>
+        <DialogContent className="max-w-md bg-red-600 border-none text-white overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-white/20 animate-pulse" />
+          <DialogHeader className="pt-6">
+            <div className="mx-auto w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-4">
+              <ShieldAlert className="w-10 h-10 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-center text-white font-headline">
+              ВНИМАНИЕ! НАРУШЕНИЕ
+            </DialogTitle>
+            <DialogDescription className="text-white/80 text-center text-lg mt-4 leading-relaxed">
+              Выход из окна тестирования строго запрещен. Данный инцидент зафиксирован и передан администрации go2study.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-black/10 p-4 rounded-xl mt-4 border border-white/10">
+            <p className="text-xs uppercase font-black tracking-widest opacity-60 mb-1">Всего нарушений:</p>
+            <p className="text-3xl font-bold">{antiCheatCount}</p>
+          </div>
+          <DialogFooter className="mt-8 flex-col sm:flex-col gap-3">
+            <Button 
+              className="w-full h-14 bg-white text-red-600 hover:bg-white/90 font-bold text-lg rounded-xl shadow-xl"
+              onClick={() => setShowViolationModal(false)}
+            >
+              Я понимаю, продолжить тест
+            </Button>
+            <p className="text-[10px] text-center opacity-40 uppercase font-bold tracking-widest">
+              Повторные нарушения могут привести к аннулированию результата
+            </p>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <header className="bg-white border-b border-[#e3e8ee] px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-6 h-6 text-[#14bf96]" />
-          <span className="text-xl font-bold tracking-tight text-[#081d3a]">go2study</span>
+          <span className="text-xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
         </div>
         
         <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 mr-4">
+            <div className={cn("w-2 h-2 rounded-full", antiCheatCount > 0 ? "bg-red-500 animate-pulse" : "bg-green-500")} />
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Прокторинг: {antiCheatCount}</span>
+          </div>
           <div className={cn(
             "flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold transition-colors",
             timeLeft < 300 ? "bg-red-50 text-red-500 animate-pulse" : "bg-muted/50 text-[#3b3e40]"
@@ -207,9 +278,14 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   <p className="text-[10px] font-black text-[#3b3e40]/40 uppercase tracking-[0.2em]">Вопрос {currentIndex + 1} / {questions.length}</p>
                   <h3 className="text-[#14bf96] font-bold text-xs uppercase tracking-widest">{currentQuestion.subject}</h3>
                 </div>
+                {antiCheatCount > 0 && (
+                  <Badge variant="destructive" className="bg-red-100 text-red-600 border-none font-bold animate-bounce">
+                    <AlertTriangle className="w-3 h-3 mr-1" /> Нарушение!
+                  </Badge>
+                )}
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-bold text-[#081d3a] leading-tight">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#081d3a] leading-tight pointer-events-none">
                 {currentQuestion.question_text}
               </h2>
 
@@ -341,9 +417,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           </div>
           
           <div className="bg-[#f0f9f7] p-5 rounded-xl border border-[#14bf96]/10 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-[#14bf96] shrink-0 mt-0.5" />
+            <ShieldAlert className="w-5 h-5 text-[#14bf96] shrink-0 mt-0.5" />
             <p className="text-xs text-[#081d3a]/70 leading-relaxed font-medium italic">
-              Прогресс сохраняется автоматически. В случае сбоя интернета вы сможете продолжить.
+              Система прокторинга фиксирует каждое переключение вкладки. Пожалуйста, не покидайте страницу.
             </p>
           </div>
         </div>
