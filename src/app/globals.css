@@ -5,31 +5,26 @@
 
 @layer base {
   :root {
-    --background: 257 12% 8%;
-    --foreground: 0 0% 100%;
-    --card: 257 12% 10%;
-    --card-foreground: 0 0% 100%;
-    --popover: 257 12% 8%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 252 80% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 257 12% 15%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 257 12% 15%;
-    --muted-foreground: 257 5% 70%;
-    --accent: 225 84% 68%;
-    --accent-foreground: 0 0% 100%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 257 12% 18%;
-    --input: 257 12% 18%;
-    --ring: 252 80% 65%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 11%;
     --radius: 0.75rem;
-    --chart-1: 252 80% 65%;
-    --chart-2: 225 84% 68%;
-    --chart-3: 280 80% 70%;
-    --chart-4: 300 80% 75%;
-    --chart-5: 320 80% 80%;
   }
 }
 
@@ -46,9 +41,9 @@
 }
 
 .glass-morphism {
-  @apply bg-opacity-20 backdrop-blur-lg border border-white border-opacity-10;
+  @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl;
 }
 
 .focus-centered-container {
-  @apply max-w-4xl mx-auto px-4 py-8 md:py-16;
+  @apply max-w-7xl mx-auto px-4 py-8;
 }
