@@ -204,6 +204,9 @@ export default function LandingPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-[10px] text-[#3b3e40]/60 italic font-medium leading-tight mt-1">
+                    выберите город ниш в которую хотите поступить
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="whatsapp" className="text-xs font-bold uppercase text-[#081d3a]/60">WhatsApp Родителя</Label>
