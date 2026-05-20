@@ -11,9 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { 
-  Users, BrainCircuit, Calendar, Zap, Clock, 
-  MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity
+  Users, Calendar, MousePointer2, Search, TrendingUp, TrendingDown, Minus,
+  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity, Zap, Clock, CheckCircle2
 } from 'lucide-react';
 import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -84,7 +83,7 @@ export default function AdminDashboard() {
       startsToday: todayResults.length,
       activeToday: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
       noConsultTotal: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
-      abandonedTotal: results.filter(r => isAbandoned(r)).length
+      abandonedTotal: results.filter(r => isAbandoned(r) && !r.is_contacted).length
     };
   }, [results, today, testDurations]);
 
@@ -94,7 +93,7 @@ export default function AdminDashboard() {
     if (filter !== 'all') {
       list = results.filter(r => {
         if (filter === 'all_no_consult') return r.status === 'completed' && !r.is_consulted;
-        if (filter === 'all_abandoned') return isAbandoned(r);
+        if (filter === 'all_abandoned') return isAbandoned(r) && !r.is_contacted;
         
         const isToday = isSameDay(r.started_at, today);
         if (!isToday) return false;
@@ -128,11 +127,15 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCrmUpdate = async (id: string, updates: { is_consulted?: boolean }) => {
+  const handleCrmUpdate = async (id: string, updates: { is_consulted?: boolean; is_contacted?: boolean }) => {
     try {
       await updateResultCRM(id, updates);
       setResults(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
-      toast({ title: 'Обновлено', description: 'Статус консультации изменен.' });
+      if (updates.is_contacted) {
+        toast({ title: 'Помощь зафиксирована', description: 'Лид убран из списка брошенных.' });
+      } else {
+        toast({ title: 'Обновлено', description: 'Статус консультации изменен.' });
+      }
     } catch (e) {
       toast({ variant: 'destructive', title: 'Ошибка', description: 'Сбой при обновлении статуса.' });
     }
@@ -149,11 +152,11 @@ export default function AdminDashboard() {
         <Minus className="w-3 h-3" /> Medium
       </Badge>
     );
-    return (
+    return (percentage > 0) ? (
       <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
         <TrendingDown className="w-3 h-3" /> Hard Case
       </Badge>
-    );
+    ) : null;
   };
 
   return (
@@ -182,7 +185,7 @@ export default function AdminDashboard() {
             { 
               label: 'Новые лиды', 
               val: stats.startsToday, 
-              sub: 'Начали тест сегодня',
+              sub: 'Начали сегодня',
               icon: Users, 
               color: 'text-primary',
               bg: 'bg-primary/5',
@@ -200,7 +203,7 @@ export default function AdminDashboard() {
             { 
               label: 'Лист ожидания', 
               val: stats.noConsultTotal, 
-              sub: 'Ждут консультацию',
+              sub: 'Ждут звонка',
               icon: Phone, 
               color: 'text-blue-500',
               bg: 'bg-blue-500/5',
@@ -209,7 +212,7 @@ export default function AdminDashboard() {
             { 
               label: 'Брошено', 
               val: stats.abandonedTotal, 
-              sub: 'Нужна помощь',
+              sub: 'Требуется помощь',
               icon: AlertTriangle, 
               color: 'text-orange-500',
               bg: 'bg-orange-500/5',
@@ -287,7 +290,9 @@ export default function AdminDashboard() {
                 <TableHead className="pl-8 h-14 font-black uppercase text-[10px] w-[320px] tracking-widest text-[#3b3e40] opacity-40">Студент / Контакты</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Результат</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Статус завершения</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-40">Конс.</TableHead>
+                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[120px] tracking-widest text-[#3b3e40] opacity-40">
+                  {filter === 'all_abandoned' ? 'Помощь' : 'Конс.'}
+                </TableHead>
                 <TableHead className="h-14 text-right pr-8 font-black uppercase text-[10px] tracking-widest text-[#3b3e40] opacity-40">Действия</TableHead>
               </TableRow>
             </TableHeader>
@@ -355,11 +360,19 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex justify-center">
-                          <Checkbox 
-                            checked={r.is_consulted} 
-                            onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
-                            className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-                          />
+                          {filter === 'all_abandoned' ? (
+                            <Checkbox 
+                              checked={r.is_contacted} 
+                              onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
+                              className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                            />
+                          ) : (
+                            <Checkbox 
+                              checked={r.is_consulted} 
+                              onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
+                              className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                            />
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-right pr-8">
@@ -370,7 +383,6 @@ export default function AdminDashboard() {
                               size="sm" 
                               onClick={() => handleAnalyze(r.id)} 
                               className="h-8 px-2 text-primary hover:bg-primary/10 rounded-md gap-1 border border-primary/20"
-                              title="Запустить AI Анализ"
                             >
                               <Zap className="w-3.5 h-3.5" />
                               <span className="text-[10px] font-bold uppercase">AI</span>
