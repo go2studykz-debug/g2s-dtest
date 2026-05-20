@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, BarChart3, Shield, Search, Filter, 
-  ArrowUpRight, BrainCircuit, Activity
+  ArrowUpRight, BrainCircuit, Activity, Settings, Layout
 } from 'lucide-react';
 import { getAllResults, analyzeResult } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -55,15 +55,19 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10 space-y-8">
+    <div className="min-h-screen bg-[#f9fafb] p-6 md:p-10 space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-headline font-bold">Матрица go2study</h1>
-          <p className="text-muted-foreground">Мониторинг диагностических сессий и поведенческого анализа.</p>
+          <h1 className="text-4xl font-headline font-bold text-[#081d3a]">Матрица go2study</h1>
+          <p className="text-muted-foreground">Мониторинг диагностических сессий и управление контентом.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" /> Фильтр</Button>
-          <Button size="sm"><Search className="w-4 h-4 mr-2" /> Поиск</Button>
+          <Button variant="outline" onClick={() => router.push('/admin/tests')} className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7]">
+            <Layout className="w-4 h-4 mr-2" /> Тесты
+          </Button>
+          <Button className="bg-[#14bf96] hover:bg-[#11a381]">
+            <Settings className="w-4 h-4 mr-2" /> Настройки
+          </Button>
         </div>
       </header>
 
@@ -74,7 +78,7 @@ export default function AdminDashboard() {
           { label: 'Ср. балл', val: results.length > 0 ? `${Math.round(results.reduce((acc, r) => acc + r.percentage, 0) / results.length)}%` : '0%', icon: BarChart3, color: 'text-accent' },
           { label: 'Нарушения', val: results.reduce((acc, r) => acc + r.anti_cheat_count, 0), icon: Shield, color: 'text-destructive' },
         ].map((stat, i) => (
-          <Card key={i} className="bg-secondary/50 border-border">
+          <Card key={i} className="bg-white border-border shadow-sm">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{stat.label}</p>
@@ -88,92 +92,90 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <Card className="border-border bg-secondary/20 shadow-xl">
+      <Card className="border-border bg-white shadow-sm overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle className="font-headline flex items-center gap-2 text-xl">
+          <CardTitle className="font-headline flex items-center gap-2 text-xl text-[#081d3a]">
             <Activity className="w-5 h-5 text-primary" />
             Журнал результатов
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-xl border border-border/50 overflow-hidden bg-background/50">
-            <Table>
-              <TableHeader className="bg-muted/50">
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="pl-6">Студент</TableHead>
+                <TableHead>Город НИШ</TableHead>
+                <TableHead>Результат</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Честность</TableHead>
+                <TableHead>AI Анализ</TableHead>
+                <TableHead className="text-right pr-6">Детали</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {results.length === 0 ? (
                 <TableRow>
-                  <TableHead>Студент</TableHead>
-                  <TableHead>Город НИШ</TableHead>
-                  <TableHead>Результат</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead>Честность</TableHead>
-                  <TableHead>AI Анализ</TableHead>
-                  <TableHead className="text-right">Детали</TableHead>
+                  <TableCell colSpan={7} className="text-center py-16 text-muted-foreground">
+                    Записи отсутствуют. Ожидайте новых прохождений.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-16 text-muted-foreground">
-                      Записи отсутствуют. Ожидайте новых прохождений.
+              ) : (
+                results.map((r) => (
+                  <TableRow key={r.id} className="hover:bg-muted/10 transition-colors border-border/50">
+                    <TableCell className="pl-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[#081d3a]">{r.student_name}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                          {r.class_number} Класс • {r.language === 'ru' ? 'Рус' : 'Каз'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{r.student_city}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-primary">{r.total_score}</span>
+                        <span className="text-[10px] text-muted-foreground font-bold">({r.percentage}%)</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`text-[10px] font-bold ${getStatusColor(r.status)}`}>
+                        {statusMap[r.status] || r.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {r.anti_cheat_count > 0 ? (
+                        <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">
+                          {r.anti_cheat_count} Сигналов
+                        </Badge>
+                      ) : (
+                        <span className="text-green-500 text-[10px] font-bold flex items-center gap-1">
+                          <Shield className="w-3 h-3" /> ЧИСТО
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {r.is_analysed ? (
+                        <Badge className="bg-accent/10 text-accent border-accent/20 text-[10px] font-bold uppercase">
+                          Готов
+                        </Badge>
+                      ) : r.status === 'completed' ? (
+                        <Button variant="ghost" size="sm" onClick={() => handleAnalyze(r.id)} className="text-accent hover:text-accent hover:bg-accent/10 h-7 text-[10px] font-bold uppercase tracking-wider">
+                          <BrainCircuit className="w-3 h-3 mr-1" /> Анализ
+                        </Button>
+                      ) : (
+                        <span className="text-muted-foreground text-[10px] italic">Ожидание</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right pr-6">
+                      <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/results/${r.id}`)} className="h-8 w-8">
+                        <ArrowUpRight className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  results.map((r) => (
-                    <TableRow key={r.id} className="hover:bg-muted/30 transition-colors border-border/50">
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-bold">{r.student_name}</span>
-                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">
-                            {r.class_number} Класс • {r.language === 'ru' ? 'Рус' : 'Каз'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{r.student_city}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-primary">{r.total_score}</span>
-                          <span className="text-[10px] text-muted-foreground font-bold">({r.percentage}%)</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-[10px] font-bold ${getStatusColor(r.status)}`}>
-                          {statusMap[r.status] || r.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {r.anti_cheat_count > 0 ? (
-                          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">
-                            {r.anti_cheat_count} Сигналов
-                          </Badge>
-                        ) : (
-                          <span className="text-green-500 text-[10px] font-bold flex items-center gap-1">
-                            <Shield className="w-3 h-3" /> ЧИСТО
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {r.is_analysed ? (
-                          <Badge className="bg-accent/10 text-accent border-accent/20 text-[10px] font-bold uppercase">
-                            Готов
-                          </Badge>
-                        ) : r.status === 'completed' ? (
-                          <Button variant="ghost" size="sm" onClick={() => handleAnalyze(r.id)} className="text-accent hover:text-accent hover:bg-accent/10 h-7 text-[10px] font-bold uppercase tracking-wider">
-                            <BrainCircuit className="w-3 h-3 mr-1" /> Анализ
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-[10px] italic">Ожидание</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/results/${r.id}`)} className="h-8 w-8">
-                          <ArrowUpRight className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

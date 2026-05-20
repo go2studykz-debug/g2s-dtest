@@ -1,7 +1,21 @@
 
-export type Subject = 'math' | 'logic' | 'english' | 'second_lang';
+export type Subject = 
+  | 'math' 
+  | 'quantitative' 
+  | 'logic' 
+  | 'science' 
+  | 'kazakh' 
+  | 'russian' 
+  | 'english';
+
 export type Language = 'kk' | 'ru';
 export type ResultStatus = 'in_progress' | 'completed';
+
+export interface TestBlock {
+  subject: Subject;
+  question_count: number;
+  time_limit_minutes: number;
+}
 
 export interface Test {
   id: string;
@@ -9,6 +23,8 @@ export interface Test {
   class_number: number;
   language: Language;
   is_active: boolean;
+  total_time_minutes: number;
+  blocks: TestBlock[];
   created_at: Date;
 }
 
@@ -23,7 +39,7 @@ export interface Question {
   option_c: string;
   option_d: string;
   option_e?: string | null;
-  correct_answer?: string; // Strictly server-side or masked
+  correct_answer?: string;
 }
 
 export interface StudentResult {

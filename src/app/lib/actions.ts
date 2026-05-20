@@ -6,7 +6,8 @@ import {
   Question, 
   StudentAnswer, 
   AntiCheatLog, 
-  AIAnalysis 
+  AIAnalysis,
+  Test
 } from './types';
 import { MOCK_TESTS, MOCK_QUESTIONS } from './mock-data';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
@@ -16,16 +17,37 @@ const globalForStore = global as unknown as {
   resultsStore: Record<string, StudentResult>;
   answersStore: Record<string, StudentAnswer[]>;
   logsStore: Record<string, AntiCheatLog[]>;
+  testsStore: Record<string, Test>;
 };
 
 const resultsStore = globalForStore.resultsStore || {};
 const answersStore = globalForStore.answersStore || {};
 const logsStore = globalForStore.logsStore || {};
+const testsStore = globalForStore.testsStore || {};
 
 if (process.env.NODE_ENV !== 'production') {
   globalForStore.resultsStore = resultsStore;
   globalForStore.answersStore = answersStore;
   globalForStore.logsStore = logsStore;
+  globalForStore.testsStore = testsStore;
+  
+  // Initialize with mocks if empty
+  if (Object.keys(testsStore).length === 0) {
+    MOCK_TESTS.forEach(t => { testsStore[t.id] = t; });
+  }
+}
+
+export async function getTests(): Promise<Test[]> {
+  return Object.values(testsStore);
+}
+
+export async function getTestById(id: string): Promise<Test | null> {
+  return testsStore[id] || null;
+}
+
+export async function saveTest(test: Test): Promise<Test> {
+  testsStore[test.id] = test;
+  return test;
 }
 
 export async function startTest(data: {
@@ -37,7 +59,7 @@ export async function startTest(data: {
   language: 'kk' | 'ru';
 }): Promise<{ result: StudentResult; questions: Question[] }> {
   const resultId = Math.random().toString(36).substr(2, 9);
-  const test = MOCK_TESTS.find(t => t.id === data.testId);
+  const test = testsStore[data.testId] || MOCK_TESTS.find(t => t.id === data.testId);
   
   if (!test) throw new Error('Test not found');
 
@@ -61,7 +83,6 @@ export async function startTest(data: {
 
   resultsStore[resultId] = result;
   
-  // SECURE DATA FILTER: Remove correct_answer from client payload
   const questions = (MOCK_QUESTIONS[data.testId] || []).map(({ correct_answer, ...q }) => q as Question);
 
   return { result, questions };
@@ -77,6 +98,8 @@ export async function submitAnswer(data: {
   if (!result) throw new Error('Result not found');
 
   const testQuestions = MOCK_QUESTIONS[result.test_id];
+  if (!testQuestions) return;
+  
   const question = testQuestions.find(q => q.id === data.questionId);
   if (!question) throw new Error('Question not found');
 
@@ -87,7 +110,7 @@ export async function submitAnswer(data: {
     question_number: question.question_number,
     subject: question.subject,
     student_answer: data.answer,
-    correct_answer: question.correct_answer,
+    correct_answer: question.correct_answer || '',
     is_correct: data.answer === question.correct_answer,
     time_spent_seconds: data.timeSpent,
   };
@@ -158,7 +181,7 @@ export async function analyzeResult(resultId: string) {
     totalCorrect: result.total_correct,
     totalQuestions: result.total_questions,
     answers: answers.map(a => {
-      const qObj = MOCK_QUESTIONS[result.test_id].find(q => q.id === a.question_id);
+      const qObj = MOCK_QUESTIONS[result.test_id]?.find(q => q.id === a.question_id);
       return {
         questionNumber: a.question_number,
         subject: a.subject,
