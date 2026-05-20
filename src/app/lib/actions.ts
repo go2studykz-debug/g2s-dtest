@@ -1,3 +1,4 @@
+
 'use server';
 
 import { 
@@ -144,6 +145,15 @@ export async function submitAnswer(data: {
   const question = all.find(q => q.id === data.questionId);
   if (!question) return;
 
+  const existingAnswers = answersStore[data.resultId] || [];
+  const existingIdx = existingAnswers.findIndex(a => a.question_id === data.questionId);
+  
+  // Накопительный учет времени: прибавляем новое время к уже потраченному
+  let totalTime = data.timeSpent;
+  if (existingIdx !== -1) {
+    totalTime += existingAnswers[existingIdx].time_spent_seconds;
+  }
+
   const studentAnswer: StudentAnswer = {
     id: Math.random().toString(36).substr(2, 9),
     result_id: data.resultId,
@@ -153,12 +163,11 @@ export async function submitAnswer(data: {
     student_answer: data.answer,
     correct_answer: question.correct_answer || '',
     is_correct: data.answer === question.correct_answer,
-    time_spent_seconds: data.timeSpent,
+    time_spent_seconds: totalTime,
   };
 
   if (!answersStore[data.resultId]) answersStore[data.resultId] = [];
   
-  const existingIdx = answersStore[data.resultId].findIndex(a => a.question_id === data.questionId);
   if (existingIdx !== -1) {
     answersStore[data.resultId][existingIdx] = studentAnswer;
   } else {
@@ -252,24 +261,26 @@ export async function analyzeResult(resultId: string) {
 
   const answers = answersStore[resultId] || [];
   const logs = logsStore[resultId] || [];
-  const all = questionsStore['all'] || [];
+  const allQuestions = questionsStore['all'] || [];
+  const testQuestions = allQuestions.filter(q => q.test_id === result.test_id);
 
+  // Формируем полный список вопросов для AI, включая пропущенные
   const analysisInput = {
     studentName: result.student_name,
     classNumber: result.class_number,
     percentage: result.percentage,
     totalCorrect: result.total_correct,
     totalQuestions: result.total_questions,
-    answers: answers.map(a => {
-      const qObj = all.find(q => q.id === a.question_id);
+    answers: testQuestions.map(q => {
+      const answer = answers.find(a => a.question_id === q.id);
       return {
-        questionNumber: a.question_number,
-        subject: a.subject,
-        questionText: qObj?.question_text || "Вопрос не найден",
-        studentAnswer: a.student_answer,
-        correctAnswer: a.correct_answer,
-        isCorrect: a.is_correct,
-        timeSpentSeconds: a.time_spent_seconds,
+        questionNumber: q.question_number,
+        subject: q.subject,
+        questionText: q.question_text,
+        studentAnswer: answer?.student_answer || null,
+        correctAnswer: q.correct_answer || '',
+        isCorrect: answer ? answer.is_correct : false,
+        timeSpentSeconds: answer ? answer.time_spent_seconds : 0,
       };
     }),
     antiCheatLogs: logs.map(l => ({

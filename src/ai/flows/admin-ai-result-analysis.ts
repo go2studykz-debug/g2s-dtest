@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for analyzing student test results using AI.
@@ -20,8 +21,8 @@ const AnalyzeStudentResultInputSchema = z.object({
     studentAnswer: z.string().nullable().describe("The answer provided by the student."),
     correctAnswer: z.string().describe("The correct answer for the question."),
     isCorrect: z.boolean().describe("Whether the student's answer was correct."),
-    timeSpentSeconds: z.number().describe("Time spent on this question in seconds."),
-  })).describe("An array of student's answers."),
+    timeSpentSeconds: z.number().describe("Total time spent on this question in seconds."),
+  })).describe("An array of student's answers (including skipped ones)."),
   antiCheatLogs: z.array(z.object({
     eventType: z.string().describe("Type of anti-cheat event."),
     questionNumber: z.number().describe("The question number."),
@@ -39,7 +40,7 @@ const DetailedErrorAnalysisSchema = z.object({
   studentAnswer: z.string().nullable().describe("What the student chose."),
   correctAnswer: z.string().describe("The actual correct option."),
   status: z.string().describe("Status (e.g., 'Ошибка' or 'Пропуск')."),
-  errorType: z.string().describe("Type of error identified (e.g., 'Невнимательность', 'Незнание правила')."),
+  errorType: z.string().describe("Type of error identified (e.g., 'Невнимательность', 'Незнание правила', 'Дефицит времени')."),
   examInfluence: z.string().describe("How this specific topic/error affects the actual NISH exam performance."),
   recommendation: z.string().describe("Specific actionable recommendation for this question."),
 });
@@ -69,10 +70,14 @@ Your task is to generate a professional analytical report based on a student's t
 
 CRITICAL INSTRUCTIONS:
 1. For EVERY incorrect or skipped answer, provide a detailed breakdown in 'detailedAnalysis'.
-2. 'topic': Be specific about the cognitive skill or academic topic.
-3. 'errorType': Categorize why they failed (e.g., conceptual gap, logic error, time pressure, misreading).
-4. 'examInfluence': Explain how often this topic appears in NISH exams and its weight.
-5. 'recommendation': Provide a clear, pedagogical advice for the student.
+2. USE TIME DATA: Analyze 'timeSpentSeconds'. 
+   - If time is very low (<10s) and answer is wrong, it's likely 'Inattention' (Невнимательность).
+   - If time is very high (>120s) and answer is wrong, it's 'Conceptual Gap' (Незнание правила) or 'Overthinking'.
+   - If 'studentAnswer' is null, status is 'Пропуск'.
+3. 'topic': Be specific about the cognitive skill or academic topic.
+4. 'errorType': Categorize why they failed (e.g., conceptual gap, logic error, time pressure, misreading).
+5. 'examInfluence': Explain how often this topic appears in NISH exams and its weight.
+6. 'recommendation': Provide a clear, pedagogical advice for the student.
 
 Here is the student's test data:
 Student: {{{studentName}}}, Class: {{{classNumber}}}, Score: {{{percentage}}}% ({{{totalCorrect}}}/{{{totalQuestions}}})
@@ -80,7 +85,7 @@ Student: {{{studentName}}}, Class: {{{classNumber}}}, Score: {{{percentage}}}% (
 Answers:
 {{#each answers}}
 - Q{{questionNumber}} ({{subject}}): "{{{questionText}}}" 
-  Student chose: "{{{studentAnswer}}}", Correct: "{{{correctAnswer}}}", IsCorrect: {{isCorrect}}
+  Student chose: "{{{studentAnswer}}}", Correct: "{{{correctAnswer}}}", IsCorrect: {{isCorrect}}, TimeSpent: {{timeSpentSeconds}}s
 {{/each}}
 
 Analyze the data and output a structured JSON report.`,
