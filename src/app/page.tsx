@@ -36,9 +36,9 @@ const TRANSLATIONS = {
     field_class: "Класс",
     field_lang: "Язык теста",
     btn_start: "Запустить диагностику",
-    stats_students: "1240+ учеников",
+    stats_students: "NIS Standard",
     stats_params: "7 предметов",
-    stats_cities: "20 городов",
+    stats_cities: "120 минут",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
     how_step1_desc: "Мгновенный доступ к системе",
@@ -67,9 +67,9 @@ const TRANSLATIONS = {
     field_class: "Сынып",
     field_lang: "Тест тілі",
     btn_start: "Диагностиканы бастау",
-    stats_students: "1240+ оқушы",
+    stats_students: "NIS Standard",
     stats_params: "7 пән",
-    stats_cities: "20 қала",
+    stats_cities: "120 минут",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
     how_step1_desc: "Жүйеге жылдам қол жеткізу",
@@ -187,9 +187,9 @@ export default function LandingPage() {
             </h1>
             <p className="text-lg md:text-xl text-[#3b3e40] leading-relaxed max-w-lg opacity-80 font-medium">{t.hero_subtitle}</p>
             <div className="grid grid-cols-3 gap-6 pt-4">
-              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_students.split(' ')[0]}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_students.split(' ')[1]}</span></div>
-              <div className="flex flex-col"><span className="text-2xl font-bold text-primary">{t.stats_params.split(' ')[0]}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_params.split(' ')[1]}</span></div>
-              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities.split(' ')[0]}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_cities.split(' ')[1]}</span></div>
+              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_students}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Академичность</span></div>
+              <div className="flex flex-col"><span className="text-2xl font-bold text-primary">{t.stats_params}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Охват тем</span></div>
+              <div className="flex flex-col"><span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities}</span><span className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-widest">Глубина аудита</span></div>
             </div>
           </div>
 
@@ -279,10 +279,10 @@ export default function LandingPage() {
             <Card className="border-border/50 shadow-2xl rounded-2xl overflow-hidden bg-white scale-95 md:scale-100 max-w-sm mx-auto">
               <CardHeader className="bg-[#081d3a] py-6 px-6 text-white">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2"><GraduationCap className="w-5 h-5 text-primary" /><span className="text-sm font-bold">go2study</span></div>
+                  <div className="flex items-center gap-2"><GraduationCap className="w-5 h-5 text-primary" /><span className="text-sm font-bold text-white lowercase">go2study</span></div>
                   <Badge className="bg-primary text-white text-[8px] border-none uppercase font-black">Official Analysis</Badge>
                 </div>
-                <h4 className="text-lg font-bold font-headline">Аналитический отчет НИШ</h4>
+                <h4 className="text-lg font-bold font-headline text-white">Аналитический отчет НИШ</h4>
               </CardHeader>
               <CardContent className="p-6 space-y-4 bg-white">
                 <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-2">
@@ -311,7 +311,7 @@ export default function LandingPage() {
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold text-[#081d3a]">go<span className="text-primary">2</span>study</span>
+              <span className="text-xl font-bold text-[#081d3a] lowercase">go<span className="text-primary">2</span>study</span>
             </div>
             <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© 2024 go2study. Миссия: дать каждому ученику шанс на успех.</p>
           </div>
