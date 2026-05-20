@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, BarChart3, Shield, Activity, Settings, 
-  Layout, Database, ArrowUpRight, BrainCircuit
+  Layout, Database, ArrowUpRight, BrainCircuit, FileText
 } from 'lucide-react';
 import { getAllResults, analyzeResult } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -54,17 +54,17 @@ export default function AdminDashboard() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-headline font-bold text-[#081d3a]">Матрица go2study</h1>
-          <p className="text-muted-foreground">Мониторинг диагностических сессий и управление контентом.</p>
+          <p className="text-muted-foreground">Система управления диагностикой и AI-аналитикой.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => router.push('/admin/tests')} className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7]">
-            <Layout className="w-4 h-4 mr-2" /> Структура Тестов
+            <Layout className="w-4 h-4 mr-2" /> Структура (Блоки и Время)
           </Button>
           <Button variant="outline" onClick={() => router.push('/admin/questions')} className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7]">
-            <Database className="w-4 h-4 mr-2" /> Банк Вопросов
+            <Database className="w-4 h-4 mr-2" /> Банк вопросов (Контент)
           </Button>
           <Button className="bg-[#14bf96] hover:bg-[#11a381]">
-            <Settings className="w-4 h-4 mr-2" />
+            <Settings className="w-4 h-4" />
           </Button>
         </div>
       </header>
@@ -93,8 +93,8 @@ export default function AdminDashboard() {
       <Card className="border-border bg-white shadow-sm overflow-hidden">
         <CardHeader className="pb-4">
           <CardTitle className="font-headline flex items-center gap-2 text-xl text-[#081d3a]">
-            <Activity className="w-5 h-5 text-primary" />
-            Журнал результатов
+            <FileText className="w-5 h-5 text-primary" />
+            Последние результаты
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
