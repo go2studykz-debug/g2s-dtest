@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import { Clock, AlertTriangle, ChevronRight, ChevronLeft, Send } from 'lucide-re
 import { getResultDetail, submitAnswer, logAntiCheat, finishTest } from '@/app/lib/actions';
 import { StudentResult, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { MOCK_QUESTIONS } from '@/app/lib/mock-data';
 
 export default function TestingInterface({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -24,28 +24,39 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(3600); 
   const [isFinishing, setIsFinishing] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   const questionStartRef = useRef<number>(Date.now());
   const antiCheatActive = useRef(true);
 
   useEffect(() => {
     async function load() {
-      const { result: res, answers: ans } = await getResultDetail(id);
-      const { MOCK_QUESTIONS } = await import('@/app/lib/mock-data');
-      if (res) {
-        setResult(res);
-        setQuestions(MOCK_QUESTIONS[res.test_id] || []);
-        const existingAnswers: Record<string, string> = {};
-        ans.forEach(a => {
-          if (a.student_answer) existingAnswers[a.question_id] = a.student_answer;
-        });
-        setAnswers(existingAnswers);
+      try {
+        const { result: res, answers: ans } = await getResultDetail(id);
+        if (res) {
+          setResult(res);
+          setQuestions(MOCK_QUESTIONS[res.test_id] || []);
+          const existingAnswers: Record<string, string> = {};
+          ans.forEach(a => {
+            if (a.student_answer) existingAnswers[a.question_id] = a.student_answer;
+          });
+          setAnswers(existingAnswers);
+        } else {
+          toast({ variant: 'destructive', title: 'Ошибка', description: 'Сессия тестирования не найдена.' });
+          router.push('/');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
     load();
-  }, [id]);
+  }, [id, router, toast]);
 
   useEffect(() => {
+    if (loading || !result || questions.length === 0) return;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && antiCheatActive.current) {
         logAntiCheat({
@@ -81,7 +92,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [id, currentIndex, questions, toast]);
+  }, [id, currentIndex, questions, toast, loading, result]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -126,9 +137,12 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     }
   };
 
-  if (!result || questions.length === 0) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
+  if (loading || !result || questions.length === 0) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
+        <p className="text-muted-foreground animate-pulse">Загрузка диагностического интерфейса...</p>
+      </div>
     </div>
   );
 

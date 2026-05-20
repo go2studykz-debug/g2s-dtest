@@ -6,15 +6,27 @@ import {
   Question, 
   StudentAnswer, 
   AntiCheatLog, 
-  Subject 
+  AIAnalysis 
 } from './types';
 import { MOCK_TESTS, MOCK_QUESTIONS } from './mock-data';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
 
-// In-memory simulation of database state
-const resultsStore: Record<string, StudentResult> = {};
-const answersStore: Record<string, StudentAnswer[]> = {};
-const logsStore: Record<string, AntiCheatLog[]> = {};
+// Use global object to persist data between hot reloads in development
+const globalForStore = global as unknown as {
+  resultsStore: Record<string, StudentResult>;
+  answersStore: Record<string, StudentAnswer[]>;
+  logsStore: Record<string, AntiCheatLog[]>;
+};
+
+const resultsStore = globalForStore.resultsStore || {};
+const answersStore = globalForStore.answersStore || {};
+const logsStore = globalForStore.logsStore || {};
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForStore.resultsStore = resultsStore;
+  globalForStore.answersStore = answersStore;
+  globalForStore.logsStore = logsStore;
+}
 
 export async function startTest(data: {
   testId: string;
@@ -127,7 +139,7 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
   result.completed_at = new Date();
   result.total_correct = correctCount;
   result.percentage = Math.round((correctCount / result.total_questions) * 100);
-  result.total_score = correctCount * 10; // Precision scoring: 10 points per correct answer
+  result.total_score = correctCount * 10;
 
   return result;
 }
@@ -146,13 +158,11 @@ export async function analyzeResult(resultId: string) {
     totalCorrect: result.total_correct,
     totalQuestions: result.total_questions,
     answers: answers.map(a => {
-      // Re-map question text back for the AI
-      const qText = MOCK_QUESTIONS[result.test_id].find(q => q.id === a.question_id)?.question_text || "";
       const qObj = MOCK_QUESTIONS[result.test_id].find(q => q.id === a.question_id);
       return {
         questionNumber: a.question_number,
         subject: a.subject,
-        questionText: qText,
+        questionText: qObj?.question_text || "",
         optionA: qObj?.option_a,
         optionB: qObj?.option_b,
         optionC: qObj?.option_c,
