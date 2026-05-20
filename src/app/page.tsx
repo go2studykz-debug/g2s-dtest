@@ -39,7 +39,7 @@ const TRANSLATIONS = {
     field_lang: "Язык теста",
     btn_start: "Запустить диагностику",
     stats_students: "1240+ учеников",
-    stats_params: "Карта компетенций",
+    stats_params: "7 предметов",
     stats_cities: "20 городов",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
@@ -47,15 +47,15 @@ const TRANSLATIONS = {
     how_step2: "Диагностика",
     how_step2_desc: "Глубокий срез знаний (до 120 мин)",
     how_step3: "Экспертный разбор",
-    how_step3_desc: "Анализ навыков от ИИ и методистов",
+    how_step3_desc: "Анализ от ИИ и методистов (отправим вам)",
     how_step4: "Сопровождение",
     how_step4_desc: "Ведем вас до самого поступления",
     preview_title: "Что вы получите",
-    preview_summary: "Результаты диагностики станут основой для вашей индивидуальной образовательной стратегии. Мы определим 'слепые зоны' и превратим их в точки роста.",
+    preview_summary: "Результаты диагностики — это фундамент, без которого нельзя строить подготовку. Мы выявим ваши 'слепые зоны' и превратим их в точки роста.",
     go2site: "о go2study",
-    value_1: "Карта навыков",
-    value_2: "Сильные и слабые стороны",
-    value_3: "Индивидуальный план обучения"
+    value_1: "Карта навыков по 7 предметам",
+    value_2: "Детальный разбор слабых сторон",
+    value_3: "Персональный учебный план развития"
   },
   kk: {
     hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз.",
@@ -70,7 +70,7 @@ const TRANSLATIONS = {
     field_lang: "Тест тілі",
     btn_start: "Диагностиканы бастау",
     stats_students: "1240+ оқушы",
-    stats_params: "Құзыреттілік картасы",
+    stats_params: "7 пән",
     stats_cities: "20 қала",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
@@ -78,15 +78,15 @@ const TRANSLATIONS = {
     how_step2: "Диагностика",
     how_step2_desc: "Терең білім тексеру (120 мин дейін)",
     how_step3: "Сарапшы талдауы",
-    how_step3_desc: "AI және әдіскерлердің талдауы",
+    how_step3_desc: "AI және әдіскерлердің талдауы (сізге жібереміз)",
     how_step4: "Қолдау көрсету",
     how_step4_desc: "Оқуға түскенше бірге боламыз",
     preview_title: "Сіз не аласыз",
-    preview_summary: "Диагностика нәтижелері сіздің жеке білім беру стратегияңыздың негізі болады. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
+    preview_summary: "Диагностика нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
     go2site: "go2study туралы",
-    value_1: "Дағдылар картасы",
-    value_2: "Күшті және әлсіз жақтар",
-    value_3: "Жеке оқу жоспары"
+    value_1: "7 пән бойынша дағдылар картасы",
+    value_2: "Әлсіз тұстарды егжей-тегжейлі талдау",
+    value_3: "Жеке оқу және даму жоспары"
   }
 };
 
@@ -145,17 +145,19 @@ export default function LandingPage() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     const isDeleting = input.length < formData.whatsapp.length;
+    
     if (!input) {
       setFormData(prev => ({ ...prev, whatsapp: '' }));
       return;
     }
-    if (isDeleting) {
-      setFormData(prev => ({ ...prev, whatsapp: input }));
-      return;
-    }
+    
     let digits = input.replace(/\D/g, '');
-    if (digits.startsWith('8')) digits = '7' + digits.substring(1);
-    if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
+    
+    if (!isDeleting) {
+      if (digits.startsWith('8')) digits = '7' + digits.substring(1);
+      if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
+    }
+    
     digits = digits.substring(0, 11);
 
     let formatted = '';
@@ -228,12 +230,12 @@ export default function LandingPage() {
                 <span className="text-xs font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_students.split(' ')[1]}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-2xl font-bold text-primary">Карта</span>
-                <span className="text-xs font-black uppercase text-[#3b3e40]/40 tracking-widest">{lang === 'ru' ? 'Навыков' : 'Дағдылар'}</span>
+                <span className="text-2xl font-bold text-primary">{t.stats_params.split(' ')[0]}</span>
+                <span className="text-xs font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_params.split(' ')[1]}</span>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-2xl font-bold text-[#081d3a]">20</span>
-                <span className="text-xs font-black uppercase text-[#3b3e40]/40 tracking-widest">{lang === 'ru' ? 'Городов' : 'Қала'}</span>
+                <span className="text-2xl font-bold text-[#081d3a]">{t.stats_cities.split(' ')[0]}</span>
+                <span className="text-xs font-black uppercase text-[#3b3e40]/40 tracking-widest">{t.stats_cities.split(' ')[1]}</span>
               </div>
             </div>
           </div>
@@ -420,12 +422,12 @@ export default function LandingPage() {
           <div className="flex flex-wrap justify-center gap-10">
             <div className="flex flex-col gap-3">
               <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-30">Платформа</span>
-              <a href="https://go2study.kz/" target="_blank" className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors lowercase">о go2study</a>
+              <a href="https://go2study.kz/" target="_blank" className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors lowercase">{t.go2site}</a>
               <button onClick={() => router.push('/admin')} className="text-sm font-bold text-[#081d3a]/60 hover:text-primary transition-colors text-left">панель управления</button>
             </div>
             <div className="flex flex-col gap-3 text-center md:text-right">
               <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-30">Контакты</span>
-              <span className="text-sm font-bold text-[#081d3a]/60">+7 (775) 389 72 33</span>
+              <span className="text-sm font-bold text-[#081d3a]/60">+7 775 389 72 33</span>
               <span className="text-sm font-bold text-[#081d3a]/60 lowercase">info@go2study.kz</span>
             </div>
           </div>
