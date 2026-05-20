@@ -63,8 +63,14 @@ async function ensureSampleData() {
     const testId = 'test-1';
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
-    if (!testDoc.exists()) {
+    // Проверяем наличие вопросов для этого теста
+    const questionsRef = collection(db, 'questions');
+    const qSnapshot = await getDocs(questionsRef);
+    const hasQuestions = qSnapshot.docs.some(d => d.data().test_id === testId);
+    
+    if (!testDoc.exists() || !hasQuestions) {
       console.log("Initializing fixed sample data for test-1...");
+      
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -250,10 +256,12 @@ export async function startTest(data: {
 }) {
   const db = getDb();
   try {
+    // Принудительно обеспечиваем наличие данных перед запуском
     await ensureSampleData();
+    
     const questions = await getQuestionsByTestId(data.testId);
     
-    if (questions.length === 0) {
+    if (!questions || questions.length === 0) {
       throw new Error("Вопросы для этого теста еще не добавлены. Пожалуйста, обратитесь к администрации.");
     }
 
