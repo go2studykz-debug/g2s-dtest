@@ -37,11 +37,11 @@ const TRANSLATIONS = {
     field_whatsapp: "WhatsApp Родителя",
     field_class: "Класс",
     field_lang: "Язык теста",
-    btn_start: "Запустить диагностику",
+    btn_start: "Начать тестирование",
     stats_students: "1240+",
     stats_students_label: "Учеников обучено",
-    stats_params: "100%",
-    stats_params_label: "совпадение с тестами ниш",
+    stats_params: "NIS Standard",
+    stats_params_label: "100% совпадение с НИШ",
     stats_cities: "20",
     stats_cities_label: "Городов",
     how_title: "Как строится ваш успех",
@@ -71,10 +71,10 @@ const TRANSLATIONS = {
     field_whatsapp: "Ата-ананың WhatsApp нөмірі",
     field_class: "Сынып",
     field_lang: "Тест тілі",
-    btn_start: "Диагностиканы бастау",
+    btn_start: "Тестілеуді бастау",
     stats_students: "1240+",
     stats_students_label: "Оқушы оқытылды",
-    stats_params: "100%",
+    stats_params: "NIS Standard",
     stats_params_label: "НЗМ-мен 100% сәйкестік",
     stats_cities: "20",
     stats_cities_label: "Қала",
@@ -222,7 +222,7 @@ export default function LandingPage() {
                   <div className="text-3xl font-bold text-primary tracking-tight leading-none">
                     {t.stats_params}
                   </div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">100% совпадение с ниш</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-2 leading-tight">{t.stats_params_label}</div>
                 </div>
               </div>
 
