@@ -130,16 +130,25 @@ export default function LandingPage() {
 
     setLoading(true);
     try {
-      const { result } = await startTest({
+      const startData = await startTest({
         testId: 'test-1',
         ...formData,
         classNumber: parseInt(formData.classNumber),
         language: formData.language as 'kk' | 'ru',
       });
-      router.push(`/test/${result.id}`);
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to start test.' });
-    } finally {
+      
+      if (startData && startData.result && startData.result.id) {
+        router.push(`/test/${startData.result.id}`);
+      } else {
+        throw new Error("Неверный ответ от сервера.");
+      }
+    } catch (error: any) {
+      console.error("Submit error:", error);
+      toast({ 
+        variant: 'destructive', 
+        title: lang === 'ru' ? 'Ошибка' : 'Қате', 
+        description: error.message || (lang === 'ru' ? 'Не удалось начать тестирование.' : 'Тестілеуді бастау мүмкін болмады.')
+      });
       setLoading(false);
     }
   };
