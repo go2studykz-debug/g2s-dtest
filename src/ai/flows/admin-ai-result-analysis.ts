@@ -1,12 +1,7 @@
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for analyzing student test results using AI.
- * It takes a student's performance data, answers, and anti-cheat logs, and generates a structured
- * AI analysis including performance summary, error patterns, and personalized learning suggestions.
- *
- * - analyzeStudentResult - A function that triggers the AI analysis of a student's test result.
- * - AnalyzeStudentResultInput - The input type for the analyzeStudentResult function.
- * - AnalyzeStudentResultOutput - The return type for the analyzeStudentResult function.
+ * It follows the official go2study report format: Topic, Error Type, Exam Influence, and Recommendation.
  */
 
 import {ai} from '@/ai/genkit';
@@ -20,47 +15,44 @@ const AnalyzeStudentResultInputSchema = z.object({
   totalQuestions: z.number().describe("The total number of questions in the test."),
   answers: z.array(z.object({
     questionNumber: z.number().describe("The question number."),
-    subject: z.string().describe("The subject of the question (e.g., 'math', 'logic')."),
+    subject: z.string().describe("The subject of the question."),
     questionText: z.string().describe("The full text of the question."),
-    optionA: z.string().optional().describe("Option A for the question (if multiple choice)."),
-    optionB: z.string().optional().describe("Option B for the question (if multiple choice)."),
-    optionC: z.string().optional().describe("Option C for the question (if multiple choice)."),
-    optionD: z.string().optional().describe("Option D for the question (if multiple choice)."),
-    optionE: z.string().nullable().optional().describe("Option E for the question (if multiple choice)."),
     studentAnswer: z.string().nullable().describe("The answer provided by the student."),
     correctAnswer: z.string().describe("The correct answer for the question."),
     isCorrect: z.boolean().describe("Whether the student's answer was correct."),
     timeSpentSeconds: z.number().describe("Time spent on this question in seconds."),
-  })).describe("An array of student's answers with detailed question and answer information."),
+  })).describe("An array of student's answers."),
   antiCheatLogs: z.array(z.object({
-    eventType: z.string().describe("Type of anti-cheat event (e.g., 'tab_switch', 'window_blur')."),
-    questionNumber: z.number().describe("The question number during which the event occurred."),
-    exitDurationSeconds: z.number().describe("Duration of the exit/blur event in seconds."),
-    details: z.string().describe("Additional details about the anti-cheat event."),
-    createdAt: z.string().describe("Timestamp of the event creation (ISO string format)."),
-  })).describe("An array of anti-cheat logs for the student's test."),
+    eventType: z.string().describe("Type of anti-cheat event."),
+    questionNumber: z.number().describe("The question number."),
+    exitDurationSeconds: z.number().describe("Duration of the event."),
+    details: z.string().describe("Details."),
+    createdAt: z.string().describe("Timestamp."),
+  })).describe("Anti-cheat logs."),
 });
 export type AnalyzeStudentResultInput = z.infer<typeof AnalyzeStudentResultInputSchema>;
 
+const DetailedErrorAnalysisSchema = z.object({
+  questionNumber: z.number().describe("Number of the question."),
+  subject: z.string().describe("Subject of the question."),
+  topic: z.string().describe("Specific topic of the task (e.g., 'Поиск прямой информации в тексте')."),
+  studentAnswer: z.string().nullable().describe("What the student chose."),
+  correctAnswer: z.string().describe("The actual correct option."),
+  status: z.string().describe("Status (e.g., 'Ошибка' or 'Пропуск')."),
+  errorType: z.string().describe("Type of error identified (e.g., 'Невнимательность', 'Незнание правила')."),
+  examInfluence: z.string().describe("How this specific topic/error affects the actual NISH exam performance."),
+  recommendation: z.string().describe("Specific actionable recommendation for this question."),
+});
+
 const AnalyzeStudentResultOutputSchema = z.object({
-  performanceSummary: z.string().describe("A comprehensive summary of the student's overall performance, highlighting strengths and weaknesses."),
-  errorPatterns: z.array(z.object({
-    subject: z.string().describe("The subject area where specific error patterns were identified."),
-    incorrectAnswers: z.array(z.object({
-      questionNumber: z.number().describe("The number of the question that was answered incorrectly."),
-      questionText: z.string().describe("The full text of the incorrectly answered question."),
-      studentAnswer: z.string().nullable().describe("The answer provided by the student for this question."),
-      correctAnswer: z.string().describe("The correct answer for this question."),
-      feedback: z.string().describe("Detailed feedback specific to why this answer was incorrect and how to approach it correctly."),
-    })).describe("Details of individual incorrect answers within this subject, including specific feedback."),
-    analysis: z.string().describe("A general analysis of the common error patterns observed in this subject."),
-  })).describe("Detailed patterns in student's errors, grouped by subject, with specific feedback for each incorrect answer."),
+  performanceSummary: z.string().describe("Overall summary of performance."),
+  detailedAnalysis: z.array(DetailedErrorAnalysisSchema).describe("Question-by-question breakdown for incorrect/skipped answers."),
   learningPathwaySuggestions: z.array(z.object({
-    area: z.string().describe("The specific academic area or subject for which the learning suggestion is provided."),
-    suggestion: z.string().describe("A personalized and actionable learning suggestion to improve performance in the specified area."),
-    resources: z.array(z.string()).optional().describe("Optional: List of suggested resources (e.g., topics, types of exercises) for this learning suggestion."),
-  })).describe("Personalized learning pathway suggestions based on the analysis, with optional resources."),
-  antiCheatBehaviorAnalysis: z.string().optional().describe("An analysis of potential anti-cheat behavior based on the provided logs, including observed events and their implications. State clearly if no suspicious behavior was detected."),
+    area: z.string().describe("Subject area."),
+    suggestion: z.string().describe("Personalized learning suggestion."),
+    resources: z.array(z.string()).optional().describe("Suggested topics/resources."),
+  })).describe("Strategic suggestions for improvement."),
+  antiCheatBehaviorAnalysis: z.string().optional().describe("Analysis of anti-cheat logs."),
 });
 export type AnalyzeStudentResultOutput = z.infer<typeof AnalyzeStudentResultOutputSchema>;
 
@@ -72,53 +64,26 @@ const analyzeStudentResultPrompt = ai.definePrompt({
   name: 'analyzeStudentResultPrompt',
   input: {schema: AnalyzeStudentResultInputSchema},
   output: {schema: AnalyzeStudentResultOutputSchema},
-  prompt: `You are an expert educational assistant designed to analyze student test results and provide comprehensive feedback.
-Your goal is to generate a JSON object containing a performance summary, detailed error patterns with feedback, personalized learning pathway suggestions, and an analysis of any observed anti-cheat behavior.
+  prompt: `You are an expert educational analyst for go2study, specializing in NISH (NIS) entrance exams.
+Your task is to generate a professional analytical report based on a student's test data.
+
+CRITICAL INSTRUCTIONS:
+1. For EVERY incorrect or skipped answer, provide a detailed breakdown in 'detailedAnalysis'.
+2. 'topic': Be specific about the cognitive skill or academic topic.
+3. 'errorType': Categorize why they failed (e.g., conceptual gap, logic error, time pressure, misreading).
+4. 'examInfluence': Explain how often this topic appears in NISH exams and its weight.
+5. 'recommendation': Provide a clear, pedagogical advice for the student.
 
 Here is the student's test data:
-Student Name: {{{studentName}}}
-Class Number: {{{classNumber}}}
-Overall Percentage: {{{percentage}}}%
-Total Correct Answers: {{{totalCorrect}}} out of {{{totalQuestions}}}
+Student: {{{studentName}}}, Class: {{{classNumber}}}, Score: {{{percentage}}}% ({{{totalCorrect}}}/{{{totalQuestions}}})
 
-Student Answers and Performance:
+Answers:
 {{#each answers}}
-- Question {{questionNumber}} (Subject: {{subject}}):
-  Question Text: {{{questionText}}}
-  {{#if optionA}}Option A: {{{optionA}}}{{/if}}
-  {{#if optionB}}Option B: {{{optionB}}}{{/if}}
-  {{#if optionC}}Option C: {{{optionC}}}{{/if}}
-  {{#if optionD}}Option D: {{{optionD}}}{{/if}}
-  {{#if optionE}}Option E: {{{optionE}}}{{/if}}
-  Student's Answer: "{{{studentAnswer}}}"
-  Correct Answer: "{{{correctAnswer}}}"
-  Is Correct: {{isCorrect}}
-  Time Spent: {{timeSpentSeconds}} seconds
+- Q{{questionNumber}} ({{subject}}): "{{{questionText}}}" 
+  Student chose: "{{{studentAnswer}}}", Correct: "{{{correctAnswer}}}", IsCorrect: {{isCorrect}}
 {{/each}}
 
-Anti-cheat Logs:
-{{#if antiCheatLogs}}
-{{#each antiCheatLogs}}
-- Event Type: {{{eventType}}}, Question: {{questionNumber}}, Exit Duration: {{exitDurationSeconds}}s, Details: "{{{details}}}", Created At: {{{createdAt}}}
-{{/each}}
-{{else}}
-No anti-cheat logs available.
-{{/if}}
-
-Please analyze the provided data and generate a JSON output that adheres strictly to the following structure:
-- 'performanceSummary': A string providing an overall summary of the student's performance, highlighting strengths (e.g., subjects performed well in) and weaknesses (e.g., areas needing improvement).
-- 'errorPatterns': An array of objects.
-  - Each object should represent a subject where errors were identified.
-  - It should contain 'subject' (string), 'incorrectAnswers' (an array of objects), and 'analysis' (string).
-  - Each 'incorrectAnswers' object should have 'questionNumber' (number), 'questionText' (string), 'studentAnswer' (string, can be null), 'correctAnswer' (string), and 'feedback' (string). The feedback should be specific to the question and student's answer, explaining why it was wrong and how to think about it correctly.
-  - The 'analysis' field for each subject should describe common patterns observed in incorrect answers for that subject.
-- 'learningPathwaySuggestions': An array of objects.
-  - Each object should have 'area' (string) and 'suggestion' (string).
-  - 'suggestion' should be a personalized and actionable recommendation for improvement based on the identified error patterns.
-  - Optionally, include a 'resources' array of strings for suggested topics or exercise types.
-- 'antiCheatBehaviorAnalysis': An optional string. Analyze the anti-cheat logs. If there are logs, describe any suspicious behavior detected (e.g., frequent tab switches, long window blurs during crucial questions) and its potential implications. If no logs or no suspicious activity, state that no concerning anti-cheat behavior was detected.
-
-Ensure the output is a single, valid JSON object. Do not include any other text or formatting outside the JSON.`,
+Analyze the data and output a structured JSON report.`,
   config: {
     responseMimeType: 'application/json',
     model: 'googleai/gemini-1.5-flash',
