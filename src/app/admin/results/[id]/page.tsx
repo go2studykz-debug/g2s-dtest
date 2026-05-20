@@ -4,7 +4,6 @@
 import React, { useEffect, useState, use } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/badge";
 import { Button as UIButton } from "@/components/ui/button";
 import { 
   BrainCircuit, Shield, Clock, BookOpen, AlertCircle, 
@@ -145,7 +144,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                 <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-2xl flex flex-col items-center gap-4 bg-muted/5">
                   <BrainCircuit className="w-16 h-16 opacity-10" />
                   <p className="font-bold text-[#081d3a]">Анализ еще не сформирован.</p>
-                  <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold" onClick={() => router.refresh()}>Обновить данные</UIButton>
+                  <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold" onClick={() => window.location.reload()}>Обновить данные</UIButton>
                 </div>
               )}
             </CardContent>
@@ -166,8 +165,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   <TableRow>
                     <TableHead className="pl-8 w-16">№</TableHead>
                     <TableHead>Предмет / Вопрос</TableHead>
-                    <TableHead className="w-24">Ответ</TableHead>
-                    <TableHead className="w-24">Верно</TableHead>
+                    <TableHead className="w-32">Ответ ученика</TableHead>
+                    <TableHead className="w-32">Правильный ответ</TableHead>
                     <TableHead className="w-32 text-right pr-8">Время</TableHead>
                   </TableRow>
                 </TableHeader>
