@@ -209,8 +209,8 @@ export default function LandingPage() {
                   <Users className="w-7 h-7" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#081d3a] tracking-tight">{t.stats_students}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_students_label}</div>
+                  <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_students}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_students_label}</div>
                 </div>
               </div>
 
@@ -222,7 +222,7 @@ export default function LandingPage() {
                   <div className="text-3xl font-bold text-primary tracking-tight leading-none">
                     {t.stats_params}
                   </div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_params_label}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_params_label}</div>
                 </div>
               </div>
 
@@ -231,8 +231,8 @@ export default function LandingPage() {
                   <Globe className="w-7 h-7" />
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-[#081d3a] tracking-tight">{t.stats_cities}</div>
-                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-0.5 leading-tight">{t.stats_cities_label}</div>
+                  <div className="text-3xl font-bold text-[#081d3a] tracking-tight leading-none">{t.stats_cities}</div>
+                  <div className="text-[10px] font-black uppercase text-[#3b3e40]/40 tracking-[0.2em] mt-1.5 leading-tight">{t.stats_cities_label}</div>
                 </div>
               </div>
             </div>
