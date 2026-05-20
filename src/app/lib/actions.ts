@@ -55,8 +55,14 @@ export async function ensureSampleData() {
     const testId = 'test-1';
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
-    if (!testDoc.exists()) {
-      console.log("Creating default diagnostic test...");
+    // Проверяем наличие вопросов для этого теста
+    const qSnapshot = await getDocs(collection(db, 'questions'));
+    const testQuestions = qSnapshot.docs.filter(d => d.data().test_id === testId);
+
+    // Если теста нет ИЛИ вопросов нет - создаем/пересоздаем
+    if (!testDoc.exists() || testQuestions.length === 0) {
+      console.log("Initializing diagnostic data (Test and Questions)...");
+      
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -69,24 +75,25 @@ export async function ensureSampleData() {
         ],
         created_at: serverTimestamp()
       };
-      await setDoc(doc(db, 'tests', testId), sampleTest);
+      await setDoc(doc(db, 'tests', testId), sampleTest, { merge: true });
 
       const sampleQuestions = [
-        { test_id: testId, question_number: 1, subject: 'math', question_text: 'Решите уравнение: 2x + 5 = 15', option_a: '3', option_b: '5', option_c: '10', option_d: '7', option_e: '4', correct_answer: 'B', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 2, subject: 'math', question_text: 'Чему равен квадратный корень из числа 144?', option_a: '10', option_b: '12', option_c: '14', option_d: '16', option_e: '11', correct_answer: 'B', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 3, subject: 'math', question_text: 'Вычислите: (15 + 25) / 5 * 2', option_a: '16', option_b: '8', option_c: '20', option_d: '12', option_e: '10', correct_answer: 'A', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 4, subject: 'logic', question_text: 'Какое число должно быть следующим в последовательности: 2, 4, 8, 16, ...?', option_a: '24', option_b: '30', option_c: '32', option_d: '64', option_e: '48', correct_answer: 'C', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 5, subject: 'logic', question_text: 'Если все коты — животные, а Барсик — кот, то какой вывод является верным?', option_a: 'Барсик — животное', option_b: 'Все животные — коты', option_c: 'Барсик — не животное', option_d: 'Коты не являются животными', option_e: 'Барсик — собака', correct_answer: 'A', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 6, subject: 'logic', question_text: 'Укажите лишнее слово в списке: Яблоко, Груша, Банан, Морковь, Персик.', option_a: 'Яблоко', option_b: 'Груша', option_c: 'Банан', option_d: 'Морковь', option_e: 'Персик', correct_answer: 'D', class_number: 6, language: 'ru' }
+        { test_id: testId, question_number: 1, subject: 'math' as Subject, question_text: 'Решите уравнение: 2x + 5 = 15', option_a: '3', option_b: '5', option_c: '10', option_d: '7', option_e: '4', correct_answer: 'B', class_number: 6, language: 'ru' },
+        { test_id: testId, question_number: 2, subject: 'math' as Subject, question_text: 'Чему равен квадратный корень из числа 144?', option_a: '10', option_b: '12', option_c: '14', option_d: '16', option_e: '11', correct_answer: 'B', class_number: 6, language: 'ru' },
+        { test_id: testId, question_number: 3, subject: 'math' as Subject, question_text: 'Вычислите: (15 + 25) / 5 * 2', option_a: '16', option_b: '8', option_c: '20', option_d: '12', option_e: '10', correct_answer: 'A', class_number: 6, language: 'ru' },
+        { test_id: testId, question_number: 4, subject: 'logic' as Subject, question_text: 'Какое число должно быть следующим в последовательности: 2, 4, 8, 16, ...?', option_a: '24', option_b: '30', option_c: '32', option_d: '64', option_e: '48', correct_answer: 'C', class_number: 6, language: 'ru' },
+        { test_id: testId, question_number: 5, subject: 'logic' as Subject, question_text: 'Если все коты — животные, а Барсик — кот, то какой вывод является верным?', option_a: 'Барсик — животное', option_b: 'Все животные — коты', option_c: 'Барсик — не животное', option_d: 'Коты не являются животными', option_e: 'Барсик — собака', correct_answer: 'A', class_number: 6, language: 'ru' },
+        { test_id: testId, question_number: 6, subject: 'logic' as Subject, question_text: 'Укажите лишнее слово в списке: Яблоко, Груша, Банан, Морковь, Персик.', option_a: 'Яблоко', option_b: 'Груша', option_c: 'Банан', option_d: 'Морковь', option_e: 'Персик', correct_answer: 'D', class_number: 6, language: 'ru' }
       ];
 
       for (const q of sampleQuestions) {
         const qId = `q-${testId}-${q.question_number}`;
-        await setDoc(doc(db, 'questions', qId), q);
+        await setDoc(doc(db, 'questions', qId), q, { merge: true });
       }
+      console.log("Successfully initialized 6 questions.");
     }
   } catch (error) {
-    console.error("Diagnostic data error:", error);
+    console.error("Diagnostic data initialization error:", error);
   }
 }
 
@@ -128,6 +135,8 @@ export async function startTest(data: {
   language: 'kk' | 'ru';
 }) {
   const db = getDb();
+  
+  // Принудительно проверяем/создаем данные перед началом
   await ensureSampleData();
   
   const questionsSnapshot = await getDocs(collection(db, 'questions'));
@@ -158,13 +167,18 @@ export async function startTest(data: {
     is_consulted: false,
   };
 
-  const docRef = await addDoc(collection(db, 'results'), resultData);
-  const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
-  
-  return serializeData({ 
-    result: { id: docRef.id, ...resultData, started_at: new Date().toISOString() }, 
-    questions: secureQuestions 
-  });
+  try {
+    const docRef = await addDoc(collection(db, 'results'), resultData);
+    const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
+    
+    return serializeData({ 
+      result: { id: docRef.id, ...resultData, started_at: new Date().toISOString() }, 
+      questions: secureQuestions 
+    });
+  } catch (error: any) {
+    console.error("Failed to start test:", error);
+    throw new Error(error.message || "Ошибка при подключении к базе данных.");
+  }
 }
 
 export async function submitAnswer(data: {
@@ -179,7 +193,7 @@ export async function submitAnswer(data: {
   const question = qSnap.data() as Question;
 
   const answerRef = doc(db, 'results', data.resultId, 'answers', data.questionId);
-  await setDoc(answerRef, {
+  setDoc(answerRef, {
     result_id: data.resultId,
     question_id: data.questionId,
     question_number: question.question_number,
@@ -225,11 +239,13 @@ export async function getResultDetail(id: string) {
   const answersSnap = await getDocs(collection(db, 'results', id, 'answers'));
   const logsSnap = await getDocs(collection(db, 'results', id, 'logs'));
   
-  const result = { id: resultSnap.id, ...resultSnap.data() };
+  const resultData = resultSnap.data();
+  const result = { id: resultSnap.id, ...resultData };
+  
   const questionsSnap = await getDocs(collection(db, 'questions'));
   const questions = questionsSnap.docs
     .map(d => ({ id: d.id, ...d.data() } as Question))
-    .filter(q => q.test_id === result.test_id);
+    .filter(q => q.test_id === resultData.test_id);
 
   return serializeData({ 
     result, 
@@ -264,7 +280,7 @@ export async function logAntiCheat(data: {
   const resultSnap = await getDoc(resultRef);
   if (!resultSnap.exists() || resultSnap.data().status === 'completed') return;
 
-  await addDoc(collection(db, 'results', data.resultId, 'logs'), {
+  addDoc(collection(db, 'results', data.resultId, 'logs'), {
     result_id: data.resultId,
     event_type: data.eventType,
     question_number: data.questionNumber,
@@ -273,7 +289,7 @@ export async function logAntiCheat(data: {
     created_at: serverTimestamp(),
   });
 
-  await updateDoc(resultRef, {
+  updateDoc(resultRef, {
     anti_cheat_count: (resultSnap.data().anti_cheat_count || 0) + 1
   });
 }
