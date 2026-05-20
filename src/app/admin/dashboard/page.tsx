@@ -132,7 +132,7 @@ export default function AdminDashboard() {
     try {
       await updateResultCRM(id, updates);
       setResults(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
-      toast({ title: 'Обновлено', description: 'CRM статус успешно изменен.' });
+      toast({ title: 'Обновлено', description: 'Статус консультации изменен.' });
     } catch (e) {
       toast({ variant: 'destructive', title: 'Ошибка', description: 'Сбой при обновлении статуса.' });
     }
@@ -180,9 +180,9 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { 
-              label: 'Начали тест', 
+              label: 'Новые лиды', 
               val: stats.startsToday, 
-              sub: 'Всего за сегодня',
+              sub: 'Начали тест сегодня',
               icon: Users, 
               color: 'text-primary',
               bg: 'bg-primary/5',
@@ -191,25 +191,25 @@ export default function AdminDashboard() {
             { 
               label: 'В процессе', 
               val: stats.activeToday, 
-              sub: 'Активны сегодня',
+              sub: 'Активны сейчас',
               icon: Activity, 
               color: 'text-green-500',
               bg: 'bg-green-500/5',
               filter: 'today_active'
             },
             { 
-              label: 'Долги по конс.', 
+              label: 'Лист ожидания', 
               val: stats.noConsultTotal, 
-              sub: 'Не назначено всего',
+              sub: 'Ждут консультацию',
               icon: Phone, 
               color: 'text-blue-500',
               bg: 'bg-blue-500/5',
               filter: 'all_no_consult'
             },
             { 
-              label: 'Нужна помощь', 
+              label: 'Брошено', 
               val: stats.abandonedTotal, 
-              sub: 'Брошено всего',
+              sub: 'Нужна помощь',
               icon: AlertTriangle, 
               color: 'text-orange-500',
               bg: 'bg-orange-500/5',
