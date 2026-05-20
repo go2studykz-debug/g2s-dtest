@@ -58,7 +58,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Stable date comparison helper
   const isSameDay = (date1: Date | string | number, date2: Date | string | number) => {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
@@ -84,8 +83,9 @@ export default function AdminDashboard() {
     return {
       starts: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
       ready: todayResults.filter(r => r.status === 'completed' && r.is_analysed).length,
-      abandoned: todayResults.filter(r => isAbandoned(r)).length, 
-      noConsult: todayResults.filter(r => r.status === 'completed' && !r.is_consulted).length,
+      // Эти показатели теперь глобальные (backlog)
+      abandoned: results.filter(r => isAbandoned(r)).length, 
+      noConsult: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
     };
   }, [results, today, testDurations]);
@@ -99,13 +99,16 @@ export default function AdminDashboard() {
         
         if (filter === 'all_completed') return r.status === 'completed';
         
-        // Widgets are focused on today's performance as requested
+        // Глобальные фильтры (не зависят от того, "сегодня" это или нет)
+        if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
+        if (filter === 'today_abandoned') return isAbandoned(r);
+        
+        // Локальные фильтры (только за сегодня)
         if (!isToday) return false;
         
         if (filter === 'today_starts') return r.status === 'in_progress' && !isAbandoned(r);
         if (filter === 'today_ready') return r.status === 'completed' && r.is_analysed;
-        if (filter === 'today_abandoned') return isAbandoned(r);
-        if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
+        
         return true;
       });
     }
@@ -182,9 +185,9 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { 
-            label: 'Новые лиды (Старты)', 
+            label: 'Новые лиды', 
             val: stats.starts, 
-            sub: 'В процессе',
+            sub: 'В процессе сегодня',
             icon: Zap, 
             color: 'text-primary',
             bg: 'bg-primary/5',
@@ -193,7 +196,7 @@ export default function AdminDashboard() {
           { 
             label: 'Готовы к звонку', 
             val: stats.ready, 
-            sub: 'AI готов',
+            sub: 'AI готов за сегодня',
             icon: BrainCircuit, 
             color: 'text-green-500',
             bg: 'bg-green-500/5',
@@ -202,7 +205,7 @@ export default function AdminDashboard() {
           { 
             label: 'Конс. не назначена', 
             val: stats.noConsult, 
-            sub: 'Нужно связаться',
+            sub: 'Всего долгов по звонкам',
             icon: Phone, 
             color: 'text-blue-500',
             bg: 'bg-blue-500/5',
@@ -211,7 +214,7 @@ export default function AdminDashboard() {
           { 
             label: 'Нужна помощь', 
             val: stats.abandoned, 
-            sub: 'Брошенные',
+            sub: 'Всего брошенных тестов',
             icon: Clock, 
             color: 'text-orange-500',
             bg: 'bg-orange-500/5',
