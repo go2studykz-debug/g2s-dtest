@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, BarChart3, Shield, Activity, Settings, 
-  Layout, Database, ArrowUpRight, BrainCircuit, FileText
+  Layout, ArrowUpRight, BrainCircuit, FileText
 } from 'lucide-react';
 import { getAllResults, analyzeResult } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -50,20 +50,17 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] p-6 md:p-10 space-y-8">
+    <div className="min-h-screen bg-[#f9fafb] p-6 md:p-10 space-y-8 text-[#081d3a]">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-headline font-bold text-[#081d3a]">Матрица go2study</h1>
+          <h1 className="text-4xl font-headline font-bold">Матрица go2study</h1>
           <p className="text-muted-foreground">Система управления диагностикой и AI-аналитикой.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => router.push('/admin/tests')} className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7]">
-            <Layout className="w-4 h-4 mr-2" /> Структура (Блоки и Время)
+          <Button onClick={() => router.push('/admin/tests')} className="bg-[#14bf96] hover:bg-[#11a381] font-bold">
+            <Layout className="w-4 h-4 mr-2" /> Управление обучением (Тесты и Вопросы)
           </Button>
-          <Button variant="outline" onClick={() => router.push('/admin/questions')} className="border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7]">
-            <Database className="w-4 h-4 mr-2" /> Банк вопросов (Контент)
-          </Button>
-          <Button className="bg-[#14bf96] hover:bg-[#11a381]">
+          <Button variant="outline" className="border-[#081d3a]">
             <Settings className="w-4 h-4" />
           </Button>
         </div>
@@ -92,7 +89,7 @@ export default function AdminDashboard() {
 
       <Card className="border-border bg-white shadow-sm overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle className="font-headline flex items-center gap-2 text-xl text-[#081d3a]">
+          <CardTitle className="font-headline flex items-center gap-2 text-xl">
             <FileText className="w-5 h-5 text-primary" />
             Последние результаты
           </CardTitle>
@@ -121,7 +118,7 @@ export default function AdminDashboard() {
                   <TableRow key={r.id} className="hover:bg-muted/10 transition-colors border-border/50">
                     <TableCell className="pl-6">
                       <div className="flex flex-col">
-                        <span className="font-bold text-[#081d3a]">{r.student_name}</span>
+                        <span className="font-bold">{r.student_name}</span>
                         <span className="text-[10px] text-muted-foreground uppercase font-semibold">
                           {r.class_number} Класс • {r.language === 'ru' ? 'Рус' : 'Каз'}
                         </span>
