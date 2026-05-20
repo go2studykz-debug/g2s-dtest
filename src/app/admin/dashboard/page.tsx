@@ -15,13 +15,14 @@ import {
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
   Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle
 } from 'lucide-react';
-import { getAllResults, analyzeResult, updateResultCRM } from '@/app/lib/actions';
-import { StudentResult } from '@/app/lib/types';
+import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
+import { StudentResult, Test } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 export default function AdminDashboard() {
   const [results, setResults] = useState<StudentResult[]>([]);
+  const [testDurations, setTestDurations] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_ready' | 'today_abandoned' | 'today_no_consult' | 'all_completed'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,15 +33,30 @@ export default function AdminDashboard() {
   useEffect(() => {
     setMounted(true);
     loadData();
-    // Refresh data every 5 minutes to update "abandoned" status
-    const interval = setInterval(loadData, 300000);
+    // Refresh data every minute to update "abandoned" status accurately
+    const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
-    const data = await getAllResults();
-    setResults(data);
-    setLoading(false);
+    try {
+      const [resultsData, testsData] = await Promise.all([
+        getAllResults(),
+        getTests()
+      ]);
+      
+      const durations: Record<string, number> = {};
+      testsData.forEach(t => {
+        durations[t.id] = t.total_time_minutes;
+      });
+      
+      setTestDurations(durations);
+      setResults(resultsData);
+    } catch (e) {
+      console.error("Failed to load dashboard data", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const todayStr = useMemo(() => {
@@ -48,12 +64,16 @@ export default function AdminDashboard() {
     return new Date().toLocaleDateString();
   }, [mounted]);
 
-  // Helper to check if session is abandoned (in progress > 1 hour)
+  // Helper to check if session is abandoned (in progress > test time limit)
   const isAbandoned = (r: StudentResult) => {
     if (r.status !== 'in_progress') return false;
     const startTime = new Date(r.started_at).getTime();
     const now = new Date().getTime();
-    return (now - startTime) > 3600000; // 1 hour threshold
+    const limitMinutes = testDurations[r.test_id] || 60; // Fallback to 60 min
+    const limitMs = limitMinutes * 60000;
+    
+    // Test is abandoned if current time exceeds started_at + time limit
+    return (now - startTime) > limitMs;
   };
 
   const stats = useMemo(() => {
@@ -68,7 +88,7 @@ export default function AdminDashboard() {
       noConsult: todayResults.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
     };
-  }, [results, todayStr, mounted]);
+  }, [results, todayStr, mounted, testDurations]);
 
   const filteredResults = useMemo(() => {
     let list = results;
@@ -101,7 +121,7 @@ export default function AdminDashboard() {
     }
 
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, todayStr, searchTerm, mounted]);
+  }, [results, filter, todayStr, searchTerm, mounted, testDurations]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
