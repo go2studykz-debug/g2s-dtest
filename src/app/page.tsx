@@ -105,7 +105,7 @@ export default function LandingPage() {
     name: '',
     city: '',
     whatsapp: '',
-    classNumber: '4',
+    classNumber: '6', // По умолчанию 6 класс, так как для него есть вопросы
     language: 'ru',
   });
 
@@ -130,7 +130,6 @@ export default function LandingPage() {
 
     setLoading(true);
     try {
-      console.log("Submitting startTest action...");
       const startData = await startTest({
         testId: 'test-1',
         ...formData,
@@ -139,7 +138,6 @@ export default function LandingPage() {
       });
       
       if (startData && startData.result && startData.result.id) {
-        console.log("Success! Redirecting to test session:", startData.result.id);
         router.push(`/test/${startData.result.id}`);
       } else {
         throw new Error("Неверный ответ от сервера.");

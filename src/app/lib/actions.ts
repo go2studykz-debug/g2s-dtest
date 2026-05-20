@@ -56,6 +56,7 @@ function serializeData<T>(data: T): T {
 
 /**
  * Инициализирует демонстрационные данные, если база пуста.
+ * Добавляет 6 вопросов для 6 класса на русском языке.
  */
 async function ensureSampleData() {
   const db = getDb();
@@ -63,13 +64,12 @@ async function ensureSampleData() {
     const testId = 'test-1';
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
-    // Проверяем наличие вопросов для этого теста
-    const questionsRef = collection(db, 'questions');
-    const qSnapshot = await getDocs(questionsRef);
+    // Проверяем наличие вопросов
+    const qSnapshot = await getDocs(collection(db, 'questions'));
     const hasQuestions = qSnapshot.docs.some(d => d.data().test_id === testId);
     
     if (!testDoc.exists() || !hasQuestions) {
-      console.log("Initializing fixed sample data for test-1...");
+      console.log("Initializing fixed sample data for test-1 (Grade 6, RU)...");
       
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
@@ -87,7 +87,7 @@ async function ensureSampleData() {
       await setDoc(doc(db, 'tests', testId), sampleTest);
 
       const sampleQuestions = [
-        // МАТЕМАТИКА
+        // МАТЕМАТИКА (6 класс, RU)
         {
           test_id: testId,
           question_number: 1,
@@ -130,7 +130,7 @@ async function ensureSampleData() {
           class_number: 6,
           language: 'ru'
         },
-        // ЛОГИКА
+        // ЛОГИКА (6 класс, RU)
         {
           test_id: testId,
           question_number: 4,
@@ -256,9 +256,10 @@ export async function startTest(data: {
 }) {
   const db = getDb();
   try {
-    // Принудительно обеспечиваем наличие данных перед запуском
+    // Гарантируем наличие данных
     await ensureSampleData();
     
+    // Получаем вопросы именно для этого ID теста
     const questions = await getQuestionsByTestId(data.testId);
     
     if (!questions || questions.length === 0) {
@@ -285,6 +286,7 @@ export async function startTest(data: {
     };
 
     const docRef = await addDoc(collection(db, 'results'), resultData);
+    // Убираем правильные ответы из данных, отправляемых на клиент
     const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
     
     return serializeData({ 
@@ -521,7 +523,7 @@ export async function saveQuestion(question: Question): Promise<Question> {
     
     await setDoc(doc(db, 'questions', id), { 
       ...data, 
-      class_number: testData?.class_number || 4,
+      class_number: testData?.class_number || 6,
       language: testData?.language || 'ru'
     }, { merge: true });
     return serializeData(question);
