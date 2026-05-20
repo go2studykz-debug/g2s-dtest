@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -12,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Users, BrainCircuit, Calendar, Zap, Clock, 
   MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, Settings, ArrowUpRight, CheckCircle2, X
+  Layout, Settings, ArrowUpRight, X
 } from 'lucide-react';
 import { getAllResults, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -288,7 +289,7 @@ export default function AdminDashboard() {
                         <Checkbox 
                           checked={r.is_consulted} 
                           onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
-                          className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500 transition-all"
+                          className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
                         />
                       </div>
                     </TableCell>
