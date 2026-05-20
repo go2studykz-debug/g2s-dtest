@@ -16,7 +16,7 @@ import {
   Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle
 } from 'lucide-react';
 import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
-import { StudentResult, Test } from '@/app/lib/types';
+import { StudentResult } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -83,7 +83,6 @@ export default function AdminDashboard() {
     return {
       starts: todayResults.filter(r => r.status === 'in_progress' && !isAbandoned(r)).length,
       ready: todayResults.filter(r => r.status === 'completed' && r.is_analysed).length,
-      // Эти показатели теперь глобальные (backlog)
       abandoned: results.filter(r => isAbandoned(r)).length, 
       noConsult: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
       total_today: todayResults.length
@@ -98,12 +97,9 @@ export default function AdminDashboard() {
         const isToday = isSameDay(r.started_at, today);
         
         if (filter === 'all_completed') return r.status === 'completed';
-        
-        // Глобальные фильтры (не зависят от того, "сегодня" это или нет)
         if (filter === 'today_no_consult') return r.status === 'completed' && !r.is_consulted;
         if (filter === 'today_abandoned') return isAbandoned(r);
         
-        // Локальные фильтры (только за сегодня)
         if (!isToday) return false;
         
         if (filter === 'today_starts') return r.status === 'in_progress' && !isAbandoned(r);
@@ -135,7 +131,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCrmUpdate = async (id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) => {
+  const handleCrmUpdate = async (id: string, updates: { is_consulted?: boolean }) => {
     try {
       await updateResultCRM(id, updates);
       setResults(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
@@ -291,7 +287,6 @@ export default function AdminDashboard() {
                 <TableHead className="pl-8 h-14 font-black uppercase text-[10px] w-[320px] tracking-widest text-[#3b3e40] opacity-40">Студент / Контакты</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Результат</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Статус завершения</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-40">Связь</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[100px] tracking-widest text-[#3b3e40] opacity-40">Конс.</TableHead>
                 <TableHead className="h-14 text-right pr-8 font-black uppercase text-[10px] tracking-widest text-[#3b3e40] opacity-40">Действия</TableHead>
               </TableRow>
@@ -299,7 +294,7 @@ export default function AdminDashboard() {
             <TableBody>
               {filteredResults.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-40">
+                  <TableCell colSpan={5} className="text-center py-40">
                     <div className="flex flex-col items-center gap-6">
                       <Search className="w-16 h-16 opacity-5" />
                       <p className="text-xl font-bold text-[#081d3a] opacity-30">Ничего не найдено</p>
@@ -313,7 +308,7 @@ export default function AdminDashboard() {
                     <TableRow key={r.id} className="hover:bg-[#f4f7f9]/50 transition-colors border-b last:border-none group">
                       <TableCell className="pl-8 py-5">
                         <div className="flex flex-col">
-                          <span className="font-bold text-lg text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
+                          <span className="font-bold text-xl text-[#14bf96] leading-tight tracking-tight">{r.student_name}</span>
                           <div className="flex items-center gap-2 mt-1.5">
                             <Badge variant="secondary" className="text-[9px] h-4.5 font-bold bg-[#f1f3f5] text-[#3b3e40] px-2 rounded-sm border-none">
                               {r.student_city}
@@ -327,7 +322,7 @@ export default function AdminDashboard() {
                       <TableCell>
                         <div className="flex flex-col gap-1.5">
                           <div className="flex items-center gap-3">
-                            <span className="font-bold text-xl text-[#081d3a]">{r.percentage}%</span>
+                            <span className="font-bold text-2xl text-[#081d3a]">{r.percentage}%</span>
                             {getPotentialBadge(r.percentage)}
                           </div>
                           <p className="text-[10px] text-[#3b3e40] font-black uppercase tracking-widest opacity-30">{r.total_score} баллов &bull; {r.class_number} Класс</p>
@@ -356,15 +351,6 @@ export default function AdminDashboard() {
                           ) : (
                             <div className="h-4 w-20 bg-muted/20 animate-pulse rounded" />
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex justify-center">
-                          <Checkbox 
-                            checked={r.is_contacted} 
-                            onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
-                            className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-                          />
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
