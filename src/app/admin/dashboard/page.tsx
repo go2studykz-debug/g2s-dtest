@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { 
   Users, Calendar, MousePointer2, Search, TrendingUp, TrendingDown, Minus,
-  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity, Zap, Clock, CheckCircle2
+  Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity, Zap, Clock, Home, LogOut
 } from 'lucide-react';
 import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
@@ -173,7 +173,17 @@ export default function AdminDashboard() {
           <p className="text-[#3b3e40] text-base mt-1 font-medium opacity-80">Оперативный центр управления лидами и AI-диагностики.</p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => router.push('/admin/tests')} className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]">
+          <Button 
+            onClick={() => router.push('/')} 
+            variant="outline" 
+            className="border-[#e3e8ee] bg-white text-[#081d3a] hover:bg-muted font-bold shadow-sm h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
+          >
+            <Home className="w-5 h-5 mr-2 text-primary" /> Выйти на главную
+          </Button>
+          <Button 
+            onClick={() => router.push('/admin/tests')} 
+            className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
+          >
             <Layout className="w-5 h-5 mr-2" /> Конфигурация тестов
           </Button>
         </div>
