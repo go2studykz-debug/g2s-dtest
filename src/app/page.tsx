@@ -42,8 +42,8 @@ const TRANSLATIONS = {
     stats_students_label: "Учеников обучено",
     stats_params: "100%",
     stats_params_label: "совпадение с тестами ниш",
-    stats_cities: "20 городов",
-    stats_cities_label: "Весь Казахстан",
+    stats_cities: "20",
+    stats_cities_label: "Городов",
     how_title: "Как строится ваш успех",
     how_step1: "Регистрация",
     how_step1_desc: "Мгновенный доступ к системе",
@@ -76,8 +76,8 @@ const TRANSLATIONS = {
     stats_students_label: "Оқушы оқытылды",
     stats_params: "100%",
     stats_params_label: "НЗМ-мен 100% сәйкестік",
-    stats_cities: "20 қала",
-    stats_cities_label: "Бүкіл Қазақстан",
+    stats_cities: "20",
+    stats_cities_label: "Қала",
     how_title: "Сіздің жетістігіңіз қалай құрылады",
     how_step1: "Тіркелу",
     how_step1_desc: "Жүйеге жылдам қол жеткізу",
@@ -184,12 +184,12 @@ export default function LandingPage() {
           <span className="text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="https://go2study.kz/" target="_blank" className="text-[10px] font-black text-[#081d3a]/40 uppercase tracking-widest hover:text-primary flex items-center gap-1.5 transition-colors">
-            <ExternalLink className="w-3 h-3" /> {t.go2site}
+          <a href="https://go2study.kz/" target="_blank" className="text-sm font-medium text-[#081d3a]/60 hover:text-primary flex items-center gap-1.5 transition-colors">
+            <ExternalLink className="w-3.5 h-3.5" /> {t.go2site}
           </a>
           <div className="flex bg-muted p-1 rounded-lg">
             <button onClick={() => setLang('ru')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'ru' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>RU</button>
-            <button onClick={() => setLang('kk')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'kk' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>KK</button>
+            <button onClick={() => setLang('kk')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'kk' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>KZ</button>
           </div>
         </div>
       </header>
@@ -371,3 +371,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
