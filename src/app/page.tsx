@@ -38,12 +38,13 @@ export default function LandingPage() {
       return;
     }
     
-    // Проверка корректности номера (минимум +77 и 9 цифр)
-    if (formData.whatsapp.length < 12) {
+    // Проверка корректности номера (11 цифр в формате +7 7XX XXX XX XX)
+    const digitsOnly = formData.whatsapp.replace(/\D/g, '');
+    if (digitsOnly.length !== 11) {
       toast({ 
         variant: 'destructive', 
         title: 'Неверный формат', 
-        description: 'Пожалуйста, введите полный номер телефона в формате +7 7XX XXX XX XX.' 
+        description: 'Пожалуйста, введите полный номер телефона (11 цифр).' 
       });
       return;
     }
@@ -66,6 +67,53 @@ export default function LandingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    const isDeleting = input.length < formData.whatsapp.length;
+
+    if (!input) {
+      setFormData(prev => ({ ...prev, whatsapp: '' }));
+      return;
+    }
+
+    // Если идет удаление, позволяем пользователю стирать символы свободно
+    if (isDeleting) {
+      setFormData(prev => ({ ...prev, whatsapp: input }));
+      return;
+    }
+
+    // Оставляем только цифры
+    let digits = input.replace(/\D/g, '');
+
+    // Если первая цифра 8, меняем на 7
+    if (digits.startsWith('8')) {
+      digits = '7' + digits.substring(1);
+    }
+    
+    // Если вводят без 7, добавляем её (кроме случая когда поле пустое)
+    if (digits.length > 0 && !digits.startsWith('7')) {
+      digits = '7' + digits;
+    }
+
+    // Ограничиваем 11 цифрами
+    digits = digits.substring(0, 11);
+
+    // Форматирование: +7 7XX XXX XX XX
+    let formatted = '';
+    if (digits.length > 0) {
+      formatted += '+7';
+      if (digits.length > 1) {
+        const rest = digits.substring(1);
+        if (rest.length > 0) formatted += ' ' + rest.substring(0, 3);
+        if (rest.length > 3) formatted += ' ' + rest.substring(3, 6);
+        if (rest.length > 6) formatted += ' ' + rest.substring(6, 8);
+        if (rest.length > 8) formatted += ' ' + rest.substring(8, 10);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, whatsapp: formatted }));
   };
 
   return (
@@ -167,34 +215,7 @@ export default function LandingPage() {
                       className="pl-10 h-12 border-[#e3e8ee] focus:border-[#14bf96] focus:ring-1 focus:ring-[#14bf96]"
                       required 
                       value={formData.whatsapp}
-                      onChange={e => {
-                        let val = e.target.value;
-                        const prevVal = formData.whatsapp;
-
-                        // Если поле очищено полностью
-                        if (!val) {
-                          setFormData({...formData, whatsapp: ''});
-                          return;
-                        }
-
-                        // Если идет удаление (нажат backspace), позволяем стирать без авто-префикса
-                        if (val.length < prevVal.length) {
-                          setFormData({...formData, whatsapp: val});
-                          return;
-                        }
-
-                        // Очистка от лишних символов
-                        val = val.replace(/[^0-9+]/g, '');
-
-                        // Авто-подстановка префикса только при наборе новых цифр
-                        if (val && !val.startsWith('+')) {
-                          if (val.startsWith('8')) val = '+77' + val.substring(1);
-                          else if (val.startsWith('7')) val = '+77' + val.substring(1);
-                          else val = '+77' + val;
-                        }
-                        
-                        setFormData({...formData, whatsapp: val});
-                      }}
+                      onChange={handlePhoneChange}
                     />
                   </div>
                 </div>
