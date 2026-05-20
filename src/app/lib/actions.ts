@@ -26,42 +26,60 @@ import {
   addDoc,
   Timestamp,
   serverTimestamp,
-  limit
+  limit,
+  Firestore
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
-const { firestore: db } = initializeFirebase();
+/**
+ * Хелпер для получения инстанса Firestore внутри серверного экшена.
+ * Это предотвращает зависание при инициализации на уровне модуля.
+ */
+function getDb(): Firestore {
+  const { firestore } = initializeFirebase();
+  return firestore;
+}
 
+/**
+ * Глубокая сериализация данных для Next.js 15.
+ * Превращает все объекты дат и Timestamp в строки ISO.
+ */
 function serializeData<T>(data: T): T {
-  return JSON.parse(JSON.stringify(data));
+  return JSON.parse(JSON.stringify(data, (key, value) => {
+    if (value && typeof value === 'object' && value.seconds !== undefined && value.nanoseconds !== undefined) {
+      return new Date(value.seconds * 1000).toISOString();
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return value;
+  }));
 }
 
 /**
  * Инициализирует демонстрационные данные, если база пуста.
  */
 async function ensureSampleData() {
+  const db = getDb();
   try {
     const testsSnap = await getDocs(query(collection(db, 'tests'), limit(1)));
     if (testsSnap.empty) {
       console.log("Initializing sample data...");
       const testId = 'test-1';
-      const sampleTest: Test = {
-        id: testId,
+      const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
         language: 'ru',
         is_active: true,
         total_time_minutes: 60,
         blocks: [
-          { subject: 'math', question_count: 2, time_limit_minutes: 30 },
-          { subject: 'logic', question_count: 1, time_limit_minutes: 30 }
+          { subject: 'math', question_count: 15, time_limit_minutes: 30 },
+          { subject: 'logic', question_count: 10, time_limit_minutes: 30 }
         ],
-        created_at: new Date()
+        created_at: serverTimestamp()
       };
-      await setDoc(doc(db, 'tests', testId), { 
-        ...sampleTest, 
-        created_at: serverTimestamp() 
-      });
+      
+      await setDoc(doc(db, 'tests', testId), sampleTest);
 
       const sampleQuestions = [
         {
@@ -111,23 +129,23 @@ async function ensureSampleData() {
       for (const q of sampleQuestions) {
         await addDoc(collection(db, 'questions'), q);
       }
-      console.log("Sample data initialized.");
+      console.log("Sample data initialization complete.");
     }
   } catch (error) {
-    console.error("Error ensuring sample data:", error);
+    console.error("Critical error during data initialization:", error);
   }
 }
 
 export async function getTests(): Promise<Test[]> {
+  const db = getDb();
   try {
     await ensureSampleData();
     const querySnapshot = await getDocs(collection(db, 'tests'));
     const tests = querySnapshot.docs.map(d => ({
       id: d.id,
-      ...d.data(),
-      created_at: d.data().created_at?.toDate()?.toISOString() || new Date().toISOString()
-    })) as any[];
-    return serializeData(tests);
+      ...d.data()
+    }));
+    return serializeData(tests) as any;
   } catch (e) {
     console.error("Error fetching tests:", e);
     return [];
@@ -135,16 +153,11 @@ export async function getTests(): Promise<Test[]> {
 }
 
 export async function getTestById(id: string): Promise<Test | null> {
+  const db = getDb();
   try {
-    const docRef = doc(db, 'tests', id);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await getDoc(doc(db, 'tests', id));
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      return serializeData({
-        id: docSnap.id,
-        ...data,
-        created_at: data.created_at?.toDate()?.toISOString() || new Date().toISOString()
-      } as any);
+      return serializeData({ id: docSnap.id, ...docSnap.data() }) as any;
     }
   } catch (e) {
     console.error("Error fetching test by id:", e);
@@ -152,30 +165,16 @@ export async function getTestById(id: string): Promise<Test | null> {
   return null;
 }
 
-export async function getQuestions(classNumber: number, language: Language): Promise<Question[]> {
-  try {
-    const q = query(
-      collection(db, 'questions'),
-      where('class_number', '==', classNumber),
-      where('language', '==', language)
-    );
-    const querySnapshot = await getDocs(q);
-    const qs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Question[];
-    return serializeData(qs.sort((a, b) => a.question_number - b.question_number));
-  } catch (e) {
-    console.error("Error fetching questions:", e);
-    return [];
-  }
-}
-
 export async function getQuestionsByTestId(testId: string): Promise<Question[]> {
+  const db = getDb();
   try {
     const q = query(collection(db, 'questions'), where('test_id', '==', testId));
     const querySnapshot = await getDocs(q);
     const qs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Question[];
+    // Сортировка в памяти сервера вместо Firestore индекса
     return serializeData(qs.sort((a, b) => a.question_number - b.question_number));
   } catch (e) {
-    console.error("Error fetching questions by test id:", e);
+    console.error("Error fetching questions:", e);
     return [];
   }
 }
@@ -187,13 +186,15 @@ export async function startTest(data: {
   whatsapp: string;
   classNumber: number;
   language: 'kk' | 'ru';
-}): Promise<{ result: StudentResult; questions: Question[] }> {
+}) {
+  const db = getDb();
   try {
+    console.log("Starting test for:", data.name);
     await ensureSampleData();
+    
     const questions = await getQuestionsByTestId(data.testId);
-
     if (questions.length === 0) {
-      throw new Error('Вопросы для этого теста еще не добавлены. Попробуйте обновить страницу или выбрать другой класс.');
+      throw new Error('Вопросы для этого теста еще не добавлены. Попробуйте обновить страницу позже.');
     }
 
     const resultData = {
@@ -217,18 +218,16 @@ export async function startTest(data: {
 
     const docRef = await addDoc(collection(db, 'results'), resultData);
     
-    const result = { 
-      id: docRef.id, 
-      ...resultData, 
-      started_at: new Date().toISOString() 
-    } as any;
-    
+    // Возвращаем результат без секретных ответов
     const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
     
-    return serializeData({ result, questions: secureQuestions });
+    return serializeData({ 
+      result: { id: docRef.id, ...resultData, started_at: new Date().toISOString() }, 
+      questions: secureQuestions 
+    });
   } catch (error: any) {
-    console.error("Error in startTest:", error);
-    throw new Error(error.message || "Не удалось начать тест. Проверьте соединение.");
+    console.error("Failed to start test:", error);
+    throw new Error(error.message || "Ошибка при подключении к базе данных.");
   }
 }
 
@@ -238,6 +237,7 @@ export async function submitAnswer(data: {
   answer: string;
   timeSpent: number;
 }) {
+  const db = getDb();
   try {
     const qSnap = await getDoc(doc(db, 'questions', data.questionId));
     if (!qSnap.exists()) return;
@@ -264,14 +264,15 @@ export async function submitAnswer(data: {
     };
 
     await setDoc(answerRef, studentAnswer);
-    return serializeData({ success: true });
+    return { success: true };
   } catch (e) {
     console.error("Error submitting answer:", e);
-    return serializeData({ success: false });
+    return { success: false };
   }
 }
 
 export async function finishTest(resultId: string): Promise<StudentResult> {
+  const db = getDb();
   try {
     const resultRef = doc(db, 'results', resultId);
     const resultSnap = await getDoc(resultRef);
@@ -294,15 +295,8 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
 
     await updateDoc(resultRef, updateData);
     
-    const finalResult = { 
-      id: resultId, 
-      ...resultSnap.data(), 
-      ...updateData,
-      started_at: resultSnap.data().started_at?.toDate()?.toISOString(),
-      completed_at: new Date().toISOString()
-    };
-
-    return serializeData(finalResult as any);
+    const finalSnap = await getDoc(resultRef);
+    return serializeData({ id: resultId, ...finalSnap.data() }) as any;
   } catch (error: any) {
     console.error("Error finishing test:", error);
     throw new Error("Не удалось завершить тест.");
@@ -310,6 +304,7 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
 }
 
 export async function getResultDetail(id: string) {
+  const db = getDb();
   try {
     const resultSnap = await getDoc(doc(db, 'results', id));
     if (!resultSnap.exists()) return null;
@@ -320,21 +315,15 @@ export async function getResultDetail(id: string) {
     const resultData = resultSnap.data();
     const result = {
       id: resultSnap.id,
-      ...resultData,
-      started_at: resultData.started_at?.toDate()?.toISOString() || new Date().toISOString(),
-      completed_at: resultData.completed_at?.toDate()?.toISOString() || null
+      ...resultData
     };
 
-    const questions = await getQuestionsByTestId(result.test_id);
+    const questions = await getQuestionsByTestId(result.test_id as string);
 
     return serializeData({ 
       result, 
       answers: answersSnap.docs.map(d => ({ id: d.id, ...d.data() })), 
-      logs: logsSnap.docs.map(d => ({ 
-        id: d.id, 
-        ...d.data(), 
-        created_at: d.data().created_at?.toDate()?.toISOString() 
-      })),
+      logs: logsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
       testQuestions: questions 
     });
   } catch (e) {
@@ -344,18 +333,14 @@ export async function getResultDetail(id: string) {
 }
 
 export async function getAllResults() {
+  const db = getDb();
   try {
     const qSnapshot = await getDocs(collection(db, 'results'));
-    const results = qSnapshot.docs.map(d => {
-      const data = d.data();
-      return {
-        id: d.id,
-        ...data,
-        started_at: data.started_at?.toDate()?.toISOString(),
-        completed_at: data.completed_at?.toDate()?.toISOString()
-      };
-    });
-    return serializeData(results.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime()));
+    const results = qSnapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+    return serializeData(results) as any;
   } catch (e) {
     console.error("Error getting all results:", e);
     return [];
@@ -363,10 +348,10 @@ export async function getAllResults() {
 }
 
 export async function updateResultCRM(id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) {
+  const db = getDb();
   try {
-    const ref = doc(db, 'results', id);
-    await updateDoc(ref, updates);
-    return serializeData({ id, ...updates });
+    await updateDoc(doc(db, 'results', id), updates);
+    return { id, ...updates };
   } catch (e) {
     console.error("Error updating CRM:", e);
     throw e;
@@ -380,6 +365,7 @@ export async function logAntiCheat(data: {
   duration: number;
   details: string;
 }) {
+  const db = getDb();
   try {
     const resultRef = doc(db, 'results', data.resultId);
     const resultSnap = await getDoc(resultRef);
@@ -399,24 +385,25 @@ export async function logAntiCheat(data: {
       anti_cheat_count: (resultSnap.data().anti_cheat_count || 0) + 1
     });
 
-    return serializeData({ success: true });
+    return { success: true };
   } catch (e) {
     console.error("Error logging anti-cheat:", e);
   }
 }
 
 export async function analyzeResult(resultId: string) {
+  const db = getDb();
   try {
     const detail = await getResultDetail(resultId);
     if (!detail || detail.result.status !== 'completed') throw new Error('Result not ready');
 
     const analysisInput = {
-      studentName: detail.result.student_name,
-      classNumber: detail.result.class_number,
-      percentage: detail.result.percentage,
-      totalCorrect: detail.result.total_correct,
-      totalQuestions: detail.result.total_questions,
-      answers: detail.testQuestions.map(q => {
+      studentName: detail.result.student_name as string,
+      classNumber: detail.result.class_number as number,
+      percentage: detail.result.percentage as number,
+      totalCorrect: detail.result.total_correct as number,
+      totalQuestions: detail.result.total_questions as number,
+      answers: detail.testQuestions.map((q: any) => {
         const answer = (detail.answers as any[]).find(a => a.question_id === q.id);
         return {
           questionNumber: q.question_number,
@@ -456,13 +443,10 @@ export async function analyzeResult(resultId: string) {
 }
 
 export async function saveTest(test: Test): Promise<Test> {
+  const db = getDb();
   try {
     const { id, ...data } = test;
-    const docRef = doc(db, 'tests', id);
-    await setDoc(docRef, { 
-      ...data, 
-      created_at: serverTimestamp() 
-    }, { merge: true });
+    await setDoc(doc(db, 'tests', id), { ...data, created_at: serverTimestamp() }, { merge: true });
     return serializeData(test);
   } catch (e) {
     console.error("Error saving test:", e);
@@ -471,13 +455,13 @@ export async function saveTest(test: Test): Promise<Test> {
 }
 
 export async function saveQuestion(question: Question): Promise<Question> {
+  const db = getDb();
   try {
     const { id, ...data } = question;
-    const docRef = doc(db, 'questions', id);
     const testSnap = await getDoc(doc(db, 'tests', question.test_id));
     const testData = testSnap.data();
     
-    await setDoc(docRef, { 
+    await setDoc(doc(db, 'questions', id), { 
       ...data, 
       class_number: testData?.class_number || 4,
       language: testData?.language || 'ru'
@@ -490,6 +474,7 @@ export async function saveQuestion(question: Question): Promise<Question> {
 }
 
 export async function deleteQuestion(id: string): Promise<void> {
+  const db = getDb();
   try {
     await deleteDoc(doc(db, 'questions', id));
   } catch (e) {

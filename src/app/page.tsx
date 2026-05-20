@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { 
   GraduationCap, BookOpen, CheckCircle2, User, Phone, 
-  Target, HeartHandshake, FileSearch, Sparkles, ExternalLink, ArrowRight, BrainCircuit,
-  Users, ShieldCheck, Globe
+  Target, HeartHandshake, ArrowRight, BrainCircuit,
+  Users, ShieldCheck, Globe, ExternalLink
 } from 'lucide-react';
 import { startTest } from './lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -88,7 +88,7 @@ const TRANSLATIONS = {
     how_step4: "НЗМ-ге түсу",
     how_step4_desc: "Үздік стандарттар бойынша кәсіби дайындық",
     preview_title: "Сіз не аласыз",
-    preview_summary: "go2study диагностикасының нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
+    preview_summary: "go2study диагностикасыния нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
     go2site: "go2study туралы",
     value_1: "Әрбір қатенің емтиханға әсерін талдау",
     value_2: "Қателерді жүйелеу иә жеке ұсыныстар",
@@ -130,6 +130,7 @@ export default function LandingPage() {
 
     setLoading(true);
     try {
+      console.log("Submitting startTest action...");
       const startData = await startTest({
         testId: 'test-1',
         ...formData,
@@ -138,16 +139,17 @@ export default function LandingPage() {
       });
       
       if (startData && startData.result && startData.result.id) {
+        console.log("Success! Redirecting to test session:", startData.result.id);
         router.push(`/test/${startData.result.id}`);
       } else {
         throw new Error("Неверный ответ от сервера.");
       }
     } catch (error: any) {
-      console.error("Submit error:", error);
+      console.error("Submit error details:", error);
       toast({ 
         variant: 'destructive', 
-        title: lang === 'ru' ? 'Ошибка' : 'Қате', 
-        description: error.message || (lang === 'ru' ? 'Не удалось начать тестирование.' : 'Тестілеуді бастау мүмкін болмады.')
+        title: lang === 'ru' ? 'Ошибка запуска' : 'Қате', 
+        description: error.message || (lang === 'ru' ? 'Проверьте интернет-соединение.' : 'Тестілеуді бастау мүмкін болмады.')
       });
       setLoading(false);
     }
@@ -313,47 +315,6 @@ export default function LandingPage() {
                 <p className="text-sm text-[#3b3e40] opacity-60 font-medium">{step.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="py-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center bg-white rounded-[40px] p-8 md:p-16 border border-border/50 shadow-sm overflow-hidden relative">
-          <div className="space-y-6">
-            <Badge className="bg-primary/10 text-primary border-none px-4 py-1 font-bold">Deep Analytic Report</Badge>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold text-[#081d3a] leading-tight">{t.preview_title}</h2>
-            <p className="text-lg text-[#3b3e40] opacity-80 leading-relaxed font-medium">{t.preview_summary}</p>
-            <ul className="space-y-4 pt-2">
-              {[t.value_1, t.value_2, t.value_3].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 font-bold text-[#081d3a] text-sm"><CheckCircle2 className="w-5 h-5 text-primary" /> {item}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="relative">
-            <Card className="border-border/50 shadow-2xl rounded-2xl overflow-hidden bg-white scale-95 md:scale-100 max-w-sm mx-auto">
-              <CardHeader className="bg-[#081d3a] py-6 px-6 text-white">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2"><GraduationCap className="w-5 h-5 text-primary" /><span className="text-sm font-bold text-white lowercase">go2study</span></div>
-                  <Badge className="bg-primary text-white text-[8px] border-none uppercase font-black">Official Analysis</Badge>
-                </div>
-                <h4 className="text-lg font-bold font-headline text-white">Аналитический отчет НИШ</h4>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4 bg-white">
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-2">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">Анализ ошибки #26</p>
-                  <div className="grid grid-cols-2 gap-2 text-[9px]">
-                    <div><p className="opacity-50 uppercase">Тема:</p><p className="font-bold">Поиск информации</p></div>
-                    <div><p className="opacity-50 uppercase">Тип:</p><p className="font-bold">Невнимательность</p></div>
-                  </div>
-                  <div className="pt-2 border-t border-primary/10">
-                    <p className="text-[9px] opacity-50 uppercase">Влияние на экзамен:</p>
-                    <p className="text-[9px] font-medium italic leading-snug">"Самый частый тип вопросов в блоке языка. Критичен для высокого балла."</p>
-                  </div>
-                  <div className="pt-2 bg-orange-50 p-2 rounded border border-orange-100">
-                    <p className="text-[9px] font-black text-orange-600 uppercase">Рекомендация:</p>
-                    <p className="text-[10px] font-medium leading-relaxed italic text-[#081d3a]">Тренировать поиск по ключевым словам вопроса.</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </main>
