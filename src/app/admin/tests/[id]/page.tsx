@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -17,7 +16,7 @@ import { Test, Subject, TestBlock, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useFirestore } from '@/firebase';
-import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const SUBJECTS_INFO: Record<Subject, string> = {
   'math': 'Математика',
@@ -119,20 +118,18 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
       const qRef = doc(db, 'questions', editingQuestion.id);
       const { id: _, ...data } = editingQuestion;
       
-      // Выполняем запись напрямую на клиенте для стабильности
       await setDoc(qRef, {
         ...data,
         updated_at: new Date().toISOString()
       }, { merge: true });
 
-      // Обновляем локальное состояние
       const updated = await getQuestionsByTestId(test.id);
       setQuestions(updated);
       setEditingQuestion(null);
       toast({ title: 'Вопрос сохранен' });
     } catch (e: any) {
       console.error("Save error:", e);
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос. Проверьте подключение к Firebase.' });
     }
   };
 
@@ -147,7 +144,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
     }
   };
 
-  const blockInvalidChar = (e: React.KeyboardEvent) => {
+  const blockInvalidChars = (e: React.KeyboardEvent) => {
     if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
       e.preventDefault();
     }
@@ -166,7 +163,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
         </div>
         <div className="flex gap-3">
           <Button onClick={handleSaveTest} className="bg-[#14bf96] hover:bg-[#11a381] font-bold">
-            <Save className="w-4 h-4 mr-2" /> Сохранить изменения
+            <Save className="w-4 h-4 mr-2" /> Сохранить тест
           </Button>
         </div>
       </header>
@@ -222,7 +219,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                       <Input 
                         type="number" 
                         className="bg-white" 
-                        onKeyDown={blockInvalidChar}
+                        onKeyDown={blockInvalidChars}
                         value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes} 
                         onChange={e => {
                           const val = e.target.value.replace(/[^0-9]/g, '');
@@ -297,7 +294,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                   <Label>Номер в списке</Label>
                   <Input 
                     type="number" 
-                    onKeyDown={blockInvalidChar}
+                    onKeyDown={blockInvalidChars}
                     value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
                     onChange={e => {
                       const val = e.target.value.replace(/[^0-9]/g, '');
