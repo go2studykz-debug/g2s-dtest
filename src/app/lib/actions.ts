@@ -20,14 +20,9 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc, 
-  query, 
-  where, 
   addDoc,
-  Timestamp,
   serverTimestamp,
-  Firestore,
-  orderBy,
-  limit
+  Firestore
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
@@ -50,10 +45,6 @@ function serializeData<T>(data: T): T {
   }));
 }
 
-/**
- * ГАРАНТИРОВАННОЕ НАПОЛНЕНИЕ БАЗЫ ВОПРОСАМИ
- * Эта функция вбивает 6 проф. вопросов вручную.
- */
 export async function ensureSampleData() {
   const db = getDb();
   const testId = 'test-1';
@@ -61,9 +52,7 @@ export async function ensureSampleData() {
   try {
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
-    // Если теста нет - создаем его
     if (!testDoc.exists()) {
-      console.log("Seeding: Creating Test...");
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -79,12 +68,10 @@ export async function ensureSampleData() {
       await setDoc(doc(db, 'tests', testId), sampleTest);
     }
 
-    // Проверяем наличие вопросов (именно 6 штук)
     const qSnapshot = await getDocs(collection(db, 'questions'));
     const existingCount = qSnapshot.docs.filter(d => d.data().test_id === testId).length;
 
     if (existingCount < 6) {
-      console.log(`Seeding: Adding 6 questions (current: ${existingCount})...`);
       const sampleQuestions = [
         { test_id: testId, question_number: 1, subject: 'math' as Subject, question_text: 'Решите уравнение: 2x + 5 = 15', option_a: '3', option_b: '5', option_c: '10', option_d: '7', option_e: '4', correct_answer: 'B', class_number: 6, language: 'ru' },
         { test_id: testId, question_number: 2, subject: 'math' as Subject, question_text: 'Чему равен квадратный корень из числа 144?', option_a: '10', option_b: '12', option_c: '14', option_d: '16', option_e: '11', correct_answer: 'B', class_number: 6, language: 'ru' },
@@ -98,7 +85,6 @@ export async function ensureSampleData() {
         const qId = `q-${testId}-${q.question_number}`;
         await setDoc(doc(db, 'questions', qId), q, { merge: true });
       }
-      console.log("Successfully seeded 6 questions.");
     }
   } catch (error) {
     console.error("Diagnostic data initialization error:", error);
@@ -166,7 +152,7 @@ export async function startTest(data: {
     total_questions: questions.length,
     percentage: 0,
     total_score: 0,
-    started_at: serverTimestamp(),
+    started_at: new Date().toISOString(),
     is_analysed: false,
     anti_cheat_count: 0,
     is_contacted: false,
@@ -174,6 +160,7 @@ export async function startTest(data: {
   };
 
   const docRef = await addDoc(collection(db, 'results'), resultData);
+  revalidatePath('/admin/dashboard');
   return serializeData({ id: docRef.id, ...resultData });
 }
 
@@ -189,7 +176,7 @@ export async function submitAnswer(data: {
   const question = qSnap.data() as Question;
 
   const answerRef = doc(db, 'results', data.resultId, 'answers', data.questionId);
-  setDoc(answerRef, {
+  await setDoc(answerRef, {
     result_id: data.resultId,
     question_id: data.questionId,
     question_number: question.question_number,
@@ -198,7 +185,7 @@ export async function submitAnswer(data: {
     correct_answer: question.correct_answer || '',
     is_correct: data.answer === question.correct_answer,
     time_spent_seconds: data.timeSpent,
-    updated_at: serverTimestamp()
+    updated_at: new Date().toISOString()
   }, { merge: true });
 }
 
@@ -217,14 +204,14 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
 
   await updateDoc(resultRef, {
     status: 'completed',
-    completed_at: serverTimestamp(),
+    completed_at: new Date().toISOString(),
     total_correct: correctCount,
     percentage: percentage,
     total_score: correctCount * 10
   });
 
-  const finalSnap = await getDoc(resultRef);
   revalidatePath('/admin/dashboard');
+  const finalSnap = await getDoc(resultRef);
   return serializeData({ id: resultId, ...finalSnap.data() }) as any;
 }
 
@@ -283,7 +270,7 @@ export async function logAntiCheat(data: {
     question_number: data.questionNumber,
     exit_duration_seconds: data.duration,
     details: data.details,
-    created_at: serverTimestamp(),
+    created_at: new Date().toISOString(),
   });
 
   await updateDoc(resultRef, {
@@ -332,7 +319,7 @@ export async function analyzeResult(resultId: string) {
 export async function saveTest(test: Test): Promise<Test> {
   const db = getDb();
   const { id, ...data } = test;
-  await setDoc(doc(db, 'tests', id), { ...data, updated_at: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, 'tests', id), { ...data, updated_at: new Date().toISOString() }, { merge: true });
   revalidatePath('/admin/tests');
   return serializeData(test);
 }

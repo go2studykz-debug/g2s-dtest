@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { 
-  GraduationCap, BookOpen, CheckCircle2, User, Phone, 
+  GraduationCap, BookOpen, User, Phone, 
   Target, HeartHandshake, ArrowRight, BrainCircuit,
   Users, ShieldCheck, Globe, ExternalLink
 } from 'lucide-react';
@@ -105,7 +104,7 @@ export default function LandingPage() {
     name: '',
     city: '',
     whatsapp: '',
-    classNumber: '6', // По умолчанию 6 класс, так как для него есть вопросы
+    classNumber: '6',
     language: 'ru',
   });
 
@@ -130,17 +129,17 @@ export default function LandingPage() {
 
     setLoading(true);
     try {
-      const startData = await startTest({
+      const result = await startTest({
         testId: 'test-1',
         ...formData,
         classNumber: parseInt(formData.classNumber),
         language: formData.language as 'kk' | 'ru',
       });
       
-      if (startData && startData.result && startData.result.id) {
-        router.push(`/test/${startData.result.id}`);
+      if (result && result.id) {
+        router.push(`/test/${result.id}`);
       } else {
-        throw new Error("Неверный ответ от сервера.");
+        throw new Error("Не удалось создать сессию тестирования.");
       }
     } catch (error: any) {
       console.error("Submit error details:", error);
