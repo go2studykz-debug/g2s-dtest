@@ -96,6 +96,12 @@ export default function QuestionsManagement() {
     }
   };
 
+  const blockInvalidChar = (e: React.KeyboardEvent) => {
+    if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const questionsBySubject = (questions || []).reduce((acc, q) => {
     if (!acc[q.subject]) acc[q.subject] = [];
     acc[q.subject].push(q);
@@ -230,10 +236,11 @@ export default function QuestionsManagement() {
                   <Label>Номер</Label>
                   <Input 
                     type="number" 
+                    onKeyDown={blockInvalidChar}
                     value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
                     onChange={e => {
-                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
-                      setEditingQuestion({...editingQuestion, question_number: val});
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
                     }} 
                   />
                 </div>

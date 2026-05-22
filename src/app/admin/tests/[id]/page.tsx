@@ -125,6 +125,13 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
     toast({ title: 'Вопрос удален' });
   };
 
+  // Helper to block decimal separators and other non-digit keys
+  const blockInvalidChar = (e: React.KeyboardEvent) => {
+    if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   if (loading || !test) return <div className="min-h-screen flex items-center justify-center italic opacity-30">Диагностика системы...</div>;
 
   return (
@@ -194,10 +201,11 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                       <Input 
                         type="number" 
                         className="bg-white" 
+                        onKeyDown={blockInvalidChar}
                         value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes} 
                         onChange={e => {
-                          const val = e.target.value === "" ? 0 : parseInt(e.target.value);
-                          updateBlock(idx, { time_limit_minutes: val });
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          updateBlock(idx, { time_limit_minutes: val === "" ? 0 : parseInt(val) });
                         }} 
                       />
                     </div>
@@ -265,10 +273,11 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                   <Label>Номер в списке</Label>
                   <Input 
                     type="number" 
+                    onKeyDown={blockInvalidChar}
                     value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
                     onChange={e => {
-                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
-                      setEditingQuestion({...editingQuestion, question_number: val});
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
                     }} 
                   />
                 </div>
