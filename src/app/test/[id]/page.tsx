@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, XCircle, Home } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, Home } from 'lucide-react';
 import { getResultDetail, submitAnswer, logAntiCheat, finishTest, getQuestionsByTestId, getTestById } from '@/app/lib/actions';
 import { StudentResult, Question, Test } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -314,7 +314,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                 {['A', 'B', 'C', 'D', 'E'].map((letter) => {
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
                   const optionValue = currentQuestion[optionKey] as string;
-                  if (!optionValue) return null;
+                  
+                  // Если вариант пустой (особенно актуально для E), не отображаем его
+                  if (!optionValue || optionValue.trim() === "") return null;
 
                   const isSelected = answers[currentQuestion.id] === letter;
 

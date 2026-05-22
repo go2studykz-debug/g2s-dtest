@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -35,7 +34,7 @@ const SUBJECTS_INFO: Record<Subject, string> = {
 export default function QuestionsManagement() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedClass, setSelectedClass] = useState<number>(4);
+  const [selectedClass, setSelectedClass] = useState<number>(6);
   const [selectedLang, setSelectedLang] = useState<Language>('ru');
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   
@@ -246,8 +245,12 @@ export default function QuestionsManagement() {
               <div className="grid grid-cols-2 gap-3">
                 {['A', 'B', 'C', 'D', 'E'].map(l => (
                   <div key={l} className="space-y-1">
-                    <Label className="text-[10px] font-bold uppercase">Вариант {l}</Label>
-                    <Input value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} />
+                    <Label className="text-[10px] font-bold uppercase">Вариант {l} {l === 'E' && '(Опционально)'}</Label>
+                    <Input 
+                      placeholder={l === 'E' ? "Необязательно" : ""}
+                      value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
+                      onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
+                    />
                   </div>
                 ))}
                 <div className="space-y-1">

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -281,8 +280,12 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               <div className="grid grid-cols-2 gap-3">
                 {['A', 'B', 'C', 'D', 'E'].map(l => (
                   <div key={l} className="space-y-1">
-                    <Label className="text-[10px] font-bold uppercase">Вариант {l}</Label>
-                    <Input value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} />
+                    <Label className="text-[10px] font-bold uppercase">Вариант {l} {l === 'E' && '(Опционально)'}</Label>
+                    <Input 
+                      placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
+                      value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
+                      onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
+                    />
                   </div>
                 ))}
                 <div className="space-y-1">
