@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ChevronLeft, Save, Plus, Trash2, LayoutGrid, Info, HelpCircle, Edit2
 } from 'lucide-react';
@@ -270,66 +269,64 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
       {editingQuestion && (
         <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
-          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[90vh] flex flex-col p-0 overflow-hidden">
-            <DialogHeader className="p-6 pb-2">
+          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+            <DialogHeader className="p-6 pb-2 border-b">
               <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
             </DialogHeader>
             
-            <ScrollArea className="flex-1">
-              <div className="space-y-6 p-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Номер в списке</Label>
-                    <Input 
-                      type="number" 
-                      onKeyDown={blockInvalidChar}
-                      value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
-                      }} 
-                    />
-                  </div>
-                </div>
-                
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Текст вопроса</Label>
-                  <textarea 
-                    className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none transition-all" 
-                    value={editingQuestion.question_text} 
-                    onChange={e => setEditingQuestion({...editingQuestion, question_text: e.target.value})} 
+                  <Label>Номер в списке</Label>
+                  <Input 
+                    type="number" 
+                    onKeyDown={blockInvalidChar}
+                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
+                    }} 
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Текст вопроса</Label>
+                <textarea 
+                  className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none transition-all" 
+                  value={editingQuestion.question_text} 
+                  onChange={e => setEditingQuestion({...editingQuestion, question_text: e.target.value})} 
+                />
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['A', 'B', 'C', 'D', 'E'].map(l => (
-                    <div key={l} className="space-y-1.5">
-                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest flex justify-between">
-                        Вариант {l}
-                        {l === 'E' && <span className="text-primary/60">(Опционально)</span>}
-                      </Label>
-                      <Input 
-                        placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
-                        value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
-                        onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
-                        className="bg-white"
-                      />
-                    </div>
-                  ))}
-                  <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">Верный ответ</Label>
-                    <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({...editingQuestion, correct_answer: v})}>
-                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {['A', 'B', 'C', 'D', 'E'].map(l => (
+                  <div key={l} className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest flex justify-between">
+                      Вариант {l}
+                      {l === 'E' && <span className="text-primary/60">(Опционально)</span>}
+                    </Label>
+                    <Input 
+                      placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
+                      value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
+                      onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
+                      className="bg-white"
+                    />
                   </div>
+                ))}
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">Верный ответ</Label>
+                  <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({...editingQuestion, correct_answer: v})}>
+                    <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter className="p-6 pt-2 border-t bg-muted/5">
+            <DialogFooter className="p-6 border-t bg-muted/5">
               <Button variant="outline" onClick={() => setEditingQuestion(null)}>Отмена</Button>
               <Button onClick={handleSaveQuestion} className="bg-[#14bf96] font-bold hover:bg-[#11a381]">
                 Сохранить вопрос
