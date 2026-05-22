@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ChevronLeft, Save, Plus, Trash2, LayoutGrid, Info, HelpCircle, Edit2
 } from 'lucide-react';
@@ -111,11 +113,15 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
   const handleSaveQuestion = async () => {
     if (!editingQuestion || !test) return;
-    await saveQuestion(editingQuestion);
-    const updated = await getQuestionsByTestId(test.id);
-    setQuestions(updated);
-    setEditingQuestion(null);
-    toast({ title: 'Вопрос добавлен' });
+    try {
+      await saveQuestion(editingQuestion);
+      const updated = await getQuestionsByTestId(test.id);
+      setQuestions(updated);
+      setEditingQuestion(null);
+      toast({ title: 'Вопрос сохранен' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос.' });
+    }
   };
 
   const handleDeleteQuestion = async (qId: string) => {
@@ -125,7 +131,6 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
     toast({ title: 'Вопрос удален' });
   };
 
-  // Helper to block decimal separators and other non-digit keys
   const blockInvalidChar = (e: React.KeyboardEvent) => {
     if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
       e.preventDefault();
@@ -264,50 +269,71 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
       </div>
 
       {editingQuestion && (
-        <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
-          <DialogContent className="max-w-2xl text-[#081d3a]">
-            <DialogHeader><DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Номер в списке</Label>
-                  <Input 
-                    type="number" 
-                    onKeyDown={blockInvalidChar}
-                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
-                    onChange={e => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
-                    }} 
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Текст вопроса</Label>
-                <textarea className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background" value={editingQuestion.question_text} onChange={e => setEditingQuestion({...editingQuestion, question_text: e.target.value})} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {['A', 'B', 'C', 'D', 'E'].map(l => (
-                  <div key={l} className="space-y-1">
-                    <Label className="text-[10px] font-bold uppercase">Вариант {l} {l === 'E' && '(Опционально)'}</Label>
+        <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
+          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+            <DialogHeader className="p-6 pb-2">
+              <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
+            </DialogHeader>
+            
+            <ScrollArea className="flex-1">
+              <div className="space-y-6 p-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Номер в списке</Label>
                     <Input 
-                      placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
-                      value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
-                      onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
+                      type="number" 
+                      onKeyDown={blockInvalidChar}
+                      value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
+                      }} 
                     />
                   </div>
-                ))}
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold uppercase">Верный ответ</Label>
-                  <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({...editingQuestion, correct_answer: v})}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Текст вопроса</Label>
+                  <textarea 
+                    className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none transition-all" 
+                    value={editingQuestion.question_text} 
+                    onChange={e => setEditingQuestion({...editingQuestion, question_text: e.target.value})} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {['A', 'B', 'C', 'D', 'E'].map(l => (
+                    <div key={l} className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest flex justify-between">
+                        Вариант {l}
+                        {l === 'E' && <span className="text-primary/60">(Опционально)</span>}
+                      </Label>
+                      <Input 
+                        placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
+                        value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
+                        onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
+                        className="bg-white"
+                      />
+                    </div>
+                  ))}
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">Верный ответ</Label>
+                    <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({...editingQuestion, correct_answer: v})}>
+                      <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSaveQuestion} className="bg-[#14bf96] font-bold">Сохранить вопрос</Button>
+            </ScrollArea>
+
+            <DialogFooter className="p-6 pt-2 border-t bg-muted/5">
+              <Button variant="outline" onClick={() => setEditingQuestion(null)}>Отмена</Button>
+              <Button onClick={handleSaveQuestion} className="bg-[#14bf96] font-bold hover:bg-[#11a381]">
+                Сохранить вопрос
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
