@@ -12,10 +12,12 @@ import { Switch } from "@/components/ui/switch";
 import { 
   ChevronLeft, Save, Plus, Trash2, LayoutGrid, Info, HelpCircle, Edit2
 } from 'lucide-react';
-import { getTestById, saveTest, getQuestionsByTestId, saveQuestion, deleteQuestion } from '@/app/lib/actions';
+import { getTestById, saveTest, getQuestionsByTestId } from '@/app/lib/actions';
 import { Test, Subject, TestBlock, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useFirestore } from '@/firebase';
+import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 const SUBJECTS_INFO: Record<Subject, string> = {
   'math': 'Математика',
@@ -31,6 +33,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const router = useRouter();
   const { toast } = useToast();
+  const db = useFirestore();
   const [loading, setLoading] = useState(true);
   const [test, setTest] = useState<Test | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -111,23 +114,37 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   };
 
   const handleSaveQuestion = async () => {
-    if (!editingQuestion || !test) return;
+    if (!editingQuestion || !test || !db) return;
     try {
-      await saveQuestion(editingQuestion);
+      const qRef = doc(db, 'questions', editingQuestion.id);
+      const { id: _, ...data } = editingQuestion;
+      
+      // Выполняем запись напрямую на клиенте для стабильности
+      await setDoc(qRef, {
+        ...data,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+
+      // Обновляем локальное состояние
       const updated = await getQuestionsByTestId(test.id);
       setQuestions(updated);
       setEditingQuestion(null);
       toast({ title: 'Вопрос сохранен' });
-    } catch (e) {
+    } catch (e: any) {
+      console.error("Save error:", e);
       toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос.' });
     }
   };
 
   const handleDeleteQuestion = async (qId: string) => {
-    if (!confirm('Удалить вопрос?')) return;
-    await deleteQuestion(qId);
-    setQuestions(questions.filter(q => q.id !== qId));
-    toast({ title: 'Вопрос удален' });
+    if (!confirm('Удалить вопрос?') || !db) return;
+    try {
+      await deleteDoc(doc(db, 'questions', qId));
+      setQuestions(questions.filter(q => q.id !== qId));
+      toast({ title: 'Вопрос удален' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Ошибка удаления' });
+    }
   };
 
   const blockInvalidChar = (e: React.KeyboardEvent) => {
