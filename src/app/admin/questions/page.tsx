@@ -229,7 +229,14 @@ export default function QuestionsManagement() {
                 </div>
                 <div className="space-y-2">
                   <Label>Номер</Label>
-                  <Input type="number" value={editingQuestion.question_number} onChange={e => setEditingQuestion({...editingQuestion, question_number: parseInt(e.target.value) || 0})} />
+                  <Input 
+                    type="number" 
+                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
+                    onChange={e => {
+                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                      setEditingQuestion({...editingQuestion, question_number: val});
+                    }} 
+                  />
                 </div>
               </div>
               <div className="space-y-2">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -191,7 +192,15 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[10px] font-bold uppercase opacity-50">Время (мин)</Label>
-                      <Input type="number" className="bg-white" value={block.time_limit_minutes} onChange={e => updateBlock(idx, { time_limit_minutes: parseInt(e.target.value) || 0 })} />
+                      <Input 
+                        type="number" 
+                        className="bg-white" 
+                        value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes} 
+                        onChange={e => {
+                          const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                          updateBlock(idx, { time_limit_minutes: val });
+                        }} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -255,7 +264,14 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Номер в списке</Label>
-                  <Input type="number" value={editingQuestion.question_number} onChange={e => setEditingQuestion({...editingQuestion, question_number: parseInt(e.target.value) || 0})} />
+                  <Input 
+                    type="number" 
+                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
+                    onChange={e => {
+                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                      setEditingQuestion({...editingQuestion, question_number: val});
+                    }} 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
