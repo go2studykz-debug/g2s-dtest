@@ -1,4 +1,3 @@
-
 'use server';
 
 import { 
@@ -27,9 +26,11 @@ import {
   Timestamp,
   serverTimestamp,
   Firestore,
-  orderBy
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
+import { revalidatePath } from 'next/cache';
 
 function getDb(): Firestore {
   const { firestore } = initializeFirebase();
@@ -49,20 +50,20 @@ function serializeData<T>(data: T): T {
   }));
 }
 
+/**
+ * ГАРАНТИРОВАННОЕ НАПОЛНЕНИЕ БАЗЫ ВОПРОСАМИ
+ * Эта функция вбивает 6 проф. вопросов вручную.
+ */
 export async function ensureSampleData() {
   const db = getDb();
+  const testId = 'test-1';
+  
   try {
-    const testId = 'test-1';
     const testDoc = await getDoc(doc(db, 'tests', testId));
     
-    // Проверяем наличие вопросов для этого теста
-    const qSnapshot = await getDocs(collection(db, 'questions'));
-    const testQuestions = qSnapshot.docs.filter(d => d.data().test_id === testId);
-
-    // Если теста нет ИЛИ вопросов нет - создаем/пересоздаем
-    if (!testDoc.exists() || testQuestions.length === 0) {
-      console.log("Initializing diagnostic data (Test and Questions)...");
-      
+    // Если теста нет - создаем его
+    if (!testDoc.exists()) {
+      console.log("Seeding: Creating Test...");
       const sampleTest = {
         name: 'Вступительная диагностика НИШ (Математика и Логика)',
         class_number: 6,
@@ -75,8 +76,15 @@ export async function ensureSampleData() {
         ],
         created_at: serverTimestamp()
       };
-      await setDoc(doc(db, 'tests', testId), sampleTest, { merge: true });
+      await setDoc(doc(db, 'tests', testId), sampleTest);
+    }
 
+    // Проверяем наличие вопросов (именно 6 штук)
+    const qSnapshot = await getDocs(collection(db, 'questions'));
+    const existingCount = qSnapshot.docs.filter(d => d.data().test_id === testId).length;
+
+    if (existingCount < 6) {
+      console.log(`Seeding: Adding 6 questions (current: ${existingCount})...`);
       const sampleQuestions = [
         { test_id: testId, question_number: 1, subject: 'math' as Subject, question_text: 'Решите уравнение: 2x + 5 = 15', option_a: '3', option_b: '5', option_c: '10', option_d: '7', option_e: '4', correct_answer: 'B', class_number: 6, language: 'ru' },
         { test_id: testId, question_number: 2, subject: 'math' as Subject, question_text: 'Чему равен квадратный корень из числа 144?', option_a: '10', option_b: '12', option_c: '14', option_d: '16', option_e: '11', correct_answer: 'B', class_number: 6, language: 'ru' },
@@ -90,7 +98,7 @@ export async function ensureSampleData() {
         const qId = `q-${testId}-${q.question_number}`;
         await setDoc(doc(db, 'questions', qId), q, { merge: true });
       }
-      console.log("Successfully initialized 6 questions.");
+      console.log("Successfully seeded 6 questions.");
     }
   } catch (error) {
     console.error("Diagnostic data initialization error:", error);
@@ -135,8 +143,6 @@ export async function startTest(data: {
   language: 'kk' | 'ru';
 }) {
   const db = getDb();
-  
-  // Принудительно проверяем/создаем данные перед началом
   await ensureSampleData();
   
   const questionsSnapshot = await getDocs(collection(db, 'questions'));
@@ -145,7 +151,7 @@ export async function startTest(data: {
     .filter(q => q.test_id === data.testId);
 
   if (questions.length === 0) {
-    throw new Error("Вопросы еще не загружены. Обратитесь к админу.");
+    throw new Error("Вопросы для теста не найдены. Попробуйте еще раз.");
   }
 
   const resultData = {
@@ -167,18 +173,8 @@ export async function startTest(data: {
     is_consulted: false,
   };
 
-  try {
-    const docRef = await addDoc(collection(db, 'results'), resultData);
-    const secureQuestions = questions.map(({ correct_answer, ...q }) => q as Question);
-    
-    return serializeData({ 
-      result: { id: docRef.id, ...resultData, started_at: new Date().toISOString() }, 
-      questions: secureQuestions 
-    });
-  } catch (error: any) {
-    console.error("Failed to start test:", error);
-    throw new Error(error.message || "Ошибка при подключении к базе данных.");
-  }
+  const docRef = await addDoc(collection(db, 'results'), resultData);
+  return serializeData({ id: docRef.id, ...resultData });
 }
 
 export async function submitAnswer(data: {
@@ -228,6 +224,7 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
   });
 
   const finalSnap = await getDoc(resultRef);
+  revalidatePath('/admin/dashboard');
   return serializeData({ id: resultId, ...finalSnap.data() }) as any;
 }
 
@@ -240,7 +237,6 @@ export async function getResultDetail(id: string) {
   const logsSnap = await getDocs(collection(db, 'results', id, 'logs'));
   
   const resultData = resultSnap.data();
-  const result = { id: resultSnap.id, ...resultData };
   
   const questionsSnap = await getDocs(collection(db, 'questions'));
   const questions = questionsSnap.docs
@@ -248,7 +244,7 @@ export async function getResultDetail(id: string) {
     .filter(q => q.test_id === resultData.test_id);
 
   return serializeData({ 
-    result, 
+    result: { id: resultSnap.id, ...resultData }, 
     answers: answersSnap.docs.map(d => ({ id: d.id, ...d.data() })), 
     logs: logsSnap.docs.map(d => ({ id: d.id, ...d.data() })),
     testQuestions: questions 
@@ -265,6 +261,7 @@ export async function getAllResults() {
 export async function updateResultCRM(id: string, updates: { is_contacted?: boolean; is_consulted?: boolean }) {
   const db = getDb();
   await updateDoc(doc(db, 'results', id), updates);
+  revalidatePath('/admin/dashboard');
   return { id, ...updates };
 }
 
@@ -280,7 +277,7 @@ export async function logAntiCheat(data: {
   const resultSnap = await getDoc(resultRef);
   if (!resultSnap.exists() || resultSnap.data().status === 'completed') return;
 
-  addDoc(collection(db, 'results', data.resultId, 'logs'), {
+  await addDoc(collection(db, 'results', data.resultId, 'logs'), {
     result_id: data.resultId,
     event_type: data.eventType,
     question_number: data.questionNumber,
@@ -289,7 +286,7 @@ export async function logAntiCheat(data: {
     created_at: serverTimestamp(),
   });
 
-  updateDoc(resultRef, {
+  await updateDoc(resultRef, {
     anti_cheat_count: (resultSnap.data().anti_cheat_count || 0) + 1
   });
 }
@@ -328,27 +325,22 @@ export async function analyzeResult(resultId: string) {
   const ai_analysis = { analysis_json: analysis, student_name: detail.result.student_name, class_number: detail.result.class_number, percentage: detail.result.percentage };
   const db = getDb();
   await updateDoc(doc(db, 'results', resultId), { is_analysed: true, ai_analysis: serializeData(ai_analysis) });
+  revalidatePath(`/admin/results/${resultId}`);
   return serializeData(ai_analysis);
 }
 
 export async function saveTest(test: Test): Promise<Test> {
   const db = getDb();
   const { id, ...data } = test;
-  await setDoc(doc(db, 'tests', id), { ...data, created_at: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, 'tests', id), { ...data, updated_at: serverTimestamp() }, { merge: true });
+  revalidatePath('/admin/tests');
   return serializeData(test);
 }
 
 export async function saveQuestion(question: Question): Promise<Question> {
   const db = getDb();
   const { id, ...data } = question;
-  const testSnap = await getDoc(doc(db, 'tests', question.test_id));
-  const testData = testSnap.data();
-  
-  await setDoc(doc(db, 'questions', id), { 
-    ...data, 
-    class_number: testData?.class_number || 6,
-    language: testData?.language || 'ru'
-  }, { merge: true });
+  await setDoc(doc(db, 'questions', id), data, { merge: true });
   return serializeData(question);
 }
 

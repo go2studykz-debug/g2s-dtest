@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -40,7 +39,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
     async function load() {
       if (id === 'new') {
         const newTest: Test = {
-          id: Math.random().toString(36).substr(2, 9),
+          id: 'test-' + Math.random().toString(36).substr(2, 9),
           name: 'Новый диагностический тест',
           class_number: 6,
           language: 'ru',
@@ -96,7 +95,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
   const handleAddQuestion = (subject: Subject) => {
     setEditingQuestion({
-      id: Math.random().toString(36).substr(2, 9),
+      id: 'q-' + Math.random().toString(36).substr(2, 9),
       test_id: test?.id || '',
       question_number: questions.length + 1,
       subject,
