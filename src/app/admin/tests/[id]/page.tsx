@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -129,7 +130,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
       toast({ title: 'Вопрос сохранен' });
     } catch (e: any) {
       console.error("Save error:", e);
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Проверьте соединение с БД.' });
     }
   };
 
