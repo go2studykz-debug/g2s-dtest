@@ -22,7 +22,9 @@ import {
   deleteDoc, 
   addDoc,
   serverTimestamp,
-  Firestore
+  Firestore,
+  query,
+  where
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
@@ -67,7 +69,7 @@ export async function ensureSampleData() {
       });
     }
 
-    // 2. Новый тест для 4 класса (Русский язык)
+    // 2. Тест для 4 класса (Русский язык)
     const test4ruId = 'test-4-ru';
     const test4Doc = await getDoc(doc(db, 'tests', test4ruId));
     if (!test4Doc.exists()) {
@@ -82,11 +84,15 @@ export async function ensureSampleData() {
         ],
         created_at: serverTimestamp()
       });
+    }
 
+    // Гарантируем наличие вопросов для 4 класса
+    const q4Snap = await getDocs(query(collection(db, 'questions'), where('test_id', '==', test4ruId)));
+    if (q4Snap.empty) {
       const sampleQs4 = [
-        { test_id: test4ruId, question_number: 1, subject: 'russian' as Subject, question_text: 'Выберите слово, в котором пропущена буква "О":', option_a: 'Тр..ва', option_b: 'Г..ра', option_c: 'С..ды', option_d: 'Р..ка', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 1, subject: 'russian' as Subject, question_text: 'Выберите слово, в котором пропущена буква "О":', option_a: 'Трава', option_b: 'Гора', option_c: 'Сады', option_d: 'Река', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
         { test_id: test4ruId, question_number: 2, subject: 'russian' as Subject, question_text: 'Укажите существительное 3-го склонения:', option_a: 'Мама', option_b: 'Папа', option_c: 'Дочь', option_d: 'Сын', option_e: '', correct_answer: 'C', class_number: 4, language: 'ru' },
-        { test_id: test4ruId, question_number: 3, subject: 'russian' as Subject, question_text: 'В каком слове пишется разделительный мягкий знак?', option_a: 'Под..езд', option_b: 'В..юга', option_c: 'Об..явление', option_d: 'С..езд', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 3, subject: 'russian' as Subject, question_text: 'В каком слове пишется разделительный мягкий знак?', option_a: 'Подъезд', option_b: 'Вьюга', option_c: 'Объявление', option_d: 'Съезд', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
         { test_id: test4ruId, question_number: 4, subject: 'russian' as Subject, question_text: 'Найдите главные члены предложения: "Осенний лес тихо роняет листву."', option_a: 'Осенний лес', option_b: 'Лес роняет', option_c: 'Роняет листву', option_d: 'Тихо роняет', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
         { test_id: test4ruId, question_number: 5, subject: 'russian' as Subject, question_text: 'Какое слово является проверочным для слова "Тяжёлый"?', option_a: 'Тяжесть', option_b: 'Тяга', option_c: 'Тяжкий', option_d: 'Тянет', option_e: '', correct_answer: 'A', class_number: 4, language: 'ru' }
       ];
@@ -141,7 +147,6 @@ export async function startTest(data: {
   const db = getDb();
   await ensureSampleData();
   
-  // Пытаемся найти тест для конкретного класса и языка
   const testsSnapshot = await getDocs(collection(db, 'tests'));
   const targetTest = testsSnapshot.docs.find(d => {
     const t = d.data();

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Clock, ChevronRight, ChevronLeft, Send, AlertTriangle, GraduationCap, ShieldAlert, Home } from 'lucide-react';
