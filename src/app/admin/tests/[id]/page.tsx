@@ -129,7 +129,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
       toast({ title: 'Вопрос сохранен' });
     } catch (e: any) {
       console.error("Save error:", e);
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос. Проверьте подключение к Firebase.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос. Убедитесь, что база данных Firestore создана в консоли.' });
     }
   };
 
@@ -147,6 +147,15 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   const blockInvalidChars = (e: React.KeyboardEvent) => {
     if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
       e.preventDefault();
+    }
+  };
+
+  const handleNumberInput = (val: string, callback: (n: number) => void) => {
+    const clean = val.replace(/[^0-9]/g, '');
+    if (clean === "") {
+      callback(0);
+    } else {
+      callback(parseInt(clean, 10));
     }
   };
 
@@ -221,11 +230,8 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                         inputMode="numeric"
                         className="bg-white" 
                         onKeyDown={blockInvalidChars}
-                        value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes} 
-                        onChange={e => {
-                          const val = e.target.value.replace(/[^0-9]/g, '');
-                          updateBlock(idx, { time_limit_minutes: val === "" ? 0 : parseInt(val) });
-                        }} 
+                        value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes.toString()} 
+                        onChange={e => handleNumberInput(e.target.value, (n) => updateBlock(idx, { time_limit_minutes: n }))} 
                       />
                     </div>
                   </div>
@@ -284,7 +290,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
       {editingQuestion && (
         <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
-          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[90vh] flex flex-col p-0 overflow-hidden">
             <DialogHeader className="p-6 pb-2 border-b">
               <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
             </DialogHeader>
@@ -297,11 +303,8 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                     type="text" 
                     inputMode="numeric"
                     onKeyDown={blockInvalidChars}
-                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
-                    onChange={e => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setEditingQuestion({...editingQuestion, question_number: val === "" ? 0 : parseInt(val)});
-                    }} 
+                    value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number.toString()} 
+                    onChange={e => handleNumberInput(e.target.value, (n) => setEditingQuestion({...editingQuestion, question_number: n}))} 
                   />
                 </div>
               </div>
