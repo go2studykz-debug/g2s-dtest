@@ -8,6 +8,8 @@ export function initializeFirebase(): {
   firestore: Firestore;
   auth: Auth;
 } {
+  // Инициализация приложения. Если Project ID не задан в переменных окружения, 
+  // используем заглушку из config.ts, но Firestore может работать только с реальным ID.
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   const firestore = getFirestore(app);
   const auth = getAuth(app);

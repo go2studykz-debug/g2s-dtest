@@ -199,15 +199,15 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           <AlertTriangle className="w-10 h-10" />
         </div>
         <h2 className="text-2xl font-bold text-[#081d3a]">{error}</h2>
-        <UIButton onClick={() => router.push('/')} className="w-full h-12 bg-primary">
+        <Button onClick={() => router.push('/')} className="w-full h-12 bg-primary">
           <Home className="w-4 h-4 mr-2" /> Вернуться на главную
-        </UIButton>
+        </Button>
       </div>
     </div>
   );
 
   const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-[#f9fafb] flex flex-col select-none">
@@ -298,9 +298,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
               >
                 {['A', 'B', 'C', 'D', 'E'].map((letter) => {
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
-                  const optionValue = currentQuestion[optionKey] as string;
+                  const optionValue = currentQuestion[optionKey] as string | undefined;
                   
-                  // Скрываем вариант E, если он пустой
+                  // Скрываем вариант, если он пустой или отсутствует (особенно актуально для E)
                   if (!optionValue || optionValue.trim() === "") return null;
 
                   const isSelected = answers[currentQuestion.id] === letter;

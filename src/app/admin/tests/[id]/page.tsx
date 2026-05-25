@@ -123,10 +123,9 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
         updated_at: new Date().toISOString()
       }, { merge: true });
 
-      // Обновляем список вопросов локально для мгновенной реакции
       setQuestions(prev => {
         const exists = prev.find(q => q.id === editingQuestion.id);
-        if (exists) return prev.map(q => q.id === editingQuestion.id ? editingQuestion : q);
+        if (exists) return prev.map(q => q.id === editingQuestion.id ? editingQuestion : q).sort((a, b) => a.question_number - b.question_number);
         return [...prev, editingQuestion].sort((a, b) => a.question_number - b.question_number);
       });
 
@@ -150,13 +149,14 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   };
 
   const blockInvalidChars = (e: React.KeyboardEvent) => {
+    // Блокируем точку, запятую, экспоненту, знаки плюс и минус
     if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
       e.preventDefault();
     }
   };
 
   const handleNumberInput = (val: string, callback: (n: number) => void) => {
-    // Оставляем только цифры
+    // Оставляем только цифры, удаляя всё остальное
     const clean = val.replace(/[^0-9]/g, '');
     const num = clean === "" ? 0 : parseInt(clean, 10);
     callback(num);
@@ -231,6 +231,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                       <Input 
                         type="text" 
                         inputMode="numeric"
+                        pattern="[0-9]*"
                         className="bg-white" 
                         onKeyDown={blockInvalidChars}
                         value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes.toString()} 
@@ -293,18 +294,19 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
       {editingQuestion && (
         <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
-          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[85vh] flex flex-col p-0 overflow-hidden">
-            <DialogHeader className="p-6 pb-2 border-b">
+          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white">
+            <DialogHeader className="p-6 pb-2 border-b bg-white">
               <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
             </DialogHeader>
             
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Номер в списке</Label>
                   <Input 
                     type="text" 
                     inputMode="numeric"
+                    pattern="[0-9]*"
                     onKeyDown={blockInvalidChars}
                     value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number.toString()} 
                     onChange={e => handleNumberInput(e.target.value, (n) => setEditingQuestion({...editingQuestion, question_number: n}))} 
@@ -329,7 +331,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                       {l === 'E' && <span className="text-primary/60">(Опционально)</span>}
                     </Label>
                     <Input 
-                      placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
+                      placeholder={l === 'E' ? "Необязательно" : ""}
                       value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
                       onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
                       className="bg-white h-9 text-sm"
@@ -357,6 +359,12 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
           </DialogContent>
         </Dialog>
       )}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e3e8ee; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+      `}</style>
     </div>
   );
 }
