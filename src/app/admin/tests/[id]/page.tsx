@@ -217,7 +217,8 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                     <div className="space-y-1">
                       <Label className="text-[10px] font-bold uppercase opacity-50">Время (мин)</Label>
                       <Input 
-                        type="number" 
+                        type="text" 
+                        inputMode="numeric"
                         className="bg-white" 
                         onKeyDown={blockInvalidChars}
                         value={block.time_limit_minutes === 0 ? "" : block.time_limit_minutes} 
@@ -293,7 +294,8 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                 <div className="space-y-2">
                   <Label>Номер в списке</Label>
                   <Input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     onKeyDown={blockInvalidChars}
                     value={editingQuestion.question_number === 0 ? "" : editingQuestion.question_number} 
                     onChange={e => {
