@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -124,13 +123,18 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
         updated_at: new Date().toISOString()
       }, { merge: true });
 
-      const updated = await getQuestionsByTestId(test.id);
-      setQuestions(updated);
+      // Обновляем список вопросов локально для мгновенной реакции
+      setQuestions(prev => {
+        const exists = prev.find(q => q.id === editingQuestion.id);
+        if (exists) return prev.map(q => q.id === editingQuestion.id ? editingQuestion : q);
+        return [...prev, editingQuestion].sort((a, b) => a.question_number - b.question_number);
+      });
+
       setEditingQuestion(null);
       toast({ title: 'Вопрос сохранен' });
     } catch (e: any) {
       console.error("Save error:", e);
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Проверьте соединение с БД.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить в БД.' });
     }
   };
 
@@ -152,6 +156,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   };
 
   const handleNumberInput = (val: string, callback: (n: number) => void) => {
+    // Оставляем только цифры
     const clean = val.replace(/[^0-9]/g, '');
     const num = clean === "" ? 0 : parseInt(clean, 10);
     callback(num);
@@ -293,7 +298,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
             </DialogHeader>
             
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Номер в списке</Label>
@@ -310,7 +315,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               <div className="space-y-2">
                 <Label>Текст вопроса</Label>
                 <textarea 
-                  className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none transition-all" 
+                  className="w-full min-h-[120px] p-3 rounded-md border border-input bg-background focus:ring-2 focus:ring-primary outline-none transition-all text-sm" 
                   value={editingQuestion.question_text} 
                   onChange={e => setEditingQuestion({...editingQuestion, question_text: e.target.value})} 
                 />
@@ -327,14 +332,14 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                       placeholder={l === 'E' ? "Оставьте пустым, если не нужно" : ""}
                       value={(editingQuestion as any)[`option_${l.toLowerCase()}`] || ''} 
                       onChange={e => setEditingQuestion({...editingQuestion, [`option_${l.toLowerCase()}`]: e.target.value} as any)} 
-                      className="bg-white"
+                      className="bg-white h-9 text-sm"
                     />
                   </div>
                 ))}
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">Верный ответ</Label>
                   <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({...editingQuestion, correct_answer: v})}>
-                    <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="bg-white h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                     </SelectContent>
@@ -343,9 +348,9 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            <DialogFooter className="p-6 border-t bg-muted/5">
-              <Button variant="outline" onClick={() => setEditingQuestion(null)}>Отмена</Button>
-              <Button onClick={handleSaveQuestion} className="bg-[#14bf96] font-bold hover:bg-[#11a381]">
+            <DialogFooter className="p-4 border-t bg-muted/5 flex justify-end gap-3 shrink-0">
+              <Button variant="outline" size="sm" onClick={() => setEditingQuestion(null)}>Отмена</Button>
+              <Button onClick={handleSaveQuestion} size="sm" className="bg-[#14bf96] font-bold hover:bg-[#11a381]">
                 Сохранить вопрос
               </Button>
             </DialogFooter>

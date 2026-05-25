@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -29,7 +28,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const [error, setError] = useState<string | null>(null);
   
   const [showViolationModal, setShowViolationModal] = useState(false);
-  const [violationType, setViolationType] = useState<'tab_switch' | 'window_blur' | null>(null);
   const [antiCheatCount, setAntiCheatCount] = useState(0);
 
   const questionStartRef = useRef<number>(Date.now());
@@ -122,7 +120,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
         
         setAntiCheatCount(prev => prev + 1);
       } else if (document.visibilityState === 'visible' && lastHiddenTime.current) {
-        setViolationType('tab_switch');
         setShowViolationModal(true);
         lastHiddenTime.current = null;
       }
@@ -202,9 +199,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
           <AlertTriangle className="w-10 h-10" />
         </div>
         <h2 className="text-2xl font-bold text-[#081d3a]">{error}</h2>
-        <Button onClick={() => router.push('/')} className="w-full h-12 bg-primary">
+        <UIButton onClick={() => router.push('/')} className="w-full h-12 bg-primary">
           <Home className="w-4 h-4 mr-2" /> Вернуться на главную
-        </Button>
+        </UIButton>
       </div>
     </div>
   );
@@ -303,6 +300,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
                   const optionValue = currentQuestion[optionKey] as string;
                   
+                  // Скрываем вариант E, если он пустой
                   if (!optionValue || optionValue.trim() === "") return null;
 
                   const isSelected = answers[currentQuestion.id] === letter;
