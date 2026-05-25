@@ -300,7 +300,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
                   const optionValue = currentQuestion[optionKey] as string | undefined;
                   
-                  // Скрываем вариант, если он пустой или отсутствует (особенно актуально для E)
                   if (!optionValue || optionValue.trim() === "") return null;
 
                   const isSelected = answers[currentQuestion.id] === letter;

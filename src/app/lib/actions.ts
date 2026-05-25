@@ -47,14 +47,14 @@ function serializeData<T>(data: T): T {
 
 export async function ensureSampleData() {
   const db = getDb();
-  const testId = 'test-1';
   
+  // 1. Тест для 6 класса
+  const test1Id = 'test-1';
   try {
-    const testDoc = await getDoc(doc(db, 'tests', testId));
-    
-    if (!testDoc.exists()) {
-      const sampleTest = {
-        name: 'Вступительная диагностика НИШ (Математика и Логика)',
+    const test1Doc = await getDoc(doc(db, 'tests', test1Id));
+    if (!test1Doc.exists()) {
+      await setDoc(doc(db, 'tests', test1Id), {
+        name: 'Вступительная диагностика НИШ (6 класс)',
         class_number: 6,
         language: 'ru',
         is_active: true,
@@ -64,25 +64,35 @@ export async function ensureSampleData() {
           { subject: 'logic', question_count: 3, time_limit_minutes: 30 }
         ],
         created_at: serverTimestamp()
-      };
-      await setDoc(doc(db, 'tests', testId), sampleTest);
+      });
     }
 
-    const qSnapshot = await getDocs(collection(db, 'questions'));
-    const existingCount = qSnapshot.docs.filter(d => d.data().test_id === testId).length;
+    // 2. Новый тест для 4 класса (Русский язык)
+    const test4ruId = 'test-4-ru';
+    const test4Doc = await getDoc(doc(db, 'tests', test4ruId));
+    if (!test4Doc.exists()) {
+      await setDoc(doc(db, 'tests', test4ruId), {
+        name: 'Диагностика по русскому языку (4 класс)',
+        class_number: 4,
+        language: 'ru',
+        is_active: true,
+        total_time_minutes: 45,
+        blocks: [
+          { subject: 'russian', question_count: 5, time_limit_minutes: 45 }
+        ],
+        created_at: serverTimestamp()
+      });
 
-    if (existingCount < 6) {
-      const sampleQuestions = [
-        { test_id: testId, question_number: 1, subject: 'math' as Subject, question_text: 'Решите уравнение: 2x + 5 = 15', option_a: '3', option_b: '5', option_c: '10', option_d: '7', option_e: '4', correct_answer: 'B', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 2, subject: 'math' as Subject, question_text: 'Чему равен квадратный корень из числа 144?', option_a: '10', option_b: '12', option_c: '14', option_d: '16', option_e: '11', correct_answer: 'B', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 3, subject: 'math' as Subject, question_text: 'Вычислите: (15 + 25) / 5 * 2', option_a: '16', option_b: '8', option_c: '20', option_d: '12', option_e: '10', correct_answer: 'A', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 4, subject: 'logic' as Subject, question_text: 'Какое число должно быть следующим в последовательности: 2, 4, 8, 16, ...?', option_a: '24', option_b: '30', option_c: '32', option_d: '64', option_e: '48', correct_answer: 'C', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 5, subject: 'logic' as Subject, question_text: 'Если все коты — животные, а Барсик — кот, то какой вывод является верным?', option_a: 'Барсик — животное', option_b: 'Все животные — коты', option_c: 'Барсик — не животное', option_d: 'Коты не являются животными', option_e: 'Барсик — собака', correct_answer: 'A', class_number: 6, language: 'ru' },
-        { test_id: testId, question_number: 6, subject: 'logic' as Subject, question_text: 'Укажите лишнее слово в списке: Яблоко, Груша, Банан, Морковь, Персик.', option_a: 'Яблоко', option_b: 'Груша', option_c: 'Банан', option_d: 'Морковь', option_e: 'Персик', correct_answer: 'D', class_number: 6, language: 'ru' }
+      const sampleQs4 = [
+        { test_id: test4ruId, question_number: 1, subject: 'russian' as Subject, question_text: 'Выберите слово, в котором пропущена буква "О":', option_a: 'Тр..ва', option_b: 'Г..ра', option_c: 'С..ды', option_d: 'Р..ка', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 2, subject: 'russian' as Subject, question_text: 'Укажите существительное 3-го склонения:', option_a: 'Мама', option_b: 'Папа', option_c: 'Дочь', option_d: 'Сын', option_e: '', correct_answer: 'C', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 3, subject: 'russian' as Subject, question_text: 'В каком слове пишется разделительный мягкий знак?', option_a: 'Под..езд', option_b: 'В..юга', option_c: 'Об..явление', option_d: 'С..езд', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 4, subject: 'russian' as Subject, question_text: 'Найдите главные члены предложения: "Осенний лес тихо роняет листву."', option_a: 'Осенний лес', option_b: 'Лес роняет', option_c: 'Роняет листву', option_d: 'Тихо роняет', option_e: '', correct_answer: 'B', class_number: 4, language: 'ru' },
+        { test_id: test4ruId, question_number: 5, subject: 'russian' as Subject, question_text: 'Какое слово является проверочным для слова "Тяжёлый"?', option_a: 'Тяжесть', option_b: 'Тяга', option_c: 'Тяжкий', option_d: 'Тянет', option_e: '', correct_answer: 'A', class_number: 4, language: 'ru' }
       ];
 
-      for (const q of sampleQuestions) {
-        const qId = `q-${testId}-${q.question_number}`;
+      for (const q of sampleQs4) {
+        const qId = `q-${test4ruId}-${q.question_number}`;
         await setDoc(doc(db, 'questions', qId), q, { merge: true });
       }
     }
@@ -131,17 +141,26 @@ export async function startTest(data: {
   const db = getDb();
   await ensureSampleData();
   
+  // Пытаемся найти тест для конкретного класса и языка
+  const testsSnapshot = await getDocs(collection(db, 'tests'));
+  const targetTest = testsSnapshot.docs.find(d => {
+    const t = d.data();
+    return t.class_number === data.classNumber && t.language === data.language && t.is_active;
+  });
+
+  const testIdToUse = targetTest ? targetTest.id : 'test-1';
+
   const questionsSnapshot = await getDocs(collection(db, 'questions'));
   const questions = questionsSnapshot.docs
     .map(d => ({ id: d.id, ...d.data() } as Question))
-    .filter(q => q.test_id === data.testId);
+    .filter(q => q.test_id === testIdToUse);
 
   if (questions.length === 0) {
-    throw new Error("Вопросы для теста не найдены. Попробуйте еще раз.");
+    throw new Error("Вопросы для выбранного класса и языка еще не добавлены.");
   }
 
   const resultData = {
-    test_id: data.testId,
+    test_id: testIdToUse,
     student_name: data.name,
     student_city: data.city,
     parent_whatsapp: data.whatsapp,

@@ -149,14 +149,12 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
   };
 
   const blockInvalidChars = (e: React.KeyboardEvent) => {
-    // Блокируем точку, запятую, экспоненту, знаки плюс и минус
     if (["e", "E", "+", "-", ".", ","].includes(e.key)) {
       e.preventDefault();
     }
   };
 
   const handleNumberInput = (val: string, callback: (n: number) => void) => {
-    // Оставляем только цифры, удаляя всё остальное
     const clean = val.replace(/[^0-9]/g, '');
     const num = clean === "" ? 0 : parseInt(clean, 10);
     callback(num);
