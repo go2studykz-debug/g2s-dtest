@@ -86,7 +86,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       }
     }
     load();
-  }, [id, router, toast]);
+  }, [id, router]);
 
   useEffect(() => {
     if (timeLeft === null || timeLeft <= 0 || isFinishing) return;
@@ -130,17 +130,13 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      toast({ variant: 'destructive', title: 'Запрещено', description: 'Правая кнопка мыши отключена в целях безопасности.' });
+      toast({ variant: 'destructive', title: 'Запрещено', description: 'Правая кнопка мыши отключена.' });
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'u', 's', 'p'].includes(e.key.toLowerCase())) {
         e.preventDefault();
-        toast({ variant: 'destructive', title: 'Запрещено', description: 'Данное действие заблокировано системой прокторинга.' });
-      }
-      if (e.key === 'PrintScreen') {
-        e.preventDefault();
-        toast({ variant: 'destructive', title: 'Снимок экрана', description: 'Создание скриншотов запрещено.' });
+        toast({ variant: 'destructive', title: 'Запрещено', description: 'Данное действие заблокировано.' });
       }
     };
 
@@ -243,9 +239,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             >
               Я понимаю, продолжить тест
             </Button>
-            <p className="text-[10px] text-center opacity-40 uppercase font-bold tracking-widest">
-              Повторные нарушения могут привести к аннулированию результата
-            </p>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -295,14 +288,9 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   <p className="text-[10px] font-black text-[#3b3e40]/40 uppercase tracking-[0.2em]">Вопрос {currentIndex + 1} / {questions.length}</p>
                   <h3 className="text-[#14bf96] font-bold text-xs uppercase tracking-widest">{currentQuestion.subject}</h3>
                 </div>
-                {antiCheatCount > 0 && (
-                  <Badge variant="destructive" className="bg-red-100 text-red-600 border-none font-bold animate-bounce">
-                    <AlertTriangle className="w-3 h-3 mr-1" /> Нарушение!
-                  </Badge>
-                )}
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-bold text-[#081d3a] leading-tight pointer-events-none">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#081d3a] leading-tight">
                 {currentQuestion.question_text}
               </h2>
 
@@ -315,7 +303,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   const optionKey = `option_${letter.toLowerCase()}` as keyof Question;
                   const optionValue = currentQuestion[optionKey] as string;
                   
-                  // Если вариант пустой, не отображаем его
                   if (!optionValue || optionValue.trim() === "") return null;
 
                   const isSelected = answers[currentQuestion.id] === letter;
@@ -413,17 +400,6 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                   </button>
                 );
               })}
-            </div>
-
-            <div className="space-y-3 pt-6 border-t border-[#f0f1f2]">
-              <div className="flex items-center gap-3 text-[9px] font-black text-[#3b3e40]/60 uppercase tracking-widest">
-                <div className="w-3 h-3 rounded bg-[#14bf96]" />
-                <span>Отвечено</span>
-              </div>
-              <div className="flex items-center gap-3 text-[9px] font-black text-[#3b3e40]/60 uppercase tracking-widest">
-                <div className="w-3 h-3 rounded border-2 border-[#f0f1f2] bg-white" />
-                <span>Пропущено</span>
-              </div>
             </div>
 
             <Button 

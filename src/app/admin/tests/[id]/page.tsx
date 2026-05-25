@@ -129,7 +129,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
       toast({ title: 'Вопрос сохранен' });
     } catch (e: any) {
       console.error("Save error:", e);
-      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос. Убедитесь, что база данных Firestore создана в консоли.' });
+      toast({ variant: 'destructive', title: 'Ошибка', description: 'Не удалось сохранить вопрос.' });
     }
   };
 
@@ -152,14 +152,11 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
   const handleNumberInput = (val: string, callback: (n: number) => void) => {
     const clean = val.replace(/[^0-9]/g, '');
-    if (clean === "") {
-      callback(0);
-    } else {
-      callback(parseInt(clean, 10));
-    }
+    const num = clean === "" ? 0 : parseInt(clean, 10);
+    callback(num);
   };
 
-  if (loading || !test) return <div className="min-h-screen flex items-center justify-center italic opacity-30">Диагностика системы...</div>;
+  if (loading || !test) return <div className="min-h-screen flex items-center justify-center italic opacity-30">Загрузка редактора...</div>;
 
   return (
     <div className="min-h-screen bg-[#f9fafb] p-6 md:p-10 max-w-7xl mx-auto space-y-10 text-[#081d3a]">
@@ -290,7 +287,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
 
       {editingQuestion && (
         <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
-          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogContent className="max-w-2xl text-[#081d3a] max-h-[85vh] flex flex-col p-0 overflow-hidden">
             <DialogHeader className="p-6 pb-2 border-b">
               <DialogTitle>Редактор вопроса: {SUBJECTS_INFO[editingQuestion.subject]}</DialogTitle>
             </DialogHeader>
