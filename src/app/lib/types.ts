@@ -8,7 +8,7 @@ export type Subject =
   | 'russian' 
   | 'english';
 
-export type Language = 'kk' | 'ru';
+export type Language = 'kz' | 'ru';
 export type ResultStatus = 'in_progress' | 'completed';
 
 export interface TestBlock {
@@ -40,6 +40,9 @@ export interface Question {
   option_d: string;
   option_e?: string | null;
   correct_answer?: string;
+  image_url?: string | null;
+  points?: number;
+  topic?: string | null;
 }
 
 export interface StudentResult {
@@ -55,6 +58,7 @@ export interface StudentResult {
   total_questions: number;
   percentage: number;
   total_score: number;
+  max_score?: number;
   started_at: Date;
   completed_at?: Date | null;
   is_analysed: boolean;
@@ -62,6 +66,7 @@ export interface StudentResult {
   ai_analysis?: AIAnalysis | null;
   is_contacted: boolean;
   is_consulted: boolean;
+  consultation_refused?: boolean;
 }
 
 export interface StudentAnswer {

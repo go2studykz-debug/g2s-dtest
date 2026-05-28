@@ -80,7 +80,7 @@ export default function TestsManagement() {
             <Filter className="w-3 h-3" /> Язык
           </span>
           <div className="flex gap-2">
-            {['all', 'ru', 'kk'].map(lang => (
+            {['all', 'ru', 'kz'].map(lang => (
               <button
                 key={lang}
                 onClick={() => setSelectedLang(lang as any)}

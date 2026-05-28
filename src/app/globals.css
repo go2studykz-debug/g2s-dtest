@@ -61,3 +61,14 @@
 .khan-button-secondary {
   @apply bg-white border-2 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold py-3 px-6 rounded-lg transition-all;
 }
+
+/* KaTeX overflow fix — prevents math from spilling outside card on mobile/tablet */
+.katex {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}

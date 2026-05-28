@@ -59,9 +59,9 @@ const TRANSLATIONS = {
     value_2: "Типизация ошибок и персональные рекомендации",
     value_3: "Карта навыков по всем предметам НИШ"
   },
-  kk: {
+  kz: {
     hero_title: "НЗМ-ге түсу жолындағы алғашқы қадамыңыз.",
-    hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін иә жеке оқу жоспарыңыздың негезі болатын терең академиялық диагностика.",
+    hero_subtitle: "Білімдегі олқылықтарды анықтайтын, күшті жақтарды көрсететін және жеке оқу жоспарыңыздың негізі болатын терең академиялық диагностика.",
     cta_title: "Жолды бастау",
     cta_desc: "Кәсіби тестілеуді бастау үшін сауалнаманы толтырыңыз.",
     field_name: "Оқушының аты-жөні",
@@ -87,11 +87,45 @@ const TRANSLATIONS = {
     how_step4: "НЗМ-ге түсу",
     how_step4_desc: "Үздік стандарттар бойынша кәсіби дайындық",
     preview_title: "Сіз не аласыз",
-    preview_summary: "go2study диагностикасыния нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
+    preview_summary: "go2study диагностикасының нәтижелері — бұл дайындықтың негізі. Біз 'әлсіз тұстарды' анықтап, оларды өсу нүктелеріне айналдырамыз.",
     go2site: "go2study туралы",
     value_1: "Әрбір қатенің емтиханға әсерін талдау",
-    value_2: "Қателерді жүйелеу иә жеке ұсыныстар",
+    value_2: "Қателерді жүйелеу және жеке ұсыныстар",
     value_3: "НЗМ-нің барлық пәндері бойынша дағдылар картасы"
+  },
+  en: {
+    hero_title: "Your first step to entering NIS.",
+    hero_subtitle: "A deep academic diagnostic that identifies knowledge gaps, highlights strengths, and becomes the foundation of your personal study plan.",
+    cta_title: "Get Started",
+    cta_desc: "Fill in the form to begin professional diagnostic testing.",
+    field_name: "Student Full Name",
+    field_city: "NIS City",
+    field_city_hint: "select the NIS city you want to apply to",
+    field_whatsapp: "Parent's WhatsApp",
+    field_class: "Grade",
+    field_lang: "Test Language",
+    btn_start: "Start Testing",
+    stats_students: "1240+",
+    stats_students_label: "Students Trained",
+    stats_params: "100%",
+    stats_params_label: "Match with NIS Tests",
+    stats_cities: "20",
+    stats_cities_label: "Cities",
+    how_title: "How Your Success is Built",
+    how_step1: "Registration",
+    how_step1_desc: "Instant access to the system",
+    how_step2: "Diagnostics",
+    how_step2_desc: "Deep knowledge audit (up to 120 min)",
+    how_step3: "Expert Review",
+    how_step3_desc: "Analysis from experts (sent to you)",
+    how_step4: "Enter NIS",
+    how_step4_desc: "Professional preparation to the highest standards",
+    preview_title: "What You Will Get",
+    preview_summary: "go2study diagnostic results are the foundation without which preparation cannot begin. We identify your blind spots and turn them into growth points.",
+    go2site: "about go2study",
+    value_1: "Impact analysis of each mistake on the exam",
+    value_2: "Error classification and personal recommendations",
+    value_3: "Skills map across all NIS subjects"
   }
 };
 
@@ -99,7 +133,7 @@ export default function LandingPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [lang, setLang] = useState<'ru' | 'kk'>('ru');
+  const [lang, setLang] = useState<'ru' | 'kz' | 'en'>('ru');
   const [formData, setFormData] = useState({
     name: '',
     city: '',
@@ -113,7 +147,7 @@ export default function LandingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.city) {
-      toast({ variant: 'destructive', title: lang === 'ru' ? 'Ошибка' : 'Қате', description: lang === 'ru' ? 'Пожалуйста, выберите город.' : 'Қаланы таңдаңыз.' });
+      toast({ variant: 'destructive', title: lang === 'ru' ? 'Ошибка' : lang === 'kz' ? 'Қате' : 'Error', description: lang === 'ru' ? 'Пожалуйста, выберите город.' : lang === 'kz' ? 'Қаланы таңдаңыз.' : 'Please select a city.' });
       return;
     }
     
@@ -121,8 +155,8 @@ export default function LandingPage() {
     if (digitsOnly.length !== 11) {
       toast({ 
         variant: 'destructive', 
-        title: lang === 'ru' ? 'Неверный формат' : 'Қате формат', 
-        description: lang === 'ru' ? 'Введите полный номер телефона (11 цифр).' : 'Толық телефон нөмірін енгізіңіз (11 цифр).'
+        title: lang === 'ru' ? 'Неверный формат' : lang === 'kz' ? 'Қате формат' : 'Invalid format',
+        description: lang === 'ru' ? 'Введите полный номер телефона (11 цифр).' : lang === 'kz' ? 'Толық телефон нөмірін енгізіңіз (11 цифр).' : 'Please enter a full phone number (11 digits).'
       });
       return;
     }
@@ -133,7 +167,7 @@ export default function LandingPage() {
         testId: 'test-1',
         ...formData,
         classNumber: parseInt(formData.classNumber),
-        language: formData.language as 'kk' | 'ru',
+        language: formData.language as 'kz' | 'ru',
       });
       
       if (result && result.id) {
@@ -145,8 +179,8 @@ export default function LandingPage() {
       console.error("Submit error details:", error);
       toast({ 
         variant: 'destructive', 
-        title: lang === 'ru' ? 'Ошибка запуска' : 'Қате', 
-        description: error.message || (lang === 'ru' ? 'Проверьте интернет-соединение.' : 'Тестілеуді бастау мүмкін болмады.')
+        title: lang === 'ru' ? 'Ошибка запуска' : lang === 'kz' ? 'Қате' : 'Start Error',
+        description: error.message || (lang === 'ru' ? 'Проверьте интернет-соединение.' : lang === 'kz' ? 'Тестілеуді бастау мүмкін болмады.' : 'Check your internet connection.')
       });
       setLoading(false);
     }
@@ -186,18 +220,19 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#f9fafb] flex flex-col items-center">
-      <header className="w-full bg-white border-b border-[#e3e8ee] py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-8 h-8 text-primary" />
-          <span className="text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <a href="https://go2study.kz/" target="_blank" className="text-sm font-medium text-[#081d3a]/70 hover:text-primary flex items-center gap-1.5 transition-colors lowercase">
+      <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <a href="https://go2study.kz/" target="_blank" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+          <span className="text-lg md:text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
+        </a>
+        <div className="flex items-center gap-3 md:gap-6">
+          <a href="https://go2study.kz/" target="_blank" className="hidden md:flex text-sm font-medium text-[#081d3a]/70 hover:text-primary items-center gap-1.5 transition-colors lowercase">
             <ExternalLink className="w-3.5 h-3.5" /> {t.go2site}
           </a>
           <div className="flex bg-muted p-1 rounded-lg">
             <button onClick={() => setLang('ru')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'ru' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>RU</button>
-            <button onClick={() => setLang('kk')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'kk' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>KZ</button>
+            <button onClick={() => setLang('kz')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'kz' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>KZ</button>
+            <button onClick={() => setLang('en')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'en' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>EN</button>
           </div>
         </div>
       </header>
@@ -257,14 +292,14 @@ export default function LandingPage() {
                     <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_name}</Label>
                     <div className="relative">
                       <User className="absolute left-4 top-3.5 w-4 h-4 text-primary" />
-                      <Input placeholder={lang === 'ru' ? "Алия Смагулова" : "Әлия Смағұлова"} className="pl-11 h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl focus:ring-primary" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                      <Input placeholder={lang === 'ru' ? "Алия Смагулова" : lang === 'kz' ? "Әлия Смағұлова" : "Aliya Smagulova"} className="pl-11 h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl focus:ring-primary" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_city}</Label>
                       <Select value={formData.city} onValueChange={val => setFormData({...formData, city: val})}>
-                        <SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue placeholder={lang === 'ru' ? "Выбрать" : "Таңдау"} /></SelectTrigger>
+                        <SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue placeholder={lang === 'ru' ? "Выбрать" : lang === 'kz' ? "Таңдау" : "Select"} /></SelectTrigger>
                         <SelectContent>{CITIES.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}</SelectContent>
                       </Select>
                       <p className="text-[9px] text-[#3b3e40]/60 italic font-bold leading-tight px-1">{t.field_city_hint}</p>
@@ -280,11 +315,11 @@ export default function LandingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_class}</Label>
-                      <Select value={formData.classNumber} onValueChange={val => setFormData({...formData, classNumber: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{[4, 5, 6].map(c => <SelectItem key={c} value={c.toString()}>{c} {lang === 'ru' ? 'Класс' : 'Сынып'}</SelectItem>)}</SelectContent></Select>
+                      <Select value={formData.classNumber} onValueChange={val => setFormData({...formData, classNumber: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{[4, 5, 6].map(c => <SelectItem key={c} value={c.toString()}>{c} {lang === 'ru' ? 'Класс' : lang === 'kz' ? 'Сынып' : 'Grade'}</SelectItem>)}</SelectContent></Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_lang}</Label>
-                      <Select value={formData.language} onValueChange={val => setFormData({...formData, language: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ru">Русский</SelectItem><SelectItem value="kk">Қазақша</SelectItem></SelectContent></Select>
+                      <Select value={formData.language} onValueChange={val => setFormData({...formData, language: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ru">Русский</SelectItem><SelectItem value="kz">Қазақша</SelectItem></SelectContent></Select>
                     </div>
                   </div>
                   <Button type="submit" className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg rounded-xl animate-pulse-cta" disabled={loading}>{loading ? '...' : t.btn_start}{!loading && <ArrowRight className="ml-2 w-5 h-5" />}</Button>

@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     return {
       startsToday: todayResults.length,
       activeToday: todayResults.filter(r => r.status === 'in_progress' && !checkIsAbandoned(r, now)).length,
-      noConsultTotal: results.filter(r => r.status === 'completed' && !r.is_consulted).length,
+      noConsultTotal: results.filter(r => r.status === 'completed' && !r.is_consulted && !r.consultation_refused).length,
       abandonedTotal: results.filter(r => checkIsAbandoned(r, now) && !r.is_contacted).length
     };
   }, [results, today, testDurations, now]);
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
 
     if (filter !== 'all') {
       list = results.filter(r => {
-        if (filter === 'all_no_consult') return r.status === 'completed' && !r.is_consulted;
+        if (filter === 'all_no_consult') return r.status === 'completed' && !r.is_consulted && !r.consultation_refused;
         if (filter === 'all_abandoned') return checkIsAbandoned(r, now) && !r.is_contacted;
         
         const isToday = isSameDay(r.started_at, today);
@@ -133,12 +133,14 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCrmUpdate = async (id: string, updates: { is_consulted?: boolean; is_contacted?: boolean }) => {
+  const handleCrmUpdate = async (id: string, updates: { is_consulted?: boolean; is_contacted?: boolean; consultation_refused?: boolean }) => {
     try {
       await updateResultCRM(id, updates);
       setResults(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
       if (updates.is_contacted) {
         toast({ title: 'Помощь зафиксирована', description: 'Лид убран из списка брошенных.' });
+      } else if (updates.consultation_refused) {
+        toast({ title: 'Зафиксировано', description: 'Студент убран из листа ожидания.' });
       } else {
         toast({ title: 'Обновлено', description: 'Статус консультации изменен.' });
       }
@@ -180,8 +182,8 @@ export default function AdminDashboard() {
           >
             <Home className="w-5 h-5 mr-2 text-primary" /> Выйти на главную
           </Button>
-          <Button 
-            onClick={() => router.push('/admin/tests')} 
+          <Button
+            onClick={() => router.push('/admin/tests')}
             className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
           >
             <Layout className="w-5 h-5 mr-2" /> Конфигурация тестов
@@ -192,7 +194,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-4 py-1.5 shadow-sm rounded-lg">
-            <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? today.toLocaleDateString() : '--.--.----'}
+            <Calendar className="w-4 h-4 mr-1.5 text-primary" /> Сегодня: {mounted ? today.toLocaleDateString('ru-RU') : '--.--.----'}
           </Badge>
         </div>
         
@@ -306,8 +308,8 @@ export default function AdminDashboard() {
                 <TableHead className="pl-8 h-14 font-black uppercase text-[10px] w-[320px] tracking-widest text-[#3b3e40] opacity-40">Студент / Контакты</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Результат</TableHead>
                 <TableHead className="h-14 font-black uppercase text-[10px] w-[200px] tracking-widest text-[#3b3e40] opacity-40">Статус завершения</TableHead>
-                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[120px] tracking-widest text-[#3b3e40] opacity-40">
-                  {filter === 'all_abandoned' ? 'Помощь' : 'Конс.'}
+                <TableHead className="h-14 font-black uppercase text-[10px] text-center w-[140px] tracking-widest text-[#3b3e40] opacity-40">
+                  {filter === 'all_abandoned' ? 'Помощь' : filter === 'all_no_consult' ? 'Конс. / Отказ' : 'Конс.'}
                 </TableHead>
                 <TableHead className="h-14 text-right pr-8 font-black uppercase text-[10px] tracking-widest text-[#3b3e40] opacity-40">Действия</TableHead>
               </TableRow>
@@ -375,19 +377,37 @@ export default function AdminDashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex justify-center">
+                        <div className="flex items-center justify-center gap-3">
                           {filter === 'all_abandoned' ? (
-                            <Checkbox 
-                              checked={r.is_contacted} 
+                            <Checkbox
+                              checked={r.is_contacted}
                               onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_contacted: !!checked })}
-                              className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                              className="w-6 h-6 border-2 border-[#64748b] rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all hover:border-primary"
                             />
                           ) : (
-                            <Checkbox 
-                              checked={r.is_consulted} 
-                              onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
-                              className="w-6 h-6 border-[#e3e8ee] rounded-full data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-                            />
+                            <>
+                              <Checkbox
+                                checked={r.is_consulted}
+                                onCheckedChange={(checked) => handleCrmUpdate(r.id, { is_consulted: !!checked })}
+                                className="w-6 h-6 border-2 border-[#64748b] rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all hover:border-primary"
+                              />
+                              {filter === 'all_no_consult' && mounted && (() => {
+                                const daysSince = r.completed_at
+                                  ? (now.getTime() - new Date(r.completed_at).getTime()) / 86400000
+                                  : 0;
+                                const daysLeft = Math.ceil(3 - daysSince);
+                                return (
+                                  <div title={daysSince < 3 ? `Доступно через ${daysLeft} дн.` : 'Отказался от консультации'}>
+                                    <Checkbox
+                                      checked={!!r.consultation_refused}
+                                      disabled={daysSince < 3}
+                                      onCheckedChange={() => handleCrmUpdate(r.id, { consultation_refused: true })}
+                                      className="w-6 h-6 border-2 border-[#64748b] rounded-md data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all hover:border-orange-400"
+                                    />
+                                  </div>
+                                );
+                              })()}
+                            </>
                           )}
                         </div>
                       </TableCell>
