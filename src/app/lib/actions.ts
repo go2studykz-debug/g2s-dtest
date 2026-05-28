@@ -24,6 +24,29 @@ import {
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+
+const SESSION_COOKIE = 'g2s_admin';
+
+export async function loginAdmin(password: string): Promise<{ success: boolean }> {
+  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
+    return { success: false };
+  }
+  const jar = await cookies();
+  jar.set(SESSION_COOKIE, process.env.ADMIN_SESSION_TOKEN!, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 24 * 7,
+    path: '/',
+  });
+  return { success: true };
+}
+
+export async function logoutAdmin(): Promise<void> {
+  const jar = await cookies();
+  jar.delete(SESSION_COOKIE);
+}
 
 function getDb(): Firestore {
   const { firestore } = initializeFirebase();

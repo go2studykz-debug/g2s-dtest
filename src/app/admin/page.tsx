@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Lock, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { loginAdmin } from '@/app/lib/actions';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -16,15 +17,13 @@ export default function AdminLogin() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // В прототипе используем пароль: admin123
-    if (password === 'admin123') {
-      setTimeout(() => {
-        router.push('/admin/dashboard');
-      }, 800);
+
+    const result = await loginAdmin(password);
+    if (result.success) {
+      router.push('/admin/dashboard');
     } else {
       toast({
         variant: 'destructive',
@@ -53,10 +52,10 @@ export default function AdminLogin() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">Пароль администратора</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••" 
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="h-12 bg-secondary border-border focus:ring-primary"

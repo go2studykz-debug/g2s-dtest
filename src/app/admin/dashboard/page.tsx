@@ -15,7 +15,7 @@ import {
   Users, Calendar, MousePointer2, Search, TrendingUp, TrendingDown, Minus,
   Layout, ArrowUpRight, X, Phone, CalendarDays, AlertTriangle, Activity, Zap, Clock, Home, LogOut
 } from 'lucide-react';
-import { getAllResults, getTests, analyzeResult, updateResultCRM } from '@/app/lib/actions';
+import { getAllResults, getTests, analyzeResult, updateResultCRM, logoutAdmin } from '@/app/lib/actions';
 import { StudentResult } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,11 @@ export default function AdminDashboard() {
   const [now, setNow] = useState(new Date());
   const { toast } = useToast();
   const router = useRouter();
+
+  const handleLogout = async () => {
+    await logoutAdmin();
+    router.push('/admin');
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -175,12 +180,19 @@ export default function AdminDashboard() {
           <p className="text-[#3b3e40] text-base mt-1 font-medium opacity-80">Оперативный центр управления лидами и AI-диагностики.</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            onClick={() => router.push('/')} 
-            variant="outline" 
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="border-red-200 bg-white text-red-600 hover:bg-red-50 font-bold shadow-sm h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
+          >
+            <LogOut className="w-5 h-5 mr-2" /> Выйти
+          </Button>
+          <Button
+            onClick={() => router.push('/')}
+            variant="outline"
             className="border-[#e3e8ee] bg-white text-[#081d3a] hover:bg-muted font-bold shadow-sm h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
           >
-            <Home className="w-5 h-5 mr-2 text-primary" /> Выйти на главную
+            <Home className="w-5 h-5 mr-2 text-primary" /> На главную
           </Button>
           <Button
             onClick={() => router.push('/admin/tests')}
