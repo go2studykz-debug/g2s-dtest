@@ -7,6 +7,11 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 export const metadata: Metadata = {
   title: 'go2study | Интеллектуальное тестирование',
   description: 'Современная платформа для образовательной оценки с использованием ИИ.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
