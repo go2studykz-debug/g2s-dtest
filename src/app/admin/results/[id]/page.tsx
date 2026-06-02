@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useEffect, useState, use, useRef } from 'react';
-import { toJpeg } from 'html-to-image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button as UIButton } from "@/components/ui/button";
@@ -133,6 +132,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
       let behavioralImg: { data: string; width: number; height: number } | undefined;
       if (type === 'details' && behavioralRef.current) {
         try {
+          const { toJpeg } = await import('html-to-image');
           const imgData = await toJpeg(behavioralRef.current, {
             backgroundColor: '#ffffff',
             pixelRatio: 0.8,
