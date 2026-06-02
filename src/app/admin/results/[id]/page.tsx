@@ -132,22 +132,20 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
       let behavioralImg: { data: string; width: number; height: number } | undefined;
       if (type === 'details' && behavioralRef.current) {
         try {
-          const { toJpeg } = await import('html-to-image');
-          const imgData = await toJpeg(behavioralRef.current, {
+          const html2canvas = (await import('html2canvas')).default;
+          const canvas = await html2canvas(behavioralRef.current, {
             backgroundColor: '#ffffff',
-            pixelRatio: 0.8,
-            quality: 0.75,
-            skipFonts: true,
-            cacheBust: true,
+            scale: 0.8,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            imageTimeout: 0,
           });
-          const el = await new Promise<HTMLImageElement>((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.src = imgData;
-          });
-          behavioralImg = { data: imgData, width: el.naturalWidth, height: el.naturalHeight };
+          const imgData = canvas.toDataURL('image/jpeg', 0.75);
+          behavioralImg = { data: imgData, width: canvas.width, height: canvas.height };
         } catch (err) {
-          console.warn('Behavioral screenshot failed:', err);
+          console.error('Behavioral screenshot failed:', err);
+          alert('Ошибка скриншота: ' + String(err));
         }
       }
 
