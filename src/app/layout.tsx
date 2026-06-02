@@ -12,6 +12,22 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  openGraph: {
+    title: 'go2study | Интеллектуальное тестирование',
+    description: 'Современная платформа для образовательной оценки с использованием ИИ.',
+    url: 'https://test.go2study.kz',
+    images: [
+      {
+        url: 'https://test.go2study.kz/og-image.svg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['https://test.go2study.kz/og-image.svg'],
+  },
 };
 
 export default function RootLayout({
