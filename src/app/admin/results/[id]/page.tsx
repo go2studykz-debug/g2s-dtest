@@ -137,6 +137,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             backgroundColor: '#ffffff',
             pixelRatio: 0.8,
             quality: 0.75,
+            skipFonts: true,
+            cacheBust: true,
           });
           const el = await new Promise<HTMLImageElement>((resolve) => {
             const img = new Image();
@@ -144,8 +146,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             img.src = imgData;
           });
           behavioralImg = { data: imgData, width: el.naturalWidth, height: el.naturalHeight };
-        } catch {
-          // proceed without screenshot if capture fails
+        } catch (err) {
+          console.warn('Behavioral screenshot failed:', err);
         }
       }
 
