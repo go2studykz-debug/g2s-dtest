@@ -15,7 +15,7 @@ Font.register({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, result, analysis, answers, questions, logs, subjectScores } = body;
+    const { type, result, analysis, answers, questions, logs, subjectScores, behavioralImg } = body;
 
     let doc: React.ReactElement;
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       doc = React.createElement(AiAnalysisPdf, { result, analysis, subjectScores });
     } else {
       const { TestDetailsPdf } = await import('@/components/pdf/test-details-pdf');
-      doc = React.createElement(TestDetailsPdf, { result, answers, questions, logs: logs ?? [] });
+      doc = React.createElement(TestDetailsPdf, { result, answers, questions, logs: logs ?? [], behavioralImg });
     }
 
     const buffer = await pdf(doc as any).toBuffer() as unknown as Buffer;

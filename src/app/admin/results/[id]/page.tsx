@@ -1,7 +1,8 @@
 
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useRef } from 'react';
+import { toJpeg } from 'html-to-image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button as UIButton } from "@/components/ui/button";
@@ -95,6 +96,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
   const [analyzing, setAnalyzing] = useState(false);
   const [classStats, setClassStats] = useState<{ count: number; avg: number; max: number; min: number; median: number; percentages: number[] } | null>(null);
   const [showQuestions, setShowQuestions] = useState(false);
+  const behavioralRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -127,9 +129,29 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
     setDownloading(type);
     try {
       const subjectScores = computeSubjectScores(data.testQuestions, data.answers, data.result.class_number);
+
+      let behavioralImg: { data: string; width: number; height: number } | undefined;
+      if (type === 'details' && behavioralRef.current) {
+        try {
+          const imgData = await toJpeg(behavioralRef.current, {
+            backgroundColor: '#ffffff',
+            pixelRatio: 0.8,
+            quality: 0.75,
+          });
+          const el = await new Promise<HTMLImageElement>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.src = imgData;
+          });
+          behavioralImg = { data: imgData, width: el.naturalWidth, height: el.naturalHeight };
+        } catch {
+          // proceed without screenshot if capture fails
+        }
+      }
+
       const body = type === 'analysis'
         ? { type, result: data.result, analysis: data.result.ai_analysis?.analysis_json, subjectScores }
-        : { type, result: data.result, answers: data.answers, questions: data.testQuestions, logs: data.logs };
+        : { type, result: data.result, answers: data.answers, questions: data.testQuestions, logs: data.logs, behavioralImg };
 
       const res = await fetch('/api/pdf', {
         method: 'POST',
@@ -620,6 +642,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
           </Card>
 
           {/* Behavioral Analytics */}
+          <div ref={behavioralRef}>
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="py-6 px-8 border-b">
               <CardTitle className="flex items-center gap-3 font-headline text-xl font-bold">
@@ -796,6 +819,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
 
             </CardContent>
           </Card>
+          </div>
 
           {/* Full Questions Breakdown Table */}
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
