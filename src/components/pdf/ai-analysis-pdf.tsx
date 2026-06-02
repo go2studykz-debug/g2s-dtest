@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const PRIMARY = '#14bf96';
 const DARK = '#081d3a';
@@ -144,9 +144,10 @@ interface Props {
   result: any;
   analysis: any;
   subjectScores?: SubjectScore[];
+  behavioralImg?: { data: string; width: number; height: number };
 }
 
-export function AiAnalysisPdf({ result, analysis, subjectScores }: Props) {
+export function AiAnalysisPdf({ result, analysis, subjectScores, behavioralImg }: Props) {
   const date = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
   const a = analysis || {};
 
@@ -419,6 +420,24 @@ export function AiAnalysisPdf({ result, analysis, subjectScores }: Props) {
         </View>
 
       </Page>
+      {behavioralImg && (() => {
+        const PAGE_W = 595.28;
+        const PAD = 36;
+        const availW = PAGE_W - PAD * 2;
+        const pageH = availW * (behavioralImg.height / behavioralImg.width) + PAD * 2 + 28;
+        return (
+          <Page size={[PAGE_W, pageH]} style={{ fontFamily: 'Roboto', padding: PAD, backgroundColor: '#fff', color: DARK, fontSize: 9 }}>
+            <Text style={{ fontSize: 8, fontWeight: 700, color: PRIMARY, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10 }}>
+              Поведенческая аналитика
+            </Text>
+            <Image src={behavioralImg.data} style={{ width: availW }} />
+            <View style={s.footer} fixed>
+              <Text style={s.footerTxt}>go2study — Поведенческая аналитика · {result.student_name}</Text>
+              <Text style={s.footerTxt} render={({ pageNumber, totalPages }: any) => `${pageNumber} / ${totalPages}`} />
+            </View>
+          </Page>
+        );
+      })()}
     </Document>
   );
 }

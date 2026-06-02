@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { stripMarkdown } from '@/lib/utils';
 
 // Fonts are registered by the caller (API route or server context)
@@ -166,10 +166,9 @@ interface Props {
   answers: any[];
   questions: any[];
   logs: any[];
-  behavioralImg?: { data: string; width: number; height: number };
 }
 
-export function TestDetailsPdf({ result, answers, questions, logs, behavioralImg }: Props) {
+export function TestDetailsPdf({ result, answers, questions, logs }: Props) {
   const date = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' });
   const wrong   = answers.filter(a => !a.is_correct && a.student_answer).length;
   const skipped = questions.length - answers.filter(a => a.student_answer).length;
@@ -357,24 +356,6 @@ export function TestDetailsPdf({ result, answers, questions, logs, behavioralImg
           <Text style={s.footerTxt} render={({ pageNumber, totalPages }: any) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>
-      {behavioralImg && (() => {
-        const PAGE_W = 841.89;
-        const PAD = 28;
-        const availW = PAGE_W - PAD * 2;
-        const pageH = availW * (behavioralImg.height / behavioralImg.width) + PAD * 2 + 24;
-        return (
-          <Page size={[PAGE_W, pageH]} style={{ fontFamily: 'Roboto', padding: PAD, backgroundColor: '#fff', color: DARK, fontSize: 8 }}>
-            <Text style={{ fontSize: 8, fontWeight: 700, color: DARK, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-              Поведенческая аналитика
-            </Text>
-            <Image src={behavioralImg.data} style={{ width: availW }} />
-            <View style={s.footer}>
-              <Text style={s.footerTxt}>go2study — Поведенческая аналитика · {result.student_name}</Text>
-              <Text style={s.footerTxt} render={({ pageNumber, totalPages }: any) => `${pageNumber} / ${totalPages}`} />
-            </View>
-          </Page>
-        );
-      })()}
     </Document>
   );
 }

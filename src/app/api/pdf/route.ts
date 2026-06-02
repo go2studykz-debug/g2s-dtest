@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
 
     if (type === 'analysis') {
       const { AiAnalysisPdf } = await import('@/components/pdf/ai-analysis-pdf');
-      doc = React.createElement(AiAnalysisPdf, { result, analysis, subjectScores });
+      doc = React.createElement(AiAnalysisPdf, { result, analysis, subjectScores, behavioralImg });
     } else {
       const { TestDetailsPdf } = await import('@/components/pdf/test-details-pdf');
-      doc = React.createElement(TestDetailsPdf, { result, answers, questions, logs: logs ?? [], behavioralImg });
+      doc = React.createElement(TestDetailsPdf, { result, answers, questions, logs: logs ?? [] });
     }
 
     const buffer = await pdf(doc as any).toBuffer() as unknown as Buffer;

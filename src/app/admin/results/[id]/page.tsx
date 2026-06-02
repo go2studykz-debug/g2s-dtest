@@ -130,7 +130,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
       const subjectScores = computeSubjectScores(data.testQuestions, data.answers, data.result.class_number);
 
       let behavioralImg: { data: string; width: number; height: number } | undefined;
-      if (type === 'details' && behavioralRef.current) {
+      if (type === 'analysis' && behavioralRef.current) {
         try {
           const html2canvas = (await import('html2canvas')).default;
           const canvas = await html2canvas(behavioralRef.current, {
@@ -149,8 +149,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
       }
 
       const body = type === 'analysis'
-        ? { type, result: data.result, analysis: data.result.ai_analysis?.analysis_json, subjectScores }
-        : { type, result: data.result, answers: data.answers, questions: data.testQuestions, logs: data.logs, behavioralImg };
+        ? { type, result: data.result, analysis: data.result.ai_analysis?.analysis_json, subjectScores, behavioralImg }
+        : { type, result: data.result, answers: data.answers, questions: data.testQuestions, logs: data.logs };
 
       const res = await fetch('/api/pdf', {
         method: 'POST',
