@@ -135,7 +135,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
           const html2canvas = (await import('html2canvas')).default;
           const canvas = await html2canvas(behavioralRef.current, {
             backgroundColor: '#ffffff',
-            scale: 0.8,
+            scale: 1.5,
             useCORS: true,
             allowTaint: true,
             logging: false,
@@ -143,11 +143,17 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             scrollX: 0,
             scrollY: 0,
             onclone: (_clonedDoc: Document) => {
-              _clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach(l => l.remove());
+              // Remove only Google Fonts to prevent CORS — keep all other CSS
+              _clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
+                const href = (l as HTMLLinkElement).href || '';
+                if (href.includes('fonts.googleapis.com') || href.includes('fonts.gstatic.com')) {
+                  l.remove();
+                }
+              });
             },
           });
           if (canvas.width > 0 && canvas.height > 0) {
-            const imgData = canvas.toDataURL('image/jpeg', 0.75);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
             behavioralImg = { data: imgData, width: canvas.width, height: canvas.height };
           }
         } catch (err) {
