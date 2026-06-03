@@ -887,8 +887,6 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
 
           {/* Class Comparison */}
           {classStats && classStats.count > 1 && (() => {
-            const rank = classStats.percentages.filter(p => p < result.percentage).length + 1;
-            const rankFromTop = classStats.count - rank + 1;
             const delta = result.percentage - classStats.avg;
             const isAbove = delta >= 0;
             const bar = (val: number) => `${Math.round((val / 100) * 100)}%`;
@@ -901,11 +899,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   <CardDescription className="text-xs">{classStats.count} учеников · {result.class_number} кл. {result.language.toUpperCase()}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold font-headline text-[#081d3a]">{rankFromTop}</p>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground">место из {classStats.count}</p>
-                    </div>
+                  <div className="flex items-center justify-center">
                     <div className="text-center">
                       <p className={cn("text-2xl font-bold font-headline", isAbove ? "text-green-600" : "text-red-600")}>
                         {isAbove ? '+' : ''}{delta}%
