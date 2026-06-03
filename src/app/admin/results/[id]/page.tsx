@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, use, useRef } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button as UIButton } from "@/components/ui/button";
@@ -95,7 +95,6 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
   const [analyzing, setAnalyzing] = useState(false);
   const [classStats, setClassStats] = useState<{ count: number; avg: number; max: number; min: number; median: number; percentages: number[] } | null>(null);
   const [showQuestions, setShowQuestions] = useState(false);
-  const behavioralRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -129,41 +128,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
     try {
       const subjectScores = computeSubjectScores(data.testQuestions, data.answers, data.result.class_number);
 
-      let behavioralImg: { data: string; width: number; height: number } | undefined;
-      if (type === 'analysis' && behavioralRef.current) {
-        try {
-          const html2canvas = (await import('html2canvas')).default;
-          const canvas = await html2canvas(behavioralRef.current, {
-            backgroundColor: '#ffffff',
-            scale: 1.5,
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            imageTimeout: 15000,
-            scrollX: 0,
-            scrollY: 0,
-            onclone: (_clonedDoc: Document) => {
-              // Remove only Google Fonts to prevent CORS — keep all other CSS
-              _clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
-                const href = (l as HTMLLinkElement).href || '';
-                if (href.includes('fonts.googleapis.com') || href.includes('fonts.gstatic.com')) {
-                  l.remove();
-                }
-              });
-            },
-          });
-          if (canvas.width > 0 && canvas.height > 0) {
-            const imgData = canvas.toDataURL('image/jpeg', 0.85);
-            behavioralImg = { data: imgData, width: canvas.width, height: canvas.height };
-          }
-        } catch (err) {
-          console.error('Behavioral screenshot failed:', err);
-          alert('Не удалось захватить скриншот аналитики: ' + String(err).slice(0, 200));
-        }
-      }
-
       const body = type === 'analysis'
-        ? { type, result: data.result, analysis: data.result.ai_analysis?.analysis_json, subjectScores, behavioralImg }
+        ? { type, result: data.result, analysis: data.result.ai_analysis?.analysis_json, subjectScores, answers: data.answers, questions: data.testQuestions }
         : { type, result: data.result, answers: data.answers, questions: data.testQuestions, logs: data.logs };
 
       const res = await fetch('/api/pdf', {
@@ -655,7 +621,6 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
           </Card>
 
           {/* Behavioral Analytics */}
-          <div ref={behavioralRef}>
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="py-6 px-8 border-b">
               <CardTitle className="flex items-center gap-3 font-headline text-xl font-bold">
@@ -832,7 +797,6 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
 
             </CardContent>
           </Card>
-          </div>
 
           {/* Full Questions Breakdown Table */}
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">

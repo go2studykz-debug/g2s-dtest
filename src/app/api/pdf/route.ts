@@ -15,13 +15,13 @@ Font.register({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, result, analysis, answers, questions, logs, subjectScores, behavioralImg } = body;
+    const { type, result, analysis, answers, questions, logs, subjectScores } = body;
 
     let doc: React.ReactElement;
 
     if (type === 'analysis') {
       const { AiAnalysisPdf } = await import('@/components/pdf/ai-analysis-pdf');
-      doc = React.createElement(AiAnalysisPdf, { result, analysis, subjectScores, behavioralImg });
+      doc = React.createElement(AiAnalysisPdf, { result, analysis, subjectScores, answers, questions });
     } else {
       const { TestDetailsPdf } = await import('@/components/pdf/test-details-pdf');
       doc = React.createElement(TestDetailsPdf, { result, answers, questions, logs: logs ?? [] });

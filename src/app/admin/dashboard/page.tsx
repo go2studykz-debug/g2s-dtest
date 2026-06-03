@@ -155,20 +155,21 @@ export default function AdminDashboard() {
   };
 
   const getPotentialBadge = (percentage: number) => {
+    const s: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', width: 'max-content', flexShrink: 0, borderRadius: 9999, border: '1px solid', padding: '3px 8px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.025em' };
     if (percentage >= 80) return (
-      <Badge className="bg-green-100 text-green-700 border-green-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
-        <TrendingUp className="w-3 h-3" /> High Potential
-      </Badge>
+      <span style={{ ...s, background: '#dcfce7', borderColor: '#bbf7d0', color: '#15803d' }}>
+        <TrendingUp style={{ width: 12, height: 12, flexShrink: 0 }} />&nbsp;High&nbsp;Potential
+      </span>
     );
     if (percentage >= 40) return (
-      <Badge className="bg-blue-100 text-blue-700 border-blue-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
-        <Minus className="w-3 h-3" /> Medium
-      </Badge>
+      <span style={{ ...s, background: '#dbeafe', borderColor: '#bfdbfe', color: '#1d4ed8' }}>
+        <Minus style={{ width: 12, height: 12, flexShrink: 0 }} />&nbsp;Medium
+      </span>
     );
     return (percentage > 0) ? (
-      <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1 text-[10px] h-6 px-2 font-black uppercase tracking-tight">
-        <TrendingDown className="w-3 h-3" /> Hard Case
-      </Badge>
+      <span style={{ ...s, background: '#ffedd5', borderColor: '#fed7aa', color: '#c2410c' }}>
+        <TrendingDown style={{ width: 12, height: 12, flexShrink: 0 }} />&nbsp;Hard&nbsp;Case
+      </span>
     ) : null;
   };
 
@@ -355,11 +356,9 @@ export default function AdminDashboard() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-1.5">
-                          <div className="flex items-center gap-3">
-                            <span className="font-bold text-2xl text-[#081d3a]">{r.percentage}%</span>
-                            {getPotentialBadge(r.percentage)}
-                          </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-bold text-2xl text-[#081d3a]">{r.percentage}%</span>
+                          {getPotentialBadge(r.percentage)}
                           <p className="text-[10px] text-[#3b3e40] font-black uppercase tracking-widest opacity-30">{r.total_score} баллов &bull; {r.class_number} Класс</p>
                         </div>
                       </TableCell>
