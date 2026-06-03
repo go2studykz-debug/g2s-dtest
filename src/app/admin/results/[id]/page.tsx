@@ -139,12 +139,20 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             useCORS: true,
             allowTaint: true,
             logging: false,
-            imageTimeout: 0,
+            imageTimeout: 15000,
+            scrollX: 0,
+            scrollY: 0,
+            onclone: (_clonedDoc: Document) => {
+              _clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach(l => l.remove());
+            },
           });
-          const imgData = canvas.toDataURL('image/jpeg', 0.75);
-          behavioralImg = { data: imgData, width: canvas.width, height: canvas.height };
+          if (canvas.width > 0 && canvas.height > 0) {
+            const imgData = canvas.toDataURL('image/jpeg', 0.75);
+            behavioralImg = { data: imgData, width: canvas.width, height: canvas.height };
+          }
         } catch (err) {
           console.error('Behavioral screenshot failed:', err);
+          alert('Не удалось захватить скриншот аналитики: ' + String(err).slice(0, 200));
         }
       }
 
