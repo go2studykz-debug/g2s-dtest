@@ -124,8 +124,8 @@ function calcAdmissionChances(classNumber: number, pct: number) {
     const vip = clamp(Math.round(vipBase), 15, 85);
 
     return [
-      { package: 'Gold · 7 уроков/нед', rangeMin: gold - 1, rangeMax: gold + 1 },
-      { package: 'VIP · 9 уроков/нед', rangeMin: vip - 1, rangeMax: vip + 1 },
+      { package: 'Gold', rangeMin: gold - 1, rangeMax: gold + 1 },
+      { package: 'VIP', rangeMin: vip - 1, rangeMax: vip + 1 },
     ];
   }
   const noPrep = clamp(Math.round(pct * 0.50), 15, 49);
