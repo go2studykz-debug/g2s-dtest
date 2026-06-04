@@ -375,8 +375,9 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
 
               {analysis ? (
                 <Tabs defaultValue="overview">
-                  <TabsList className="w-full grid grid-cols-3">
+                  <TabsList className="w-full grid grid-cols-4">
                     <TabsTrigger value="overview">Обзор</TabsTrigger>
+                    <TabsTrigger value="behavioral">Поведение</TabsTrigger>
                     <TabsTrigger value="errors">Ошибки {analysis.detailedAnalysis?.length > 0 && `(${analysis.detailedAnalysis.length})`}</TabsTrigger>
                     <TabsTrigger value="strategy">Стратегия</TabsTrigger>
                   </TabsList>
@@ -441,7 +442,176 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                     )}
                   </TabsContent>
 
-                  {/* TAB 2: Ошибки */}
+                  {/* TAB 2: Поведенческий анализ */}
+                  <TabsContent value="behavioral" className="space-y-8 mt-6">
+
+                    {/* Time per question */}
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Время на каждый вопрос</h4>
+                      <div className="flex flex-wrap gap-x-5 gap-y-1 text-[10px] font-semibold text-muted-foreground mb-1">
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" /> &lt;8с — наугад</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#14bf96] shrink-0" /> 8–30с — норма</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0" /> 30–60с — долго</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" /> &gt;60с — зависание</span>
+                      </div>
+                      {timeData.some(d => d.capped) && (
+                        <p className="text-[10px] text-orange-500 font-medium -mt-1 mb-1">
+                          * {timeData.filter(d => d.capped).length} вопр. с временем &gt;{timeCapSec}с обрезаны (ученик покидал вкладку)
+                        </p>
+                      )}
+                      <ResponsiveContainer width="100%" height={150}>
+                        <BarChart data={timeData} barCategoryGap="15%">
+                          <XAxis dataKey="num" tick={{ fontSize: 8 }} interval={Math.floor(timeData.length / 15)} />
+                          <YAxis tick={{ fontSize: 8 }} unit="с" width={28} domain={[0, timeCapSec]} />
+                          <Tooltip content={<TimeTooltip />} />
+                          <ReferenceLine y={8} stroke="#ef4444" strokeDasharray="3 2" strokeWidth={1} />
+                          <ReferenceLine y={30} stroke="#eab308" strokeDasharray="3 2" strokeWidth={1} />
+                          <Bar dataKey="time" radius={[2, 2, 0, 0]}>
+                            {timeData.map((d, i) => <Cell key={i} fill={d.capped ? '#f97316' : d.color} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Answer distribution + Progression */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Распределение ответов (A–E)</h4>
+                        <p className="text-[10px] text-muted-foreground">Перекос в одну букву указывает на угадывание</p>
+                        <ResponsiveContainer width="100%" height={140}>
+                          <BarChart layout="vertical" data={answerCounts} margin={{ left: 0, right: 10 }}>
+                            <XAxis type="number" tick={{ fontSize: 8 }} allowDecimals={false} />
+                            <YAxis type="category" dataKey="option" tick={{ fontSize: 11, fontWeight: 700 }} width={18} />
+                            <Tooltip formatter={(v: any, name: string) => [v, name === 'correct' ? 'Верно' : 'Ошибка']} />
+                            <Bar dataKey="correct" name="correct" fill="#14bf96" stackId="a" />
+                            <Bar dataKey="wrong" name="wrong" fill="#ef4444" stackId="a" radius={[0, 3, 3, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Прогрессия результатов</h4>
+                        <p className="text-[10px] text-muted-foreground">% верных ответов нарастающим итогом</p>
+                        <ResponsiveContainer width="100%" height={140}>
+                          <LineChart data={progressData} margin={{ left: 0, right: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                            <XAxis dataKey="num" tick={{ fontSize: 8 }} interval={Math.floor(progressData.length / 8)} />
+                            <YAxis tick={{ fontSize: 8 }} unit="%" domain={[0, 100]} width={30} />
+                            <Tooltip formatter={(v: any) => [`${v}%`, 'Результат']} />
+                            <ReferenceLine y={result.percentage} stroke="#081d3a" strokeDasharray="3 3" strokeWidth={1.5} />
+                            <Line type="monotone" dataKey="pct" stroke="#14bf96" strokeWidth={2} dot={false} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Scatter: time vs question */}
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Матрица: время × вопрос</h4>
+                      <div className="flex gap-5 text-[10px] font-semibold text-muted-foreground mb-1">
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#14bf96] shrink-0" /> Верно</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" /> Ошибка</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0" /> Пропуск</span>
+                      </div>
+                      <ResponsiveContainer width="100%" height={240}>
+                        <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                          <XAxis type="number" dataKey="x" name="Время" unit="с" tick={{ fontSize: 8 }} domain={[0, timeCapSec]} label={{ value: `Время (сек, макс ${timeCapSec}с)`, position: 'insideBottom', offset: -10, fontSize: 8, fill: '#6b7280' }} />
+                          <YAxis type="number" dataKey="y" name="Вопрос" tick={{ fontSize: 8 }} reversed domain={[1, testQuestions.length]} label={{ value: 'Вопрос №', angle: -90, position: 'insideLeft', offset: 15, fontSize: 8, fill: '#6b7280' }} />
+                          <Tooltip content={({ active, payload }: any) => {
+                            if (!active || !payload?.length) return null;
+                            const d = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-2 shadow text-xs">
+                                <p className="font-bold">Вопрос №{d.y} <span className="font-normal text-muted-foreground">({d.sub})</span></p>
+                                <p className="font-semibold">{d.t}с</p>
+                              </div>
+                            );
+                          }} />
+                          <ReferenceLine x={8} stroke="#ef4444" strokeDasharray="4 2" label={{ value: '8с', fontSize: 7, fill: '#ef4444', position: 'insideTopLeft' }} />
+                          <ReferenceLine x={30} stroke="#eab308" strokeDasharray="4 2" label={{ value: '30с', fontSize: 7, fill: '#b45309', position: 'insideTopLeft' }} />
+                          <Scatter data={scatterCorrect} fill="#14bf96" fillOpacity={0.85} />
+                          <Scatter data={scatterWrong} fill="#ef4444" fillOpacity={0.85} />
+                          <Scatter data={scatterSkipped} fill="#9ca3af" fillOpacity={0.7} />
+                        </ScatterChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Tracker: Confidence Distribution */}
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
+                        <BarChart2 className="w-4 h-4" /> Распределение уверенности
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {confidenceDist.map(d => {
+                          const color = d.cat.includes('Наугад') ? 'bg-red-50 border-red-200 text-red-700' : d.cat.includes('Быстро') ? 'bg-orange-50 border-orange-200 text-orange-700' : d.cat.includes('Нормально') ? 'bg-green-50 border-green-200 text-green-700' : d.cat.includes('Затруднение') ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-purple-50 border-purple-200 text-purple-700';
+                          return (
+                            <div key={d.cat} className={cn('rounded-xl border p-3', color)}>
+                              <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-1">{d.cat}</p>
+                              <p className="text-xl font-bold font-headline">{d.total} отв.</p>
+                              <p className="text-xs font-bold opacity-80">точность {d.acc}%</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Tracker: Speed vs Accuracy */}
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
+                        <Zap className="w-4 h-4" /> Скорость vs Точность
+                      </h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        {speedGroups.map(g => (
+                          <div key={g.label} className="rounded-xl border border-[#e3e8ee] bg-[#f8fafc] p-3">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">{g.label}</p>
+                            <p className="text-xl font-bold font-headline text-[#081d3a]">{g.acc}%</p>
+                            <p className="text-xs text-muted-foreground">{g.total} вопросов</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tracker: Avg Time per Subject */}
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
+                        <Timer className="w-4 h-4" /> Среднее время по предметам
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {subjectAvgTimes.map(({ subj, avg }) => (
+                          <div key={subj} className={cn('rounded-xl border px-3 py-2 flex items-center gap-2',
+                            avg < 20 ? 'bg-green-50 border-green-200' : avg < 60 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
+                          )}>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{subjectLabel(subj)}</span>
+                            <span className={cn('text-sm font-bold font-headline', avg < 20 ? 'text-green-700' : avg < 60 ? 'text-yellow-700' : 'text-red-600')}>{avg}с</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tracker: Serial Errors */}
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
+                        <History className="w-4 h-4" /> Серийные ошибки (3+ подряд)
+                      </h4>
+                      {serialStreaks.length === 0 ? (
+                        <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 font-bold">Серийных ошибок не обнаружено.</div>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {serialStreaks.map((s, i) => (
+                            <div key={i} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 flex items-center gap-2">
+                              <span className="text-sm font-bold text-red-700 font-headline">{s.subj.split('+').map(subjectLabel).join(' + ')}</span>
+                              <span className="text-[9px] font-black uppercase text-red-400">{s.from}–{s.to} вопр.</span>
+                              <span className="text-[9px] text-muted-foreground">{s.len} подряд</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </TabsContent>
+
+                  {/* TAB 3: Ошибки */}
                   <TabsContent value="errors" className="space-y-4 mt-6">
                     {analysis.detailedAnalysis?.map((item: any, i: number) => (
                       <div key={i} className="rounded-2xl border border-[#e3e8ee] overflow-hidden bg-white shadow-sm hover:border-primary/30 transition-all">
@@ -485,7 +655,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                     ))}
                   </TabsContent>
 
-                  {/* TAB 3: Стратегия */}
+                  {/* TAB 4: Стратегия */}
                   <TabsContent value="strategy" className="space-y-8 mt-6">
                     {analysis.strategyAnalysis && (
                       <div className="space-y-3">
@@ -617,184 +787,6 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   </UIButton>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Behavioral Analytics */}
-          <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
-            <CardHeader className="py-6 px-8 border-b">
-              <CardTitle className="flex items-center gap-3 font-headline text-xl font-bold">
-                <BarChart2 className="w-7 h-7 text-primary" />
-                Поведенческая аналитика
-              </CardTitle>
-              <CardDescription>Статистика по времени, паттернам ответов и прогрессии — вычислено без ИИ.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-8">
-
-              {/* Time per question */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Время на каждый вопрос</h4>
-                <div className="flex flex-wrap gap-x-5 gap-y-1 text-[10px] font-semibold text-muted-foreground mb-1">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" /> &lt;8с — наугад</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#14bf96] shrink-0" /> 8–30с — норма</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0" /> 30–60с — долго</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" /> &gt;60с — зависание</span>
-                </div>
-                {timeData.some(d => d.capped) && (
-                  <p className="text-[10px] text-orange-500 font-medium -mt-1 mb-1">
-                    * {timeData.filter(d => d.capped).length} вопр. с временем &gt;{timeCapSec}с обрезаны (ученик покидал вкладку)
-                  </p>
-                )}
-                <ResponsiveContainer width="100%" height={150}>
-                  <BarChart data={timeData} barCategoryGap="15%">
-                    <XAxis dataKey="num" tick={{ fontSize: 8 }} interval={Math.floor(timeData.length / 15)} />
-                    <YAxis tick={{ fontSize: 8 }} unit="с" width={28} domain={[0, timeCapSec]} />
-                    <Tooltip content={<TimeTooltip />} />
-                    <ReferenceLine y={8} stroke="#ef4444" strokeDasharray="3 2" strokeWidth={1} />
-                    <ReferenceLine y={30} stroke="#eab308" strokeDasharray="3 2" strokeWidth={1} />
-                    <Bar dataKey="time" radius={[2, 2, 0, 0]}>
-                      {timeData.map((d, i) => <Cell key={i} fill={d.capped ? '#f97316' : d.color} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Answer distribution + Progression */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Распределение ответов (A–E)</h4>
-                  <p className="text-[10px] text-muted-foreground">Перекос в одну букву указывает на угадывание</p>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart layout="vertical" data={answerCounts} margin={{ left: 0, right: 10 }}>
-                      <XAxis type="number" tick={{ fontSize: 8 }} allowDecimals={false} />
-                      <YAxis type="category" dataKey="option" tick={{ fontSize: 11, fontWeight: 700 }} width={18} />
-                      <Tooltip formatter={(v: any, name: string) => [v, name === 'correct' ? 'Верно' : 'Ошибка']} />
-                      <Bar dataKey="correct" name="correct" fill="#14bf96" stackId="a" />
-                      <Bar dataKey="wrong" name="wrong" fill="#ef4444" stackId="a" radius={[0, 3, 3, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Прогрессия результатов</h4>
-                  <p className="text-[10px] text-muted-foreground">% верных ответов нарастающим итогом</p>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <LineChart data={progressData} margin={{ left: 0, right: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                      <XAxis dataKey="num" tick={{ fontSize: 8 }} interval={Math.floor(progressData.length / 8)} />
-                      <YAxis tick={{ fontSize: 8 }} unit="%" domain={[0, 100]} width={30} />
-                      <Tooltip formatter={(v: any) => [`${v}%`, 'Результат']} />
-                      <ReferenceLine y={result.percentage} stroke="#081d3a" strokeDasharray="3 3" strokeWidth={1.5} />
-                      <Line type="monotone" dataKey="pct" stroke="#14bf96" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Scatter: time vs question */}
-              <div className="space-y-2">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary">Матрица: время × вопрос</h4>
-                <div className="flex gap-5 text-[10px] font-semibold text-muted-foreground mb-1">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#14bf96] shrink-0" /> Верно</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" /> Ошибка</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0" /> Пропуск</span>
-                </div>
-                <ResponsiveContainer width="100%" height={240}>
-                  <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis type="number" dataKey="x" name="Время" unit="с" tick={{ fontSize: 8 }} domain={[0, timeCapSec]} label={{ value: `Время (сек, макс ${timeCapSec}с)`, position: 'insideBottom', offset: -10, fontSize: 8, fill: '#6b7280' }} />
-                    <YAxis type="number" dataKey="y" name="Вопрос" tick={{ fontSize: 8 }} reversed domain={[1, testQuestions.length]} label={{ value: 'Вопрос №', angle: -90, position: 'insideLeft', offset: 15, fontSize: 8, fill: '#6b7280' }} />
-                    <Tooltip content={({ active, payload }: any) => {
-                      if (!active || !payload?.length) return null;
-                      const d = payload[0].payload;
-                      return (
-                        <div className="bg-white border border-gray-200 rounded-lg p-2 shadow text-xs">
-                          <p className="font-bold">Вопрос №{d.y} <span className="font-normal text-muted-foreground">({d.sub})</span></p>
-                          <p className="font-semibold">{d.t}с</p>
-                        </div>
-                      );
-                    }} />
-                    <ReferenceLine x={8} stroke="#ef4444" strokeDasharray="4 2" label={{ value: '8с', fontSize: 7, fill: '#ef4444', position: 'insideTopLeft' }} />
-                    <ReferenceLine x={30} stroke="#eab308" strokeDasharray="4 2" label={{ value: '30с', fontSize: 7, fill: '#b45309', position: 'insideTopLeft' }} />
-                    <Scatter data={scatterCorrect} fill="#14bf96" fillOpacity={0.85} />
-                    <Scatter data={scatterWrong} fill="#ef4444" fillOpacity={0.85} />
-                    <Scatter data={scatterSkipped} fill="#9ca3af" fillOpacity={0.7} />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Tracker: Confidence Distribution */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
-                  <BarChart2 className="w-4 h-4" /> Распределение уверенности
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {confidenceDist.map(d => {
-                    const color = d.cat.includes('Наугад') ? 'bg-red-50 border-red-200 text-red-700' : d.cat.includes('Быстро') ? 'bg-orange-50 border-orange-200 text-orange-700' : d.cat.includes('Нормально') ? 'bg-green-50 border-green-200 text-green-700' : d.cat.includes('Затруднение') ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-purple-50 border-purple-200 text-purple-700';
-                    return (
-                      <div key={d.cat} className={cn('rounded-xl border p-3', color)}>
-                        <p className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-1">{d.cat}</p>
-                        <p className="text-xl font-bold font-headline">{d.total} отв.</p>
-                        <p className="text-xs font-bold opacity-80">точность {d.acc}%</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Tracker: Speed vs Accuracy */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
-                  <Zap className="w-4 h-4" /> Скорость vs Точность
-                </h4>
-                <div className="grid grid-cols-3 gap-3">
-                  {speedGroups.map(g => (
-                    <div key={g.label} className="rounded-xl border border-[#e3e8ee] bg-[#f8fafc] p-3">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">{g.label}</p>
-                      <p className="text-xl font-bold font-headline text-[#081d3a]">{g.acc}%</p>
-                      <p className="text-xs text-muted-foreground">{g.total} вопросов</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tracker: Avg Time per Subject */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
-                  <Timer className="w-4 h-4" /> Среднее время по предметам
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {subjectAvgTimes.map(({ subj, avg }) => (
-                    <div key={subj} className={cn('rounded-xl border px-3 py-2 flex items-center gap-2',
-                      avg < 20 ? 'bg-green-50 border-green-200' : avg < 60 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
-                    )}>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{subjectLabel(subj)}</span>
-                      <span className={cn('text-sm font-bold font-headline', avg < 20 ? 'text-green-700' : avg < 60 ? 'text-yellow-700' : 'text-red-600')}>{avg}с</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tracker: Serial Errors */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-primary flex items-center gap-2">
-                  <History className="w-4 h-4" /> Серийные ошибки (3+ подряд)
-                </h4>
-                {serialStreaks.length === 0 ? (
-                  <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 font-bold">Серийных ошибок не обнаружено.</div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {serialStreaks.map((s, i) => (
-                      <div key={i} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 flex items-center gap-2">
-                        <span className="text-sm font-bold text-red-700 font-headline">{s.subj.split('+').map(subjectLabel).join(' + ')}</span>
-                        <span className="text-[9px] font-black uppercase text-red-400">{s.from}–{s.to} вопр.</span>
-                        <span className="text-[9px] text-muted-foreground">{s.len} подряд</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
             </CardContent>
           </Card>
 
