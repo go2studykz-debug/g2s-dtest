@@ -672,7 +672,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {['A', 'B', 'C', 'D', 'E'].map(l => (
                   <div key={l} className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest flex justify-between">
+                    <Label className="text-[10px] font-black uppercase text-[#081d3a] opacity-40 tracking-widest flex justify-between">
                       Вариант {l}
                       {(l === 'D' || l === 'E') && <span className="text-primary/60">(Опционально)</span>}
                     </Label>
@@ -685,7 +685,7 @@ export default function UnifiedTestEditor({ params }: { params: Promise<{ id: st
                   </div>
                 ))}
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">Верный ответ</Label>
+                  <Label className="text-[10px] font-black uppercase text-[#081d3a] opacity-40 tracking-widest">Верный ответ</Label>
                   <Select value={editingQuestion.correct_answer} onValueChange={v => setEditingQuestion({ ...editingQuestion, correct_answer: v })}>
                     <SelectTrigger className="bg-white h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>{['A', 'B', 'C', 'D', 'E'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
