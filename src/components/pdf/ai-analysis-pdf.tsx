@@ -255,60 +255,67 @@ function computeBehavioral(answers: any[], questions: any[]) {
 
 const CW = 523; // full available width (595.28 - 36*2)
 const CHW = 255; // half width for 2-col layout
+const SVG_SCALE = 3; // render SVG at 3× internal resolution for crisp output
 
 // ─── SVG Chart Components ─────────────────────────────────────────────────────
 
 function TimeBarChart({ timeData, timeCapSec }: { timeData: any[]; timeCapSec: number }) {
   const h = 90;
+  const S = SVG_SCALE;
+  const sw = CW * S;
+  const sh = h * S;
   const n = Math.max(timeData.length, 1);
-  const barW = CW / n;
-  const toY = (t: number) => h - (Math.min(t, timeCapSec) / timeCapSec) * h;
+  const barW = sw / n;
+  const toY = (t: number) => sh - (Math.min(t, timeCapSec) / timeCapSec) * sh;
 
   return (
-    <Svg width={CW} height={h}>
-      <Line x1={0} y1={h * 0.33} x2={CW} y2={h * 0.33} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={h * 0.66} x2={CW} y2={h * 0.66} stroke="#e5e7eb" strokeWidth={0.5} />
+    <Svg width={CW} height={h} viewBox={`0 0 ${sw} ${sh}`}>
+      <Line x1={0} y1={sh * 0.33} x2={sw} y2={sh * 0.33} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={sh * 0.66} x2={sw} y2={sh * 0.66} stroke="#e5e7eb" strokeWidth={1} />
       {8 < timeCapSec && (
-        <Line x1={0} y1={toY(8)} x2={CW} y2={toY(8)} stroke="#ef4444" strokeWidth={0.8} strokeDasharray="3,2" />
+        <Line x1={0} y1={toY(8)} x2={sw} y2={toY(8)} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="6,4" />
       )}
       {30 < timeCapSec && (
-        <Line x1={0} y1={toY(30)} x2={CW} y2={toY(30)} stroke="#eab308" strokeWidth={0.8} strokeDasharray="3,2" />
+        <Line x1={0} y1={toY(30)} x2={sw} y2={toY(30)} stroke="#eab308" strokeWidth={1.5} strokeDasharray="6,4" />
       )}
       {timeData.map((d, i) => {
-        const bh = Math.max((d.time / timeCapSec) * h, 1);
+        const bh = Math.max((d.time / timeCapSec) * sh, S);
         return (
           <Rect
             key={i}
-            x={i * barW + 0.5}
-            y={h - bh}
-            width={Math.max(barW - 1, 0.5)}
+            x={i * barW + 1}
+            y={sh - bh}
+            width={Math.max(barW - 2, 1)}
             height={bh}
             fill={d.capped ? '#f97316' : d.color}
-            rx={1}
+            rx={S}
           />
         );
       })}
-      <Line x1={0} y1={h} x2={CW} y2={h} stroke="#d1d5db" strokeWidth={0.5} />
+      <Line x1={0} y1={sh} x2={sw} y2={sh} stroke="#d1d5db" strokeWidth={1} />
     </Svg>
   );
 }
 
 function ProgressChart({ progressData, finalPct }: { progressData: any[]; finalPct: number }) {
   const h = 90;
+  const S = SVG_SCALE;
+  const sw = CHW * S;
+  const sh = h * S;
   const n = Math.max(progressData.length, 2);
-  const pts = progressData.map((d, i) => `${(i / (n - 1)) * CHW},${h - (d.pct / 100) * h}`).join(' ');
-  const refY = h - (Math.min(Math.max(finalPct, 0), 100) / 100) * h;
+  const pts = progressData.map((d, i) => `${(i / (n - 1)) * sw},${sh - (d.pct / 100) * sh}`).join(' ');
+  const refY = sh - (Math.min(Math.max(finalPct, 0), 100) / 100) * sh;
 
   return (
-    <Svg width={CHW} height={h}>
-      <Line x1={0} y1={h * 0.25} x2={CHW} y2={h * 0.25} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={h * 0.5} x2={CHW} y2={h * 0.5} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={h * 0.75} x2={CHW} y2={h * 0.75} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={refY} x2={CHW} y2={refY} stroke={DARK} strokeWidth={0.8} strokeDasharray="4,2" />
+    <Svg width={CHW} height={h} viewBox={`0 0 ${sw} ${sh}`}>
+      <Line x1={0} y1={sh * 0.25} x2={sw} y2={sh * 0.25} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={sh * 0.5} x2={sw} y2={sh * 0.5} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={sh * 0.75} x2={sw} y2={sh * 0.75} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={refY} x2={sw} y2={refY} stroke={DARK} strokeWidth={1.5} strokeDasharray="8,4" />
       {progressData.length >= 2 && (
-        <Polyline points={pts} stroke={PRIMARY} strokeWidth={1.5} fill="none" />
+        <Polyline points={pts} stroke={PRIMARY} strokeWidth={3} fill="none" />
       )}
-      <Line x1={0} y1={h} x2={CHW} y2={h} stroke="#d1d5db" strokeWidth={0.5} />
+      <Line x1={0} y1={sh} x2={sw} y2={sh} stroke="#d1d5db" strokeWidth={1} />
     </Svg>
   );
 }
@@ -317,27 +324,30 @@ function ScatterChart({ correct, wrong, skipped, timeCapSec, totalQ }: {
   correct: any[]; wrong: any[]; skipped: any[]; timeCapSec: number; totalQ: number;
 }) {
   const h = 140;
-  const toX = (t: number) => (Math.min(t, timeCapSec) / timeCapSec) * CW;
-  const toY = (num: number) => ((num - 1) / Math.max(totalQ - 1, 1)) * h;
+  const S = SVG_SCALE;
+  const sw = CW * S;
+  const sh = h * S;
+  const toX = (t: number) => (Math.min(t, timeCapSec) / timeCapSec) * sw;
+  const toY = (num: number) => ((num - 1) / Math.max(totalQ - 1, 1)) * sh;
 
   return (
-    <Svg width={CW} height={h}>
-      <Line x1={0} y1={h * 0.25} x2={CW} y2={h * 0.25} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={h * 0.5} x2={CW} y2={h * 0.5} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={0} y1={h * 0.75} x2={CW} y2={h * 0.75} stroke="#e5e7eb" strokeWidth={0.5} />
-      <Line x1={toX(8)} y1={0} x2={toX(8)} y2={h} stroke="#ef4444" strokeWidth={0.8} strokeDasharray="4,2" />
-      <Line x1={toX(30)} y1={0} x2={toX(30)} y2={h} stroke="#eab308" strokeWidth={0.8} strokeDasharray="4,2" />
+    <Svg width={CW} height={h} viewBox={`0 0 ${sw} ${sh}`}>
+      <Line x1={0} y1={sh * 0.25} x2={sw} y2={sh * 0.25} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={sh * 0.5} x2={sw} y2={sh * 0.5} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={0} y1={sh * 0.75} x2={sw} y2={sh * 0.75} stroke="#e5e7eb" strokeWidth={1} />
+      <Line x1={toX(8)} y1={0} x2={toX(8)} y2={sh} stroke="#ef4444" strokeWidth={1.5} strokeDasharray="8,4" />
+      <Line x1={toX(30)} y1={0} x2={toX(30)} y2={sh} stroke="#eab308" strokeWidth={1.5} strokeDasharray="8,4" />
       {correct.map((d, i) => (
-        <Circle key={`c${i}`} cx={toX(d.x)} cy={toY(d.y)} r={2.5} fill="#14bf96" fillOpacity={0.85} />
+        <Circle key={`c${i}`} cx={toX(d.x)} cy={toY(d.y)} r={5} fill="#14bf96" fillOpacity={0.85} />
       ))}
       {wrong.map((d, i) => (
-        <Circle key={`w${i}`} cx={toX(d.x)} cy={toY(d.y)} r={2.5} fill="#ef4444" fillOpacity={0.85} />
+        <Circle key={`w${i}`} cx={toX(d.x)} cy={toY(d.y)} r={5} fill="#ef4444" fillOpacity={0.85} />
       ))}
       {skipped.map((d, i) => (
-        <Circle key={`s${i}`} cx={toX(d.x)} cy={toY(d.y)} r={2.5} fill="#9ca3af" fillOpacity={0.7} />
+        <Circle key={`s${i}`} cx={toX(d.x)} cy={toY(d.y)} r={5} fill="#9ca3af" fillOpacity={0.7} />
       ))}
-      <Line x1={0} y1={h} x2={CW} y2={h} stroke="#d1d5db" strokeWidth={0.5} />
-      <Line x1={0} y1={0} x2={0} y2={h} stroke="#d1d5db" strokeWidth={0.5} />
+      <Line x1={0} y1={sh} x2={sw} y2={sh} stroke="#d1d5db" strokeWidth={1} />
+      <Line x1={0} y1={0} x2={0} y2={sh} stroke="#d1d5db" strokeWidth={1} />
     </Svg>
   );
 }
