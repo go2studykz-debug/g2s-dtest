@@ -28,25 +28,25 @@
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 95%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 95%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 95%;
-    --primary: 166 81% 40%;
+    --background: 222 47% 7%;
+    --foreground: 214 20% 86%;        /* мягкий серо-голубой, не белый */
+    --card: 222 47% 10%;
+    --card-foreground: 214 20% 86%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 214 20% 86%;
+    --primary: 166 81% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 222 47% 13%;
-    --secondary-foreground: 210 40% 95%;
-    --muted: 222 47% 13%;
-    --muted-foreground: 215 16% 60%;
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 214 20% 86%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 16% 58%;
     --accent: 199 89% 48%;
-    --accent-foreground: 222 47% 6%;
+    --accent-foreground: 222 47% 7%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 222 47% 18%;
-    --input: 222 47% 18%;
-    --ring: 166 81% 40%;
+    --border: 222 47% 19%;
+    --input: 222 47% 19%;
+    --ring: 166 81% 42%;
   }
 }
 
@@ -58,25 +58,32 @@
     @apply bg-background text-foreground font-body antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline tracking-tight font-bold text-[#081d3a] dark:text-foreground;
+    @apply font-headline tracking-tight font-bold;
   }
 }
 
-/* Dark mode overrides for hardcoded colors used throughout the app */
-.dark .bg-white { background-color: hsl(var(--card)) !important; }
+/* ─── Dark mode: page backgrounds ──────────────────────────────────────── */
+.dark .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
 .dark .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
 .dark .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
-.dark .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 12%) !important; }
-.dark .bg-\[\#081d3a\] { background-color: hsl(222 47% 18%) !important; }
+.dark .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
+.dark .bg-white       { background-color: hsl(var(--card)) !important; }
 
-.dark .text-\[\#081d3a\] { color: hsl(var(--foreground)) !important; }
-.dark .text-\[\#3b3e40\] { color: hsl(var(--muted-foreground)) !important; }
+/* ─── Dark mode: dark navy bg used for header cards ────────────────────── */
+.dark .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
 
+/* ─── Dark mode: text colors ────────────────────────────────────────────── */
+/* #081d3a — основной тёмно-синий текст → мягкий светлый */
+.dark .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
+/* #3b3e40 — серый текст → приглушённый */
+.dark .text-\[\#3b3e40\] { color: hsl(215 10% 65%) !important; }
+
+/* ─── Dark mode: borders ─────────────────────────────────────────────────── */
 .dark .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
-.dark .border-l-4.border-\[\#14bf96\] { border-color: hsl(var(--primary)) !important; }
 
-.dark .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.5) !important; }
-.dark .shadow-sm { box-shadow: 0 1px 4px 0 rgba(0,0,0,0.4) !important; }
+/* ─── Dark mode: shadows ─────────────────────────────────────────────────── */
+.dark .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }
+.dark .shadow-sm { box-shadow: 0 1px 6px 0 rgba(0,0,0,0.4) !important; }
 
 @keyframes pulse-subtle {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 191, 150, 0.4); }
