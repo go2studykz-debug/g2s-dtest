@@ -16,6 +16,7 @@ import {
 import { startTest } from './lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const CITIES = [
   "Астана", "Алматы", "Павлодар", "Актау", "Актобе", "Атырау", 
@@ -219,13 +220,13 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col items-center">
+    <div className="theme-scope min-h-screen bg-[#f9fafb] flex flex-col items-center">
       <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <a href="https://go2study.kz/" target="_blank" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
           <span className="text-lg md:text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
         </a>
-        <div className="flex items-center gap-3 md:gap-6">
+        <div className="flex items-center gap-2 md:gap-6">
           <a href="https://go2study.kz/" target="_blank" className="hidden md:flex text-sm font-medium text-[#081d3a]/70 hover:text-primary items-center gap-1.5 transition-colors lowercase">
             <ExternalLink className="w-3.5 h-3.5" /> {t.go2site}
           </a>
@@ -234,6 +235,7 @@ export default function LandingPage() {
             <button onClick={() => setLang('kz')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'kz' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>KZ</button>
             <button onClick={() => setLang('en')} className={cn("px-3 py-1 text-xs font-bold rounded-md transition-all", lang === 'en' ? "bg-white shadow-sm text-primary" : "text-muted-foreground")}>EN</button>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

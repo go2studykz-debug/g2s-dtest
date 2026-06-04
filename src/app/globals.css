@@ -29,10 +29,10 @@
 }
 
 /*
- * Dark theme is scoped to .admin-scope so public pages (/, /test/*)
+ * Dark theme is scoped to .theme-scope so public pages (/, /test/*)
  * are NEVER affected, even when .dark class is on <html>.
  */
-.dark .admin-scope {
+.dark .theme-scope {
   --background: 222 47% 7%;
   --foreground: 214 20% 86%;
   --card: 222 47% 10%;
@@ -66,29 +66,29 @@
   }
 }
 
-/* ─── Dark mode overrides — scoped to .admin-scope only ─────────────────── */
+/* ─── Dark mode overrides — scoped to .theme-scope only ─────────────────── */
 
 /* Page backgrounds */
-.dark .admin-scope .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
-.dark .admin-scope .bg-\[\#f9fafb\] { background-color: hsl(222 47% 7%) !important; }
-.dark .admin-scope .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
-.dark .admin-scope .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
-.dark .admin-scope .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
-.dark .admin-scope .bg-white       { background-color: hsl(var(--card)) !important; }
+.dark .theme-scope .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
+.dark .theme-scope .bg-\[\#f9fafb\] { background-color: hsl(222 47% 7%) !important; }
+.dark .theme-scope .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
+.dark .theme-scope .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
+.dark .theme-scope .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
+.dark .theme-scope .bg-white       { background-color: hsl(var(--card)) !important; }
 
 /* Dark navy used for header cards */
-.dark .admin-scope .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
+.dark .theme-scope .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
 
 /* Text colors */
-.dark .admin-scope .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
-.dark .admin-scope .text-\[\#3b3e40\] { color: hsl(215 10% 65%) !important; }
+.dark .theme-scope .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
+.dark .theme-scope .text-\[\#3b3e40\] { color: hsl(215 10% 65%) !important; }
 
 /* Borders */
-.dark .admin-scope .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
+.dark .theme-scope .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
 
 /* Shadows */
-.dark .admin-scope .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }
-.dark .admin-scope .shadow-sm { box-shadow: 0 1px 6px 0 rgba(0,0,0,0.4) !important; }
+.dark .theme-scope .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }
+.dark .theme-scope .shadow-sm { box-shadow: 0 1px 6px 0 rgba(0,0,0,0.4) !important; }
 
 /* ─── Utility classes ────────────────────────────────────────────────────── */
 @keyframes pulse-subtle {
