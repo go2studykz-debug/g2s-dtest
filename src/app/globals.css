@@ -52,6 +52,8 @@
   --border: 222 47% 19%;
   --input: 222 47% 19%;
   --ring: 166 81% 42%;
+  background-color: #090e1a !important;
+  color: hsl(214 20% 86%);
 }
 
 @layer base {
