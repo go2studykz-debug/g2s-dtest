@@ -26,28 +26,32 @@
     --ring: 166 81% 35%;
     --radius: 0.75rem;
   }
+}
 
-  .dark {
-    --background: 222 47% 7%;
-    --foreground: 214 20% 86%;        /* мягкий серо-голубой, не белый */
-    --card: 222 47% 10%;
-    --card-foreground: 214 20% 86%;
-    --popover: 222 47% 10%;
-    --popover-foreground: 214 20% 86%;
-    --primary: 166 81% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 214 20% 86%;
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 16% 58%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 222 47% 7%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 222 47% 19%;
-    --input: 222 47% 19%;
-    --ring: 166 81% 42%;
-  }
+/*
+ * Dark theme is scoped to .admin-scope so public pages (/, /test/*)
+ * are NEVER affected, even when .dark class is on <html>.
+ */
+.dark .admin-scope {
+  --background: 222 47% 7%;
+  --foreground: 214 20% 86%;
+  --card: 222 47% 10%;
+  --card-foreground: 214 20% 86%;
+  --popover: 222 47% 10%;
+  --popover-foreground: 214 20% 86%;
+  --primary: 166 81% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 47% 14%;
+  --secondary-foreground: 214 20% 86%;
+  --muted: 222 47% 14%;
+  --muted-foreground: 215 16% 58%;
+  --accent: 199 89% 48%;
+  --accent-foreground: 222 47% 7%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 222 47% 19%;
+  --input: 222 47% 19%;
+  --ring: 166 81% 42%;
 }
 
 @layer base {
@@ -62,30 +66,31 @@
   }
 }
 
-/* ─── Dark mode: page backgrounds ──────────────────────────────────────── */
-.dark .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
-.dark .bg-\[\#f9fafb\] { background-color: hsl(222 47% 7%) !important; }
-.dark .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
-.dark .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
-.dark .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
-.dark .bg-white       { background-color: hsl(var(--card)) !important; }
+/* ─── Dark mode overrides — scoped to .admin-scope only ─────────────────── */
 
-/* ─── Dark mode: dark navy bg used for header cards ────────────────────── */
-.dark .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
+/* Page backgrounds */
+.dark .admin-scope .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
+.dark .admin-scope .bg-\[\#f9fafb\] { background-color: hsl(222 47% 7%) !important; }
+.dark .admin-scope .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
+.dark .admin-scope .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
+.dark .admin-scope .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
+.dark .admin-scope .bg-white       { background-color: hsl(var(--card)) !important; }
 
-/* ─── Dark mode: text colors ────────────────────────────────────────────── */
-/* #081d3a — основной тёмно-синий текст → мягкий светлый */
-.dark .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
-/* #3b3e40 — серый текст → приглушённый */
-.dark .text-\[\#3b3e40\] { color: hsl(215 10% 65%) !important; }
+/* Dark navy used for header cards */
+.dark .admin-scope .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
 
-/* ─── Dark mode: borders ─────────────────────────────────────────────────── */
-.dark .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
+/* Text colors */
+.dark .admin-scope .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
+.dark .admin-scope .text-\[\#3b3e40\] { color: hsl(215 10% 65%) !important; }
 
-/* ─── Dark mode: shadows ─────────────────────────────────────────────────── */
-.dark .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }
-.dark .shadow-sm { box-shadow: 0 1px 6px 0 rgba(0,0,0,0.4) !important; }
+/* Borders */
+.dark .admin-scope .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
 
+/* Shadows */
+.dark .admin-scope .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }
+.dark .admin-scope .shadow-sm { box-shadow: 0 1px 6px 0 rgba(0,0,0,0.4) !important; }
+
+/* ─── Utility classes ────────────────────────────────────────────────────── */
 @keyframes pulse-subtle {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 191, 150, 0.4); }
   70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(20, 191, 150, 0); }
@@ -97,7 +102,7 @@
 }
 
 .khan-card {
-  @apply bg-white dark:bg-card border border-[#e3e8ee] dark:border-border shadow-sm rounded-xl overflow-hidden;
+  @apply bg-white border border-[#e3e8ee] shadow-sm rounded-xl overflow-hidden;
 }
 
 .khan-button-primary {
@@ -108,7 +113,7 @@
   @apply bg-white border-2 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold py-3 px-6 rounded-lg transition-all;
 }
 
-/* KaTeX overflow fix — prevents math from spilling outside card on mobile/tablet */
+/* KaTeX overflow fix */
 .katex {
   max-width: 100%;
   overflow-x: auto;
