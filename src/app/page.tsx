@@ -220,7 +220,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="theme-scope min-h-screen bg-background flex flex-col items-center">
+    <div className="theme-scope min-h-screen bg-[#f9fafb] dark:bg-[#090e1a] text-[#081d3a] dark:text-[#d0d8e4] flex flex-col items-center">
       <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <a href="https://go2study.kz/" target="_blank" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
