@@ -327,12 +327,12 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             <div className="flex flex-wrap items-center gap-6">
               <div className="shrink-0">
                 <svg width="120" height="120" viewBox="0 0 120 120">
-                  <circle cx="60" cy="60" r={ringR} fill="none" stroke="#f0f4f8" strokeWidth="10" />
+                  <circle cx="60" cy="60" r={ringR} fill="none" strokeWidth="10" className="stroke-[#f0f4f8] dark:stroke-[#1e2d45]" />
                   <circle cx="60" cy="60" r={ringR} fill="none" stroke={ringColor} strokeWidth="10"
                     strokeDasharray={ringCirc} strokeDashoffset={ringOffset}
                     strokeLinecap="round" transform="rotate(-90 60 60)" />
-                  <text x="60" y="57" textAnchor="middle" style={{ fontSize: 24, fontWeight: 800, fill: '#081d3a' }}>{totalPct}%</text>
-                  <text x="60" y="76" textAnchor="middle" style={{ fontSize: 10, fill: '#6b7280', fontWeight: 600 }}>{computedTotalScore} / {effectiveMax} б.</text>
+                  <text x="60" y="57" textAnchor="middle" className="text-[#081d3a] dark:text-[#d0d9e4]" style={{ fontSize: 24, fontWeight: 800, fill: 'currentColor' }}>{totalPct}%</text>
+                  <text x="60" y="76" textAnchor="middle" className="dark:text-[#9ca3af]" style={{ fontSize: 10, fill: 'currentColor', fontWeight: 600 }}>{computedTotalScore} / {effectiveMax} б.</text>
                 </svg>
               </div>
               <div className="flex flex-wrap gap-2 flex-1">
