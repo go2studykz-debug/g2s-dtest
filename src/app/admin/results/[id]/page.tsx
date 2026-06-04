@@ -39,6 +39,13 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
+const formatDurationLabel = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins === 0) return `${secs} сек`;
+  return secs === 0 ? `${mins} мин` : `${mins} мин ${secs} сек`;
+};
+
 const TimeTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
@@ -975,19 +982,27 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   {logs.map((log) => (
                     <div key={log.id} className="p-4 space-y-2 hover:bg-muted/50 transition-colors">
                       <div className="flex justify-between items-start">
-                        <Badge variant="outline" className="text-[9px] border-red-200 text-red-600 bg-red-50 uppercase">
-                          {log.event_type}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-[9px] border-red-200 text-red-600 bg-red-50 uppercase">
+                            {log.event_type}
+                          </Badge>
+                          {log.exit_duration_seconds > 0 ? (
+                            <Badge variant="outline" className="text-[9px] border-orange-200 text-orange-600 bg-orange-50">
+                              {formatDurationLabel(log.exit_duration_seconds)} вне теста
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[9px] border-gray-200 text-gray-400 bg-gray-50">
+                              длит. не замерена
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-mono shrink-0">
                           {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       <p className="text-xs font-bold leading-tight">{log.details}</p>
                       <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
                         <span className="flex items-center gap-1"><History className="w-3 h-3" /> Вопрос №{log.question_number}</span>
-                        {log.exit_duration_seconds > 0 && (
-                          <span className="flex items-center gap-1 text-red-500"><Timer className="w-3 h-3" /> {formatTime(log.exit_duration_seconds)}</span>
-                        )}
                       </div>
                     </div>
                   ))}

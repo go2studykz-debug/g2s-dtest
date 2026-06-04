@@ -92,6 +92,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   const questionStartRef = useRef<number>(Date.now());
   const antiCheatActive = useRef(true);
   const lastHiddenTime = useRef<number | null>(null);
+  const lastHiddenQuestion = useRef<number>(0);
   const blockExpiredHandledRef = useRef<number>(-1);
 
   // ── Block boundaries ───────────────────────────────────────────────────────
@@ -216,15 +217,17 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && antiCheatActive.current) {
         lastHiddenTime.current = Date.now();
+        lastHiddenQuestion.current = questions[currentIndex]?.question_number || 0;
+      } else if (document.visibilityState === 'visible' && lastHiddenTime.current) {
+        const duration = Math.round((Date.now() - lastHiddenTime.current) / 1000);
         logAntiCheat({
           resultId: id, eventType: 'tab_switch',
-          questionNumber: questions[currentIndex]?.question_number || 0,
-          duration: 0, details: 'Смена вкладки браузера (зафиксировано)'
+          questionNumber: lastHiddenQuestion.current,
+          duration, details: 'Смена вкладки браузера (зафиксировано)'
         });
         setAntiCheatCount(prev => prev + 1);
-      } else if (document.visibilityState === 'visible' && lastHiddenTime.current) {
-        setShowViolationModal(true);
         lastHiddenTime.current = null;
+        setShowViolationModal(true);
       }
     };
     const handleContextMenu = (e: MouseEvent) => {
