@@ -94,6 +94,14 @@
 
 /* Borders */
 .dark .theme-scope .border-\[\#e3e8ee\] { border-color: hsl(var(--border)) !important; }
+.dark .theme-scope .border-\[\#f0f1f2\] { border-color: hsl(var(--border)) !important; }
+
+/* Unselected answer option background */
+.dark .theme-scope .bg-\[\#f0f1f2\],
+.dark .theme-scope.bg-\[\#f0f1f2\]  { background-color: hsl(222 47% 11%) !important; }
+
+/* Dividers (quantitative question columns) */
+.dark .theme-scope .divide-\[\#e3e8ee\] > :not([hidden]) ~ :not([hidden]) { border-color: hsl(var(--border)) !important; }
 
 /* Shadows */
 .dark .theme-scope .shadow-lg { box-shadow: 0 4px 24px 0 rgba(0,0,0,0.6) !important; }

@@ -21,6 +21,7 @@ import {
   DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
 import { MathText } from '@/components/ui/math-text';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const SUBJECTS_INFO: Record<string, string> = {
   math: 'Математика',
@@ -300,7 +301,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
   // ── Loading / Error ────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
+    <div className="theme-scope min-h-screen flex items-center justify-center bg-[#f9fafb]">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#14bf96]" />
         <p className="text-sm font-bold text-muted-foreground animate-pulse">Загрузка сессии...</p>
@@ -309,7 +310,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
+    <div className="theme-scope min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
       <div className="max-w-md w-full text-center space-y-6">
         <div className="mx-auto w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center">
           <AlertTriangle className="w-10 h-10" />
@@ -340,7 +341,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       'Переход к следующему блоку возможен только после завершения текущего.',
     ];
     return (
-      <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-4 sm:p-6">
+      <div className="theme-scope min-h-screen bg-[#f9fafb] flex items-center justify-center p-4 sm:p-6">
         <div className="max-w-2xl w-full bg-white rounded-3xl border border-[#e3e8ee] shadow-xl p-6 sm:p-8 md:p-12 space-y-6 md:space-y-8">
           <div className="flex items-center gap-3">
             <GraduationCap className="w-7 h-7 text-[#14bf96]" />
@@ -424,7 +425,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     : `${currentIndex + 1}/${questions.length}`;
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col select-none">
+    <div className="theme-scope min-h-screen bg-[#f9fafb] flex flex-col select-none">
       {/* Anti-cheat violation modal */}
       <Dialog open={showViolationModal} onOpenChange={setShowViolationModal}>
         <DialogContent className="max-w-md bg-red-600 border-none text-white overflow-hidden">
@@ -550,6 +551,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             <div className={cn("w-2 h-2 rounded-full", antiCheatCount > 0 ? "bg-red-500 animate-pulse" : "bg-green-500")} />
             <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Прокторинг: {antiCheatCount}</span>
           </div>
+          <ThemeToggle className="w-8 h-8" />
           <div className={cn(
             "flex items-center gap-2 px-3 py-1.5 rounded-lg font-bold transition-colors",
             (blockTimeLeft || 0) < 60 ? "bg-red-50 text-red-500 animate-pulse" :
@@ -581,7 +583,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
             <div className="space-y-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black text-[#3b3e40]/40 uppercase tracking-[0.2em]">{blockProgress}</p>
+                  <p className="text-[10px] font-black text-[#3b3e40] opacity-40 uppercase tracking-[0.2em]">{blockProgress}</p>
                   <h3 className="text-[#14bf96] font-bold text-xs uppercase tracking-widest">
                     {si[currentQuestion.subject] || currentQuestion.subject}
                   </h3>
@@ -692,7 +694,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
         {/* Sidebar */}
         <div className="lg:col-span-4 space-y-4 md:space-y-6">
           <div className="bg-white rounded-2xl border border-[#e3e8ee] p-4 sm:p-6 shadow-sm lg:sticky lg:top-24">
-            <h3 className="text-[10px] font-black text-[#081d3a]/40 uppercase tracking-[0.2em] mb-2">
+            <h3 className="text-[10px] font-black text-[#081d3a] opacity-40 uppercase tracking-[0.2em] mb-2">
               {blockBoundaries.length > 1 ? `Блок ${currentBlockIndex + 1}: ${si[currentBlockBoundary?.subject || ''] || ''}` : (isKz ? 'Тест навигациясы' : 'Навигация по тесту')}
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
@@ -734,7 +736,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
 
           <div className="bg-[#f0f9f7] p-5 rounded-xl border border-[#14bf96]/10 flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-[#14bf96] shrink-0 mt-0.5" />
-            <p className="text-xs text-[#081d3a]/70 leading-relaxed font-medium italic">
+            <p className="text-xs text-[#081d3a] opacity-70 leading-relaxed font-medium italic">
               {isKz
                 ? 'Прокторинг жүйесі әр қойынды ауыстыруды тіркейді. Өтінеміз, беттен шықпаңыз.'
                 : 'Система прокторинга фиксирует каждое переключение вкладки. Пожалуйста, не покидайте страницу.'}
