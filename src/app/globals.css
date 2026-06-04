@@ -68,16 +68,23 @@
 
 /* ─── Dark mode overrides — scoped to .theme-scope only ─────────────────── */
 
-/* Page backgrounds */
-.dark .theme-scope .bg-\[\#f4f7f9\] { background-color: hsl(222 47% 7%) !important; }
-.dark .theme-scope .bg-\[\#f9fafb\] { background-color: hsl(222 47% 7%) !important; }
-.dark .theme-scope .bg-\[\#f8fafc\] { background-color: hsl(222 47% 11%) !important; }
-.dark .theme-scope .bg-\[\#f0f4f8\] { background-color: hsl(222 47% 13%) !important; }
-.dark .theme-scope .bg-\[\#f0f9f7\] { background-color: hsl(166 30% 11%) !important; }
-.dark .theme-scope .bg-white       { background-color: hsl(var(--card)) !important; }
+/* Page backgrounds — both when class is on a child AND on theme-scope itself */
+.dark .theme-scope .bg-\[\#f4f7f9\],
+.dark .theme-scope.bg-\[\#f4f7f9\]  { background-color: hsl(222 47% 7%) !important; }
+.dark .theme-scope .bg-\[\#f9fafb\],
+.dark .theme-scope.bg-\[\#f9fafb\]  { background-color: hsl(222 47% 7%) !important; }
+.dark .theme-scope .bg-\[\#f8fafc\],
+.dark .theme-scope.bg-\[\#f8fafc\]  { background-color: hsl(222 47% 11%) !important; }
+.dark .theme-scope .bg-\[\#f0f4f8\],
+.dark .theme-scope.bg-\[\#f0f4f8\]  { background-color: hsl(222 47% 13%) !important; }
+.dark .theme-scope .bg-\[\#f0f9f7\],
+.dark .theme-scope.bg-\[\#f0f9f7\]  { background-color: hsl(166 30% 11%) !important; }
+.dark .theme-scope .bg-white,
+.dark .theme-scope.bg-white          { background-color: hsl(var(--card)) !important; }
 
-/* Dark navy used for header cards */
-.dark .theme-scope .bg-\[\#081d3a\] { background-color: hsl(222 47% 15%) !important; }
+/* Dark navy */
+.dark .theme-scope .bg-\[\#081d3a\],
+.dark .theme-scope.bg-\[\#081d3a\]   { background-color: hsl(222 47% 15%) !important; }
 
 /* Text colors */
 .dark .theme-scope .text-\[\#081d3a\] { color: hsl(214 20% 86%) !important; }
