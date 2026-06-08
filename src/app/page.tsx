@@ -355,9 +355,8 @@ export default function LandingPage() {
       <footer className="w-full border-t border-[#e3e8ee] bg-white py-12 mt-20">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold text-[#081d3a] lowercase">go<span className="text-primary">2</span>study</span>
+            <div className="flex items-center">
+              <img src="/wordmark-light.png" alt="go2study" style={{height: '36px', width: 'auto'}} />
             </div>
             <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© 2024 go2study. Миссия: дать каждому ученику шанс на успех.</p>
           </div>
