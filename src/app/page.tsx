@@ -222,8 +222,9 @@ export default function LandingPage() {
   return (
     <div className="theme-scope min-h-screen bg-[#f9fafb] text-[#081d3a] flex flex-col items-center">
       <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <a href="https://go2study.kz/" target="_blank" className="flex items-center hover:opacity-80 transition-opacity">
-          <img src="/wordmark-light.png" alt="go2study" style={{height: '40px', width: 'auto'}} />
+        <a href="https://go2study.kz/" target="_blank" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <img src="/favicon.svg" alt="go2study icon" style={{height: '38px', width: '38px'}} />
+          <span className="text-xl font-bold text-[#081d3a] lowercase tracking-tight">go<span className="text-primary">2</span>study</span>
         </a>
         <div className="flex items-center gap-2 md:gap-6">
           <a href="https://go2study.kz/" target="_blank" className="hidden md:flex text-sm font-medium text-[#081d3a]/70 hover:text-primary items-center gap-1.5 transition-colors lowercase">
@@ -355,8 +356,9 @@ export default function LandingPage() {
       <footer className="w-full border-t border-[#e3e8ee] bg-white py-12 mt-20">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
-            <div className="flex items-center">
-              <img src="/wordmark-light.png" alt="go2study" style={{height: '36px', width: 'auto'}} />
+            <div className="flex items-center gap-2.5">
+              <img src="/favicon.svg" alt="go2study icon" style={{height: '36px', width: '36px'}} />
+              <span className="text-xl font-bold text-[#081d3a] lowercase tracking-tight">go<span className="text-primary">2</span>study</span>
             </div>
             <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© 2024 go2study. Миссия: дать каждому ученику шанс на успех.</p>
           </div>
