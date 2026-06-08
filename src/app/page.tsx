@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  GraduationCap, BookOpen, User, Phone, 
+import {
+  BookOpen, User, Phone,
   Target, HeartHandshake, ArrowRight, BrainCircuit,
   Users, ShieldCheck, Globe, ExternalLink
 } from 'lucide-react';
@@ -222,9 +222,8 @@ export default function LandingPage() {
   return (
     <div className="theme-scope min-h-screen bg-[#f9fafb] text-[#081d3a] flex flex-col items-center">
       <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <a href="https://go2study.kz/" target="_blank" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-          <span className="text-lg md:text-2xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
+        <a href="https://go2study.kz/" target="_blank" className="flex items-center hover:opacity-80 transition-opacity">
+          <img src="/wordmark-light.png" alt="go2study" style={{height: '40px', width: 'auto'}} />
         </a>
         <div className="flex items-center gap-2 md:gap-6">
           <a href="https://go2study.kz/" target="_blank" className="hidden md:flex text-sm font-medium text-[#081d3a]/70 hover:text-primary items-center gap-1.5 transition-colors lowercase">

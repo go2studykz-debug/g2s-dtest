@@ -6,28 +6,36 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: 'go2study | Интеллектуальное тестирование',
-  description: 'Современная платформа для образовательной оценки с использованием ИИ.',
+  title: 'go2study | Диагностика НИШ',
+  description: 'Профессиональная диагностика знаний для подготовки к НИШ, БИЛ и РФМШ. Выявим пробелы и составим личный план.',
   icons: {
-    icon: '/favicon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
     shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    apple: '/favicon-180.png',
   },
+  themeColor: '#2747E0',
   openGraph: {
-    title: 'go2study | Интеллектуальное тестирование',
-    description: 'Современная платформа для образовательной оценки с использованием ИИ.',
+    title: 'go2study | Диагностика НИШ',
+    description: 'Профессиональная диагностика знаний для подготовки к НИШ, БИЛ и РФМШ.',
     url: 'https://test.go2study.kz',
     images: [
       {
-        url: 'https://test.go2study.kz/og-image.svg',
-        width: 1200,
-        height: 630,
+        url: 'https://test.go2study.kz/og-image.png',
+        width: 2048,
+        height: 683,
+        type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['https://test.go2study.kz/og-image.svg'],
+    title: 'go2study | Диагностика НИШ',
+    images: ['https://test.go2study.kz/og-image.png'],
   },
 };
 
@@ -41,7 +49,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background text-foreground min-h-screen">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
