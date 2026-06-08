@@ -1,4 +1,8 @@
-import type {Metadata} from 'next';
+import type { Metadata, Viewport } from 'next';
+
+export const viewport: Viewport = {
+  themeColor: '#2747E0',
+};
 import './globals.css';
 import 'katex/dist/katex.min.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -18,7 +22,6 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
     apple: '/favicon-180.png',
   },
-  themeColor: '#2747E0',
   openGraph: {
     title: 'go2study | Диагностика НИШ',
     description: 'Профессиональная диагностика знаний для подготовки к НИШ, БИЛ и РФМШ.',
