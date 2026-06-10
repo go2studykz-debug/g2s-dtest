@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
   Clock, ChevronRight, ChevronLeft, Send, AlertTriangle,
-  GraduationCap, ShieldAlert, Home, CheckCircle2, ArrowRight
+  ShieldAlert, Home, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import {
   getResultDetail, submitAnswer, logAntiCheat, finishTest,
@@ -343,9 +343,8 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
     return (
       <div className="theme-scope min-h-screen bg-[#f9fafb] flex items-center justify-center p-4 sm:p-6">
         <div className="max-w-2xl w-full bg-white rounded-3xl border border-[#e3e8ee] shadow-xl p-6 sm:p-8 md:p-12 space-y-6 md:space-y-8">
-          <div className="flex items-center gap-3">
-            <GraduationCap className="w-7 h-7 text-[#14bf96]" />
-            <span className="text-xl font-bold tracking-tight text-[#081d3a]">go<span className="text-[#14bf96]">2</span>study</span>
+          <div className="flex items-center">
+            <img src="/wordmark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#081d3a] mb-2">
@@ -538,8 +537,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
       {/* Header */}
       <header className="bg-white border-b border-[#e3e8ee] px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <GraduationCap className="w-6 h-6 text-[#14bf96]" />
-          <span className="text-xl font-bold tracking-tight text-[#081d3a]">go<span className="text-primary">2</span>study</span>
+          <img src="/wordmark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} />
           {blockBoundaries.length > 1 && (
             <span className="hidden md:inline-flex items-center text-xs font-bold bg-[#f0f9f7] text-[#14bf96] border border-[#14bf96]/20 px-3 py-1 rounded-full ml-2">
               {si[currentBlockBoundary?.subject || ''] || ''} · Блок {currentBlockIndex + 1}/{blockBoundaries.length}
