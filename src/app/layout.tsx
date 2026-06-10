@@ -28,17 +28,17 @@ export const metadata: Metadata = {
     url: 'https://test.go2study.kz',
     images: [
       {
-        url: 'https://test.go2study.kz/og-image.png',
-        width: 2048,
-        height: 683,
-        type: 'image/png',
+        url: 'https://test.go2study.kz/og-image-cobalt-1200.jpg',
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'go2study | Диагностика НИШ',
-    images: ['https://test.go2study.kz/og-image.png'],
+    images: ['https://test.go2study.kz/og-image-cobalt-1200.jpg'],
   },
 };
 
