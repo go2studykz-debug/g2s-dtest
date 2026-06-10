@@ -112,6 +112,17 @@
 .dark .theme-scope .bg-purple-50 { background-color: rgba(168, 85, 247, 0.18) !important; }
 .dark .theme-scope .bg-orange-50 { background-color: rgba(249, 115, 22, 0.18) !important; }
 
+/* Fix low-opacity text — alpha variants like text-[color]/40 */
+.dark .theme-scope .text-\[\#081d3a\]\/40 { color: hsl(214 20% 65%) !important; }
+.dark .theme-scope .text-\[\#081d3a\]\/60 { color: hsl(214 20% 70%) !important; }
+.dark .theme-scope .text-\[\#081d3a\]\/70 { color: hsl(214 20% 75%) !important; }
+.dark .theme-scope .text-\[\#3b3e40\]\/40 { color: hsl(215 10% 58%) !important; }
+.dark .theme-scope .text-\[\#3b3e40\]\/60 { color: hsl(215 10% 62%) !important; }
+
+/* Fix opacity utility classes used on text */
+.dark .theme-scope .opacity-30 { opacity: 0.6 !important; }
+.dark .theme-scope .opacity-60 { opacity: 0.85 !important; }
+
 /* ─── Utility classes ────────────────────────────────────────────────────── */
 @keyframes pulse-subtle {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(20, 191, 150, 0.4); }
