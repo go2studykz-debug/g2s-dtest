@@ -358,7 +358,7 @@ export default function LandingPage() {
             <div className="flex items-center">
               <img src="/wordmark-transparent.png" alt="go2study" style={{height: '30px', width: 'auto'}} />
             </div>
-            <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© 2024 go2study. Миссия: дать каждому ученику шанс на успех.</p>
+            <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© {new Date().getFullYear()} go2study. Миссия: дать каждому ученику шанс на успех.</p>
           </div>
           <div className="flex flex-col gap-3 text-center md:text-right">
             <span className="text-xs font-black uppercase tracking-widest text-[#081d3a] opacity-30">Контакты</span>
