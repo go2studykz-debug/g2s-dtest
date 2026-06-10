@@ -651,7 +651,7 @@ export default function TestingInterface({ params }: { params: Promise<{ id: str
                         "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border-2 transition-all mt-0.5",
                         isSelected ? "bg-[#14bf96] text-white border-[#14bf96]" : "bg-white text-[#3b3e40] border-[#e3e8ee] group-hover:border-primary"
                       )}>{letter}</div>
-                      <div className="flex-1 min-w-0 overflow-x-auto">
+                      <div className="flex-1 min-w-0">
                         <MathText className="text-base font-normal text-[#081d3a] leading-relaxed">{optionValue}</MathText>
                       </div>
                       <RadioGroupItem value={letter} className="sr-only" />
