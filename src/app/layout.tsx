@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   description: 'Профессиональная диагностика знаний для подготовки к НИШ, БИЛ и РФМШ. Выявим пробелы и составим личный план.',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.svg?v=3', type: 'image/svg+xml' },
+      { url: '/favicon-32.png?v=3', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16.png?v=3', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-192.png?v=3', sizes: '192x192', type: 'image/png' },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon-180.png',
+    shortcut: '/favicon.svg?v=3',
+    apple: '/favicon-180.png?v=3',
   },
   openGraph: {
     title: 'go2study | Диагностика НИШ',
