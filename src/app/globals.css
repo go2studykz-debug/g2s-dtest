@@ -146,18 +146,23 @@
   @apply bg-white border-2 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold py-3 px-6 rounded-lg transition-all;
 }
 
-/* KaTeX overflow fix */
+/* KaTeX overflow fix — hide scrollbar arrows, keep scrollability */
 .katex {
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
 }
+.katex::-webkit-scrollbar { display: none; } /* Chrome/Edge/Safari */
+
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-width: none;
 }
+.katex-display::-webkit-scrollbar { display: none; }
 
-/* Hide scrollbar arrow buttons (Windows) */
+/* Hide scrollbar arrow buttons everywhere (Windows) */
 ::-webkit-scrollbar-button {
   display: none;
   width: 0;
