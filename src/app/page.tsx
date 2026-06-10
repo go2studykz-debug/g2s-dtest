@@ -223,8 +223,8 @@ export default function LandingPage() {
     <div className="theme-scope min-h-screen bg-[#f9fafb] text-[#081d3a] flex flex-col items-center">
       <header className="w-full bg-white border-b border-[#e3e8ee] py-3 px-4 md:px-12 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <a href="https://go2study.kz/" target="_blank" className="flex items-center hover:opacity-80 transition-opacity">
-          <img src="/wordmark-transparent.png" alt="go2study" style={{height: '30px', width: 'auto'}} className="dark:hidden" />
-          <img src="/wordmark-dark-transparent.png" alt="go2study" style={{height: '30px', width: 'auto'}} className="hidden dark:block" />
+          <img src="/wordmark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} className="dark:hidden" />
+          <img src="/wordmark-dark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} className="hidden dark:block" />
         </a>
         <div className="flex items-center gap-2 md:gap-6">
           <a href="https://go2study.kz/" target="_blank" className="hidden md:flex text-sm font-medium text-[#081d3a]/70 hover:text-primary items-center gap-1.5 transition-colors lowercase">
@@ -357,8 +357,8 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex items-center">
-              <img src="/wordmark-transparent.png" alt="go2study" style={{height: '30px', width: 'auto'}} className="dark:hidden" />
-              <img src="/wordmark-dark-transparent.png" alt="go2study" style={{height: '30px', width: 'auto'}} className="hidden dark:block" />
+              <img src="/wordmark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} className="dark:hidden" />
+              <img src="/wordmark-dark-transparent.png" alt="go2study" style={{height: '18px', width: 'auto'}} className="hidden dark:block" />
             </div>
             <p className="text-[#3b3e40] text-sm opacity-60 font-medium">© {new Date().getFullYear()} go2study. Миссия: дать каждому ученику шанс на успех.</p>
           </div>
