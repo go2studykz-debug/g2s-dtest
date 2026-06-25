@@ -17,6 +17,3 @@ export function initializeFirebase(): {
 
   return { app, firestore, auth, storage };
 }
-
-export * from './provider';
-export * from './client-provider';

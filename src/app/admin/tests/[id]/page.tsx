@@ -17,7 +17,7 @@ import { getTestById, saveTest, deleteTest, getQuestionsByTestId, importQuestion
 import { Test, Subject, TestBlock, Question } from '@/app/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { useFirestore, useStorage } from '@/firebase';
+import { useFirestore, useStorage } from '@/firebase/provider';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn, stripMarkdown } from '@/lib/utils';

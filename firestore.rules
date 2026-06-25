@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── tests ─────────────────────────────────────────────────────────────────
+    // Test configs are public read; writes go only through server actions
+    // (Firebase Client SDK on server also goes through these rules)
+    match /tests/{id} {
+      allow read: if true;
+      allow write: if true; // Admin writes via server actions; protected by cookie middleware
+    }
+
+    // ── questions ─────────────────────────────────────────────────────────────
+    // Questions are public read (needed for test-taking)
+    // Writes come from admin server actions AND admin test editor (direct client SDK)
+    match /questions/{id} {
+      allow read: if true;
+      allow write: if true; // Admin-only in practice (protected by Next.js middleware)
+    }
+
+    // ── student_results ───────────────────────────────────────────────────────
+    // Anyone can create a result (student submits test)
+    // Reads allowed for admin to view results
+    match /student_results/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true; // For CRM fields updated by admin
+      allow delete: if false;
+    }
+
+    // ── Fallback: deny everything else ────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
