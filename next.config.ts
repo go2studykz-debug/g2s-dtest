@@ -1,7 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['@react-pdf/renderer'],
+  serverExternalPackages: ['@react-pdf/renderer', 'firebase', '@firebase/app', '@firebase/firestore', '@firebase/auth', '@firebase/storage'],
   typescript: {
     ignoreBuildErrors: true,
   },
