@@ -939,13 +939,23 @@ export async function analyzeResult(resultId: string) {
   const detail = await getResultDetail(resultId) as any;
   if (!detail || detail.result.status !== 'completed') throw new Error('Result not ready');
 
+  // Official result is points-based (questions have different weights);
+  // count-based percentage diverges from it, so prefer the weighted one.
+  const totalScore = detail.result.total_score ?? null;
+  const maxScore   = detail.result.max_score ?? null;
+  const weightedPct = totalScore != null && maxScore
+    ? Math.round((totalScore / maxScore) * 100)
+    : detail.result.percentage;
+
   const analysis = await analyzeStudentResult({
     studentName: detail.result.student_name,
     classNumber: detail.result.class_number,
     language: detail.result.language,
-    percentage: detail.result.percentage,
+    percentage: weightedPct,
     totalCorrect: detail.result.total_correct,
     totalQuestions: detail.result.total_questions,
+    totalScore,
+    maxScore,
     answers: detail.testQuestions.map((q: any) => {
       const answer = (detail.answers as any[]).find(a => a.question_id === q.id);
       return {
@@ -968,7 +978,7 @@ export async function analyzeResult(resultId: string) {
     })),
   });
 
-  const ai_analysis = { analysis_json: analysis, student_name: detail.result.student_name, class_number: detail.result.class_number, percentage: detail.result.percentage };
+  const ai_analysis = { analysis_json: analysis, student_name: detail.result.student_name, class_number: detail.result.class_number, percentage: weightedPct };
   const db = getDb();
   await updateDoc(doc(db, 'results', resultId), { is_analysed: true, ai_analysis: serializeData(ai_analysis) });
   revalidatePath(`/admin/results/${resultId}`);

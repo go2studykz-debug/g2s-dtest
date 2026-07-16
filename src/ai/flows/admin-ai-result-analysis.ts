@@ -29,6 +29,8 @@ const AnalyzeStudentResultInputSchema = z.object({
   percentage: z.number(),
   totalCorrect: z.number(),
   totalQuestions: z.number(),
+  totalScore: z.number().nullable().optional(),
+  maxScore: z.number().nullable().optional(),
   answers: z.array(AnswerItemSchema),
   antiCheatLogs: z.array(AntiCheatLogSchema),
 });
@@ -262,6 +264,15 @@ function buildSerialErrors(answers: AnalyzeStudentResultInput['answers']): strin
   return `Серии ошибок (3+ подряд):\n${streaks.join('\n')}`;
 }
 
+// Weighted score line — questions have different point values, so the
+// official result is points-based, not correct-count-based. The AI must
+// never recompute the score itself.
+function buildResultLine(input: AnalyzeStudentResultInput): string {
+  const pts = input.totalScore != null && input.maxScore
+    ? `${input.totalScore} из ${input.maxScore} баллов — ` : "";
+  return `Результат: ${pts}${input.percentage}% (${input.totalCorrect}/${input.totalQuestions} верных ответов). Используй ИМЕННО эти баллы и процент, не пересчитывай их сам.`;
+}
+
 function buildCommonRules(grade: number): string {
   const target = grade === 6 ? '~1200 из 1500 баллов' : '~300 из 400 баллов';
   return `ПРАВИЛА АНАЛИЗА:
@@ -307,7 +318,7 @@ function buildGrade4Prompt(input: AnalyzeStudentResultInput, chances: any[]): st
 
 ДАННЫЕ УЧЕНИКА:
 Ученик: ${input.studentName} | Класс: 4 | Язык теста: ${input.language === 'kz' ? 'казахский' : 'русский'}
-Результат: ${input.percentage}% (${input.totalCorrect}/${input.totalQuestions} верных)
+${buildResultLine(input)}
 
 СТАТИСТИКА ПО ПРЕДМЕТАМ:
 ${buildSubjectStats(input.answers)}
@@ -353,7 +364,7 @@ function buildGrade5Prompt(input: AnalyzeStudentResultInput, chances: any[]): st
 
 ДАННЫЕ УЧЕНИКА:
 Ученик: ${input.studentName} | Класс: 5 | Язык теста: ${input.language === 'kz' ? 'казахский' : 'русский'}
-Результат: ${input.percentage}% (${input.totalCorrect}/${input.totalQuestions} верных)
+${buildResultLine(input)}
 
 СТАТИСТИКА ПО ПРЕДМЕТАМ:
 ${buildSubjectStats(input.answers)}
@@ -410,7 +421,7 @@ function buildGrade6Prompt(input: AnalyzeStudentResultInput, chances: any[]): st
 
 ДАННЫЕ УЧЕНИКА:
 Ученик: ${input.studentName} | Класс: 6 | Трек: ${isRus ? 'рус' : 'каз'}
-Результат: ${input.percentage}% (${input.totalCorrect}/${input.totalQuestions} верных)
+${buildResultLine(input)}
 До экзамена НИШ (1 апреля 2027): ~${monthsLeft} месяцев
 
 СТАТИСТИКА ПО ПРЕДМЕТАМ:
