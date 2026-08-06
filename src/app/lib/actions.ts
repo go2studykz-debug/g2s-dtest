@@ -947,7 +947,9 @@ export async function analyzeResult(resultId: string) {
     ? Math.round((totalScore / maxScore) * 100)
     : detail.result.percentage;
 
-  const analysis = await analyzeStudentResult({
+  let analysis;
+  try {
+   analysis = await analyzeStudentResult({
     studentName: detail.result.student_name,
     classNumber: detail.result.class_number,
     language: detail.result.language,
@@ -976,7 +978,15 @@ export async function analyzeResult(resultId: string) {
       details: l.details,
       createdAt: l.created_at,
     })),
-  });
+   });
+  } catch (e: any) {
+    const msg = String(e?.message ?? e);
+    // Anthropic returns 400 «Your credit balance is too low…» when funds run out
+    if (/credit|balance|too low|billing|insufficient|purchase more|quota/i.test(msg)) {
+      return { error: 'no_credits' as const };
+    }
+    throw e;
+  }
 
   const ai_analysis = { analysis_json: analysis, student_name: detail.result.student_name, class_number: detail.result.class_number, percentage: weightedPct };
   const db = getDb();

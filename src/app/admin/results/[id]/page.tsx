@@ -119,7 +119,11 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
   const handleAnalyze = async () => {
     setAnalyzing(true);
     try {
-      await analyzeResult(id);
+      const out = await analyzeResult(id);
+      if (out && (out as any).error === 'no_credits') {
+        alert('На балансе ИИ закончились средства. Пополните баланс, чтобы продолжить анализ.');
+        return;
+      }
       const res = await getResultDetail(id);
       setData(res as any);
     } catch (e: any) {

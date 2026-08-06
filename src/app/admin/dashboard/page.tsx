@@ -130,7 +130,11 @@ export default function AdminDashboard() {
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
     try {
-      await analyzeResult(id);
+      const out = await analyzeResult(id);
+      if (out && (out as any).error === 'no_credits') {
+        toast({ variant: 'destructive', title: 'Нет средств на балансе ИИ', description: 'Пополните баланс, чтобы продолжить анализ.' });
+        return;
+      }
       await loadData();
       toast({ title: 'Успех', description: 'Анализ завершен успешно.' });
     } catch (error) {
