@@ -744,6 +744,7 @@ export async function startTest(data: {
   whatsapp: string;
   classNumber: number;
   language: 'kz' | 'ru';
+  isMasterclass?: boolean; // from the «mk» marker in the QR/direct link
 }) {
   const db = getDb();
   await ensureSampleData();
@@ -775,9 +776,6 @@ export async function startTest(data: {
     throw new Error("Вопросы для выбранного класса и языка еще не добавлены.");
   }
 
-  const usedTest = testsSnapshot.docs.find(d => d.id === testIdToUse);
-  const isMasterclass = !!usedTest?.data().mc_hidden;
-
   const resultData = {
     test_id: testIdToUse,
     student_name: data.name,
@@ -785,7 +783,7 @@ export async function startTest(data: {
     parent_whatsapp: data.whatsapp,
     class_number: data.classNumber,
     language: data.language,
-    is_masterclass: isMasterclass,
+    is_masterclass: !!data.isMasterclass, // marker «mk» from the QR link
     status: 'in_progress',
     total_correct: 0,
     total_questions: questions.length,

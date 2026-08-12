@@ -142,11 +142,13 @@ export default function LandingPage() {
     classNumber: '6',
     language: 'ru',
   });
-  // A QR / direct link may pin a specific test via ?test=<id> (e.g. master-class)
+  // A QR / direct link can pin a test (?test=<id>) and mark it as master-class (?mk=1)
   const [pinnedTest, setPinnedTest] = useState<string | undefined>(undefined);
+  const [isMc, setIsMc] = useState(false);
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get('test');
-    if (t) setPinnedTest(t);
+    const sp = new URLSearchParams(window.location.search);
+    const t = sp.get('test'); if (t) setPinnedTest(t);
+    if (sp.get('mk')) setIsMc(true);
   }, []);
 
   const t = TRANSLATIONS[lang];
@@ -172,6 +174,7 @@ export default function LandingPage() {
     try {
       const result = await startTest({
         testId: pinnedTest,
+        isMasterclass: isMc,
         ...formData,
         classNumber: parseInt(formData.classNumber),
         language: formData.language as 'kz' | 'ru',

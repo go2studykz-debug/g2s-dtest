@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus, Edit2, ChevronLeft, Layout,
-  Clock, BookOpen, Trash2, Filter, QrCode, Copy, Download, Files, X, Check
+  Clock, BookOpen, Trash2, Filter, QrCode, Copy, Download, X, Check
 } from 'lucide-react';
-import { getTests, duplicateTest, setTestHidden } from '@/app/lib/actions';
+import { getTests } from '@/app/lib/actions';
 import { Test, Language } from '@/app/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from '@/lib/utils';
@@ -22,7 +22,6 @@ export default function TestsManagement() {
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
   const [selectedLang, setSelectedLang] = useState<Language | 'all'>('all');
   const [qrTest, setQrTest] = useState<Test | null>(null);
-  const [busy, setBusy] = useState(false);
   const router = useRouter();
 
   async function load() {
@@ -31,13 +30,6 @@ export default function TestsManagement() {
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
-
-  async function handleDuplicate(id: string) {
-    if (!confirm('Создать копию теста для мастер-класса? (скрытая, доступ только по QR)')) return;
-    setBusy(true);
-    try { await duplicateTest(id); await load(); } catch (e) { console.error(e); }
-    finally { setBusy(false); }
-  }
 
   const filteredTests = tests.filter(test => {
     const matchClass = selectedClass === 'all' || test.class_number === selectedClass;
@@ -135,10 +127,7 @@ export default function TestsManagement() {
               ) : (
                 filteredTests.map((test) => (
                   <TableRow key={test.id} className="hover:bg-muted/5 border-border/50">
-                    <TableCell className="pl-6 font-bold text-[#081d3a]">
-                      {test.name}
-                      {test.mc_hidden && <Badge className="ml-2 bg-[#6366f1]/10 text-[#6366f1] border-none text-[9px] font-bold uppercase">МК · по QR</Badge>}
-                    </TableCell>
+                    <TableCell className="pl-6 font-bold text-[#081d3a]">{test.name}</TableCell>
                     <TableCell><Badge variant="outline" className="border-border">{test.class_number} Класс</Badge></TableCell>
                     <TableCell className="uppercase font-bold text-xs text-muted-foreground">{test.language}</TableCell>
                     <TableCell>
@@ -169,9 +158,6 @@ export default function TestsManagement() {
                         <Button variant="ghost" size="sm" onClick={() => setQrTest(test)} className="text-[#081d3a] hover:bg-muted h-8" title="QR и ссылка">
                           <QrCode className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" disabled={busy} onClick={() => handleDuplicate(test.id)} className="text-[#081d3a] hover:bg-muted h-8" title="Дублировать для МК">
-                          <Files className="w-4 h-4" />
-                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/tests/${test.id}`)} className="text-primary hover:bg-primary/5 font-bold h-8">
                           <Edit2 className="w-3.5 h-3.5 mr-2" /> Настроить
                         </Button>
@@ -185,35 +171,30 @@ export default function TestsManagement() {
         </CardContent>
       </Card>
 
-      {qrTest && (
-        <QrModal
-          test={qrTest}
-          onClose={() => setQrTest(null)}
-          onToggleHidden={async (h) => { await setTestHidden(qrTest.id, h); setQrTest({ ...qrTest, mc_hidden: h }); await load(); }}
-        />
-      )}
+      {qrTest && <QrModal test={qrTest} onClose={() => setQrTest(null)} />}
     </div>
   );
 }
 
-function QrModal({ test, onClose, onToggleHidden }: { test: Test; onClose: () => void; onToggleHidden: (h: boolean) => Promise<void> }) {
+function QrModal({ test, onClose }: { test: Test; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
+  const [mk, setMk] = useState(false);
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const link = `${origin}/?test=${test.id}`;
+  const link = `${origin}/?test=${test.id}${mk ? '&mk=1' : ''}`;
   const copy = () => { navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   const download = () => {
     const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement | null;
     if (!canvas) return;
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = `qr-${test.name}.png`;
+    a.download = `qr-${test.name}${mk ? '-МК' : ''}.png`;
     a.click();
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-[#081d3a]">QR теста</p>
+          <p className="font-bold text-[#081d3a]">QR теста {mk && <span className="text-[#6366f1]">· МК</span>}</p>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
         <p className="text-sm font-semibold text-[#081d3a] mb-3">{test.name}</p>
@@ -228,9 +209,9 @@ function QrModal({ test, onClose, onToggleHidden }: { test: Test; onClose: () =>
           <Button onClick={download} variant="outline" className="flex-1"><Download className="w-4 h-4 mr-2" /> Скачать QR</Button>
           <Button onClick={copy} variant="outline" className="flex-1">{copied ? 'Скопировано' : 'Копировать'}</Button>
         </div>
-        <label className="flex items-center gap-2 mt-4 text-sm text-[#081d3a] cursor-pointer">
-          <input type="checkbox" checked={!!test.mc_hidden} onChange={(e) => onToggleHidden(e.target.checked)} className="w-4 h-4 accent-[#6366f1]" />
-          Скрытый (мастер-класс) — доступ только по QR
+        <label className="flex items-center gap-2 mt-4 text-sm text-[#081d3a] cursor-pointer bg-[#f0f9f7] rounded-lg px-3 py-2.5">
+          <input type="checkbox" checked={mk} onChange={(e) => setMk(e.target.checked)} className="w-4 h-4 accent-[#6366f1]" />
+          <span>Ссылка <b>для мастер-класса</b> — результаты пометятся «МК»</span>
         </label>
         {!test.is_active && <p className="text-[11px] text-amber-600 mt-2">⚠ Тест не активен — по QR будет недоступен. Активируйте в «Настроить».</p>}
       </div>
