@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, Star, Trophy, Sparkles } from 'lucide-react';
+import { Home, Star, Trophy, Sparkles, BarChart2 } from 'lucide-react';
 
-export default function CompletePage() {
+export default function CompletePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
 
   return (
@@ -64,14 +65,23 @@ export default function CompletePage() {
           Мы с вами свяжемся в ближайшее время — ожидайте звонка!
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => router.push('/')}
-          className="h-12 px-8 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold text-base rounded-xl"
-        >
-          <Home className="w-4 h-4 mr-2" />
-          Вернуться на главную
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            onClick={() => router.push(`/result/${id}`)}
+            className="h-12 px-8 bg-[#14bf96] hover:bg-[#11a381] text-white font-bold text-base rounded-xl"
+          >
+            <BarChart2 className="w-4 h-4 mr-2" />
+            Посмотреть результат
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/')}
+            className="h-12 px-8 border-[#14bf96] text-[#14bf96] hover:bg-[#f0f9f7] font-bold text-base rounded-xl"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            На главную
+          </Button>
+        </div>
 
         <p className="text-xs text-muted-foreground">
           go<strong>2</strong>study · Подготовка к НИШ
