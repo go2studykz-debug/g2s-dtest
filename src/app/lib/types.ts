@@ -68,6 +68,9 @@ export interface StudentResult {
   is_contacted: boolean;
   is_consulted: boolean;
   consultation_refused?: boolean;
+  is_masterclass?: boolean;   // came in via a master-class QR link (?mk=1)
+  link_sent?: boolean;        // result link sent to the parent's WhatsApp
+  link_sent_at?: string;
 }
 
 export interface StudentAnswer {

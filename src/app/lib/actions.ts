@@ -826,6 +826,40 @@ export async function submitAnswer(data: {
   }, { merge: true });
 }
 
+// Send the participant's result link to the parent's WhatsApp via Green API
+// (same instance as the CRM). Never throws — returns a status.
+async function sendResultLinkWA(parentWhatsapp: string, studentName: string, resultId: string) {
+  const instance = process.env.GREENAPI_INSTANCE_ID;
+  const token = process.env.GREENAPI_TOKEN;
+  const digits = (parentWhatsapp || '').replace(/\D/g, '');
+  if (!instance || !token) return { ok: false, reason: 'not configured' };
+  if (digits.length < 10) return { ok: false, reason: 'bad phone' };
+  const base = process.env.RESULT_BASE_URL || 'https://test.go2study.kz';
+  const link = `${base}/result/${resultId}`;
+  const message = `Здравствуйте! Результат теста *${studentName}* готов:\n${link}\n\ngo2study`;
+  try {
+    const res = await fetch(`https://api.green-api.com/waInstance${instance}/sendMessage/${token}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: `${digits}@c.us`, message }),
+    });
+    if (!res.ok) return { ok: false, reason: `green ${res.status}` };
+    return { ok: true, link };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// Manual (re)send of the result link — used by the admin button. Works for any result.
+export async function resendResultLink(resultId: string) {
+  const db = getDb();
+  const snap = await getDoc(doc(db, 'results', resultId));
+  if (!snap.exists()) return { ok: false, reason: 'not found' };
+  const r = snap.data();
+  const sent = await sendResultLinkWA(r.parent_whatsapp, r.student_name, resultId);
+  if (sent.ok) await updateDoc(doc(db, 'results', resultId), { link_sent: true, link_sent_at: new Date().toISOString() });
+  return sent;
+}
+
 export async function finishTest(resultId: string): Promise<StudentResult> {
   const db = getDb();
   const resultRef = doc(db, 'results', resultId);
@@ -864,6 +898,15 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
     total_score: totalScore,
     max_score: maxScore,
   });
+
+  // Master-class: auto-send the result link to the parent's WhatsApp.
+  // Non-blocking — the test always completes even if the message fails.
+  if (resultSnap.data().is_masterclass) {
+    try {
+      const sent = await sendResultLinkWA(resultSnap.data().parent_whatsapp, resultSnap.data().student_name, resultId);
+      if (sent.ok) await updateDoc(resultRef, { link_sent: true, link_sent_at: new Date().toISOString() });
+    } catch (e) { console.error('WA result link send failed:', e); }
+  }
 
   revalidatePath('/admin/dashboard');
   const finalSnap = await getDoc(resultRef);

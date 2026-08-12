@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'today_starts' | 'today_active' | 'all_no_consult' | 'all_abandoned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [mcTab, setMcTab] = useState<'all' | 'regular' | 'mc'>('all');
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(new Date());
   const { toast } = useToast();
@@ -118,14 +119,17 @@ export default function AdminDashboard() {
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      list = list.filter(r => 
-        r.student_name.toLowerCase().includes(term) || 
+      list = list.filter(r =>
+        r.student_name.toLowerCase().includes(term) ||
         r.parent_whatsapp.toLowerCase().includes(term)
       );
     }
 
+    if (mcTab === 'mc') list = list.filter(r => r.is_masterclass);
+    else if (mcTab === 'regular') list = list.filter(r => !r.is_masterclass);
+
     return [...list].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-  }, [results, filter, today, searchTerm, testDurations, now]);
+  }, [results, filter, today, searchTerm, testDurations, now, mcTab]);
 
   const handleAnalyze = async (id: string) => {
     toast({ title: 'AI Анализ запущен', description: 'Вычисляем паттерны обучения...' });
@@ -293,6 +297,14 @@ export default function AdminDashboard() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+        <div className="flex items-center bg-white border border-border rounded-xl p-1 shadow-sm shrink-0">
+          {(['all', 'regular', 'mc'] as const).map((k) => (
+            <button key={k} onClick={() => setMcTab(k)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${mcTab === k ? 'bg-[#14bf96] text-white shadow-sm' : 'text-muted-foreground hover:text-[#081d3a]'}`}>
+              {k === 'all' ? 'Все' : k === 'regular' ? 'Обычные' : 'Мастер-класс'}
+            </button>
+          ))}
         </div>
         {filter !== 'all' && (
           <Button 

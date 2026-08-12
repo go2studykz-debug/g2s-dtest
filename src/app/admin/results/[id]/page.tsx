@@ -11,7 +11,7 @@ import {
   Target, Zap, GraduationCap, ListChecks, History, Timer,
   FileDown, Loader2, Users
 } from 'lucide-react';
-import { getResultDetail, analyzeResult, clearAnalysis, getClassStats } from '@/app/lib/actions';
+import { getResultDetail, analyzeResult, clearAnalysis, getClassStats, resendResultLink } from '@/app/lib/actions';
 import { StudentResult, StudentAnswer, AntiCheatLog, Question } from '@/app/lib/types';
 import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -877,6 +877,23 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               <div className="space-y-1">
                 <p className="text-[10px] uppercase font-black tracking-widest opacity-40">WhatsApp Родителя</p>
                 <p className="text-xl font-bold text-[#14bf96]">{result.parent_whatsapp}</p>
+                <div className="flex flex-col gap-2 pt-3">
+                  <button
+                    onClick={async () => {
+                      const r = await resendResultLink(id);
+                      alert(r?.ok
+                        ? 'Ссылка на результат отправлена родителю в WhatsApp ✅'
+                        : 'Не отправилось (' + (r?.reason || 'ошибка') + '). Скопируйте ссылку и отправьте вручную.');
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-[#14bf96] hover:bg-[#11a381] text-white text-sm font-bold transition-colors">
+                    Отправить результат в WhatsApp
+                  </button>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/result/${id}`); alert('Ссылка скопирована'); }}
+                    className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors">
+                    Копировать ссылку
+                  </button>
+                </div>
               </div>
               <div className="pt-6 border-t border-white/10">
                  <p className="text-[10px] uppercase font-black tracking-widest opacity-40 mb-2">Нарушения прокторинга</p>
