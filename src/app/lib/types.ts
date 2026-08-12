@@ -26,6 +26,7 @@ export interface Test {
   total_time_minutes: number;
   blocks: TestBlock[];
   created_at: Date;
+  mc_hidden?: boolean; // reachable only via direct link/QR (e.g. master-class); excluded from the class picker
 }
 
 export interface Question {

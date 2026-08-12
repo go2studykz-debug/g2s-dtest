@@ -738,7 +738,7 @@ ${list}`;
 }
 
 export async function startTest(data: {
-  testId: string;
+  testId?: string;
   name: string;
   city: string;
   whatsapp: string;
@@ -747,14 +747,24 @@ export async function startTest(data: {
 }) {
   const db = getDb();
   await ensureSampleData();
-  
-  const testsSnapshot = await getDocs(collection(db, 'tests'));
-  const targetTest = testsSnapshot.docs.find(d => {
-    const t = d.data();
-    return t.class_number === data.classNumber && t.language === data.language && t.is_active;
-  });
 
-  const testIdToUse = targetTest ? targetTest.id : 'test-1';
+  const testsSnapshot = await getDocs(collection(db, 'tests'));
+
+  // If the entry link pinned a specific test (QR / direct link), use exactly
+  // that one — even if it's hidden from the class picker (master-class tests).
+  let testIdToUse: string | undefined;
+  if (data.testId) {
+    const pinned = testsSnapshot.docs.find(d => d.id === data.testId && d.data().is_active);
+    if (pinned) testIdToUse = pinned.id;
+  }
+  // Otherwise pick the active test by class + language, skipping hidden ones.
+  if (!testIdToUse) {
+    const targetTest = testsSnapshot.docs.find(d => {
+      const t = d.data();
+      return t.class_number === data.classNumber && t.language === data.language && t.is_active && !t.mc_hidden;
+    });
+    testIdToUse = targetTest ? targetTest.id : 'test-1';
+  }
 
   const questionsSnapshot = await getDocs(collection(db, 'questions'));
   const questions = questionsSnapshot.docs
@@ -765,6 +775,9 @@ export async function startTest(data: {
     throw new Error("Вопросы для выбранного класса и языка еще не добавлены.");
   }
 
+  const usedTest = testsSnapshot.docs.find(d => d.id === testIdToUse);
+  const isMasterclass = !!usedTest?.data().mc_hidden;
+
   const resultData = {
     test_id: testIdToUse,
     student_name: data.name,
@@ -772,6 +785,7 @@ export async function startTest(data: {
     parent_whatsapp: data.whatsapp,
     class_number: data.classNumber,
     language: data.language,
+    is_masterclass: isMasterclass,
     status: 'in_progress',
     total_correct: 0,
     total_questions: questions.length,
@@ -999,6 +1013,40 @@ export async function clearAnalysis(resultId: string) {
   const db = getDb();
   await updateDoc(doc(db, 'results', resultId), { is_analysed: false, ai_analysis: null });
   revalidatePath(`/admin/results/${resultId}`);
+}
+
+// Mark a test as reachable only via its direct link/QR (master-class), so it's
+// excluded from the class-based picker on the landing page.
+export async function setTestHidden(testId: string, hidden: boolean) {
+  const db = getDb();
+  await updateDoc(doc(db, 'tests', testId), { mc_hidden: hidden });
+  revalidatePath('/admin/tests');
+  return { id: testId, mc_hidden: hidden };
+}
+
+// Duplicate a test (with all its questions) as a hidden master-class copy.
+export async function duplicateTest(testId: string) {
+  const db = getDb();
+  const src = await getDoc(doc(db, 'tests', testId));
+  if (!src.exists()) throw new Error('Test not found');
+  const t = src.data() as any;
+
+  const newTestRef = await addDoc(collection(db, 'tests'), {
+    ...t,
+    name: `${t.name} (МК)`,
+    is_active: false,     // admin activates when ready
+    mc_hidden: true,      // reachable only via its QR link
+    created_at: new Date().toISOString(),
+  });
+
+  const qs = await getDocs(query(collection(db, 'questions'), where('test_id', '==', testId)));
+  for (const q of qs.docs) {
+    const qd = q.data() as any;
+    await addDoc(collection(db, 'questions'), { ...qd, test_id: newTestRef.id });
+  }
+
+  revalidatePath('/admin/tests');
+  return { id: newTestRef.id };
 }
 
 export async function saveTest(test: Test): Promise<Test> {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -142,6 +142,12 @@ export default function LandingPage() {
     classNumber: '6',
     language: 'ru',
   });
+  // A QR / direct link may pin a specific test via ?test=<id> (e.g. master-class)
+  const [pinnedTest, setPinnedTest] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('test');
+    if (t) setPinnedTest(t);
+  }, []);
 
   const t = TRANSLATIONS[lang];
 
@@ -165,7 +171,7 @@ export default function LandingPage() {
     setLoading(true);
     try {
       const result = await startTest({
-        testId: 'test-1',
+        testId: pinnedTest,
         ...formData,
         classNumber: parseInt(formData.classNumber),
         language: formData.language as 'kz' | 'ru',
