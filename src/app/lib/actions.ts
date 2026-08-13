@@ -866,6 +866,62 @@ export async function resendResultLink(resultId: string) {
   return sent;
 }
 
+// Sequentially process master-class results awaiting analysis: analyse one,
+// send the link, repeat. A lock keeps only one worker running so the Anthropic
+// API is never hit in parallel bursts. Re-triggers itself if the time budget
+// runs out with items still pending.
+export async function processMcQueue() {
+  const db = getDb();
+  const lockRef = doc(db, 'settings', 'mc_lock');
+  const now = Date.now();
+  const lockSnap = await getDoc(lockRef);
+  const lock = lockSnap.exists() ? (lockSnap.data() as any) : null;
+  if (lock?.locked && lock.at && (now - new Date(lock.at).getTime()) < 90000) {
+    return { skipped: true, reason: 'busy' };
+  }
+  await setDoc(lockRef, { locked: true, at: new Date().toISOString() }, { merge: true });
+
+  const pendingList = async () => {
+    const snap = await getDocs(query(collection(db, 'results'), where('is_masterclass', '==', true)));
+    return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }))
+      .filter(r => r.status === 'completed' && !r.is_analysed)
+      .sort((a, b) => (a.completed_at || '').localeCompare(b.completed_at || ''));
+  };
+
+  const start = Date.now();
+  let processed = 0;
+  let creditsOut = false;
+  try {
+    while (Date.now() - start < 45000) {
+      const pending = await pendingList();
+      if (!pending.length) break;
+      const next = pending[0];
+      try {
+        const res: any = await analyzeResult(next.id);
+        if (res?.error === 'no_credits') { creditsOut = true; break; }
+        const sent = await sendResultLinkWA(next.parent_whatsapp, next.student_name, next.id);
+        if (sent.ok) await updateDoc(doc(db, 'results', next.id), { link_sent: true, link_sent_at: new Date().toISOString() });
+      } catch (e) {
+        console.error('mc queue item failed', next.id, e);
+        // mark analysed to avoid an infinite loop on a persistently failing item
+        await updateDoc(doc(db, 'results', next.id), { is_analysed: true, analysis_failed: true });
+      }
+      processed++;
+    }
+  } finally {
+    const remaining = creditsOut ? [] : await pendingList();
+    if (remaining.length > 0) {
+      // keep the lock fresh and continue in a new invocation
+      await setDoc(lockRef, { locked: true, at: new Date().toISOString() }, { merge: true });
+      const base = process.env.RESULT_BASE_URL || 'https://test.go2study.kz';
+      fetch(`${base}/api/mc/process`, { method: 'POST' }).catch(() => {});
+    } else {
+      await setDoc(lockRef, { locked: false, at: new Date().toISOString() }, { merge: true });
+    }
+  }
+  return { processed, creditsOut };
+}
+
 export async function finishTest(resultId: string): Promise<StudentResult> {
   const db = getDb();
   const resultRef = doc(db, 'results', resultId);
@@ -905,13 +961,13 @@ export async function finishTest(resultId: string): Promise<StudentResult> {
     max_score: maxScore,
   });
 
-  // Master-class: auto-send the result link to the parent's WhatsApp.
-  // Non-blocking — the test always completes even if the message fails.
+  // Master-class: hand off to the background queue — the AI analysis is done
+  // one at a time, and the link is sent to the parent only after it's ready.
   if (resultSnap.data().is_masterclass) {
     try {
-      const sent = await sendResultLinkWA(resultSnap.data().parent_whatsapp, resultSnap.data().student_name, resultId);
-      if (sent.ok) await updateDoc(resultRef, { link_sent: true, link_sent_at: new Date().toISOString() });
-    } catch (e) { console.error('WA result link send failed:', e); }
+      const base = process.env.RESULT_BASE_URL || 'https://test.go2study.kz';
+      await fetch(`${base}/api/mc/process`, { method: 'POST' }).catch(() => {});
+    } catch { /* queue trigger is best-effort */ }
   }
 
   revalidatePath('/admin/dashboard');
@@ -948,14 +1004,17 @@ export async function getAllResults() {
   return serializeData(results) as any;
 }
 
-export async function getClassStats(classNumber: number, language: string): Promise<{
+export async function getClassStats(classNumber: number, language: string, mcOnly = false): Promise<{
   count: number; avg: number; max: number; min: number; median: number; percentages: number[];
 } | null> {
   const db = getDb();
   const snap = await getDocs(collection(db, 'results'));
   const pcts = snap.docs
     .map(d => d.data())
-    .filter(r => r.class_number === classNumber && r.language === language && r.status === 'completed')
+    // Master-class results are compared only among other MK participants;
+    // regular results only among regular ones.
+    .filter(r => r.class_number === classNumber && r.language === language && r.status === 'completed'
+      && (mcOnly ? r.is_masterclass : !r.is_masterclass))
     .map(r => r.percentage as number)
     .sort((a, b) => a - b);
   if (!pcts.length) return null;

@@ -20,7 +20,7 @@ export default function ParticipantResultPage({ params }: { params: Promise<{ id
         if (!res || !res.result) { setNotFound(true); return; }
         setData(res);
         try {
-          const s = await getClassStats(res.result.class_number, res.result.language);
+          const s = await getClassStats(res.result.class_number, res.result.language, res.result.is_masterclass);
           if (s) setStats(s);
         } catch { /* comparison optional */ }
       } catch { setNotFound(true); }

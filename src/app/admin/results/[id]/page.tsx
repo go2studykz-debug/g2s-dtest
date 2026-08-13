@@ -109,7 +109,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
       setData(res as any);
       setLoading(false);
       if (res) {
-        const stats = await getClassStats((res as any).result.class_number, (res as any).result.language);
+        const stats = await getClassStats((res as any).result.class_number, (res as any).result.language, (res as any).result.is_masterclass);
         setClassStats(stats);
       }
     }
