@@ -155,7 +155,7 @@ export default function LandingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.city) {
+    if (!pinnedTest && !formData.city) {
       toast({ variant: 'destructive', title: lang === 'ru' ? 'Ошибка' : lang === 'kz' ? 'Қате' : 'Error', description: lang === 'ru' ? 'Пожалуйста, выберите город.' : lang === 'kz' ? 'Қаланы таңдаңыз.' : 'Please select a city.' });
       return;
     }
@@ -306,33 +306,35 @@ export default function LandingPage() {
                       <Input placeholder={lang === 'ru' ? "Алия Смагулова" : lang === 'kz' ? "Әлия Смағұлова" : "Aliya Smagulova"} className="pl-11 h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl focus:ring-primary" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_city}</Label>
-                      <Select value={formData.city} onValueChange={val => setFormData({...formData, city: val})}>
-                        <SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue placeholder={lang === 'ru' ? "Выбрать" : lang === 'kz' ? "Таңдау" : "Select"} /></SelectTrigger>
-                        <SelectContent>{CITIES.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}</SelectContent>
-                      </Select>
-                      <p className="text-[9px] text-[#3b3e40]/60 italic font-bold leading-tight px-1">{t.field_city_hint}</p>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{pinnedTest ? (lang === 'kz' ? 'Ата-ана WhatsApp' : 'WhatsApp родителя') : t.field_whatsapp}</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-3.5 w-4 h-4 text-primary" />
+                      <Input placeholder="+7 7XX XXX XX XX" className="pl-11 h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl focus:ring-primary" required value={formData.whatsapp} onChange={handlePhoneChange} />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_whatsapp}</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-3.5 w-4 h-4 text-primary" />
-                        <Input placeholder="+7 7XX XXX XX XX" className="pl-11 h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl focus:ring-primary" required value={formData.whatsapp} onChange={handlePhoneChange} />
+                  </div>
+                  {!pinnedTest && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_city}</Label>
+                        <Select value={formData.city} onValueChange={val => setFormData({...formData, city: val})}>
+                          <SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue placeholder={lang === 'ru' ? "Выбрать" : lang === 'kz' ? "Таңдау" : "Select"} /></SelectTrigger>
+                          <SelectContent>{CITIES.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <p className="text-[9px] text-[#3b3e40]/60 italic font-bold leading-tight px-1">{t.field_city_hint}</p>
                       </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_class}</Label>
-                      <Select value={formData.classNumber} onValueChange={val => setFormData({...formData, classNumber: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{[4, 5, 6].map(c => <SelectItem key={c} value={c.toString()}>{c} {lang === 'ru' ? 'Класс' : lang === 'kz' ? 'Сынып' : 'Grade'}</SelectItem>)}</SelectContent></Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_lang}</Label>
-                      <Select value={formData.language} onValueChange={val => setFormData({...formData, language: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ru">Русский</SelectItem><SelectItem value="kz">Қазақша</SelectItem></SelectContent></Select>
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_class}</Label>
+                          <Select value={formData.classNumber} onValueChange={val => setFormData({...formData, classNumber: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent>{[4, 5, 6].map(c => <SelectItem key={c} value={c.toString()}>{c} {lang === 'ru' ? 'Класс' : lang === 'kz' ? 'Сынып' : 'Grade'}</SelectItem>)}</SelectContent></Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-[#081d3a]/40 tracking-widest">{t.field_lang}</Label>
+                          <Select value={formData.language} onValueChange={val => setFormData({...formData, language: val})}><SelectTrigger className="h-12 bg-[#f8fafc] border-[#e3e8ee] rounded-xl"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ru">Русский</SelectItem><SelectItem value="kz">Қазақша</SelectItem></SelectContent></Select>
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <Button type="submit" className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg rounded-xl animate-pulse-cta" disabled={loading}>{loading ? '...' : t.btn_start}{!loading && <ArrowRight className="ml-2 w-5 h-5" />}</Button>
                 </form>
               </CardContent>

@@ -776,13 +776,19 @@ export async function startTest(data: {
     throw new Error("Вопросы для выбранного класса и языка еще не добавлены.");
   }
 
+  // Class + language come from the pinned test itself (QR link), so the
+  // participant never has to pick them; falls back to the form otherwise.
+  const usedTest = testsSnapshot.docs.find(d => d.id === testIdToUse)?.data();
+  const classNumber = usedTest?.class_number ?? data.classNumber;
+  const language = usedTest?.language ?? data.language;
+
   const resultData = {
     test_id: testIdToUse,
     student_name: data.name,
     student_city: data.city,
     parent_whatsapp: data.whatsapp,
-    class_number: data.classNumber,
-    language: data.language,
+    class_number: classNumber,
+    language: language,
     is_masterclass: !!data.isMasterclass, // marker «mk» from the QR link
     status: 'in_progress',
     total_correct: 0,
@@ -836,7 +842,7 @@ async function sendResultLinkWA(parentWhatsapp: string, studentName: string, res
   if (digits.length < 10) return { ok: false, reason: 'bad phone' };
   const base = process.env.RESULT_BASE_URL || 'https://test.go2study.kz';
   const link = `${base}/result/${resultId}`;
-  const message = `Здравствуйте! Результат теста *${studentName}* готов:\n${link}\n\ngo2study`;
+  const message = `Здравствуйте! Готов результат теста, ${studentName}.\nПодробный разбор по ссылке:\n${link}\n\ngo2study — подготовка к НИШ`;
   try {
     const res = await fetch(`https://api.green-api.com/waInstance${instance}/sendMessage/${token}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
