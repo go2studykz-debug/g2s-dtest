@@ -28,6 +28,12 @@ service cloud.firestore {
       }
     }
 
+    // Служебные документы приложения (лок очереди мастер-класса mc_lock и пр.).
+    // Server actions ходят в Firestore без авторизации, поэтому нужен open-доступ.
+    match /settings/{id} {
+      allow read, write: if true;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
