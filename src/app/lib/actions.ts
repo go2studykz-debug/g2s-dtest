@@ -892,10 +892,21 @@ export async function processMcQueue() {
   let processed = 0;
   let creditsOut = false;
   try {
-    while (Date.now() - start < 45000) {
+    while (Date.now() - start < 240000) {
       const pending = await pendingList();
       if (!pending.length) break;
       const next = pending[0];
+      // Ограничение попыток: если результат стабильно не укладывается в бюджет
+      // функции и invocation убивают на середине, без счётчика он крутился бы
+      // вечно. Фиксируем попытку ДО анализа — тогда даже при обрыве значение
+      // уже сохранено, и следующий заход рано или поздно сдастся.
+      const attempts = (next.mc_attempts || 0) + 1;
+      if (attempts > 4) {
+        await updateDoc(doc(db, 'results', next.id), { is_analysed: true, analysis_failed: true });
+        processed++;
+        continue;
+      }
+      await updateDoc(doc(db, 'results', next.id), { mc_attempts: attempts });
       try {
         const res: any = await analyzeResult(next.id);
         if (res?.error === 'no_credits') { creditsOut = true; break; }

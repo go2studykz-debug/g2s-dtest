@@ -4,7 +4,7 @@ import { processMcQueue } from '@/app/lib/actions';
 // Background worker for the master-class analysis queue. Returns immediately;
 // the actual analyse→send work runs after the response via `after()`.
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST() {
   after(async () => {

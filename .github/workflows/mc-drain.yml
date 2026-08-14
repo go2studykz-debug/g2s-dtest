@@ -1,0 +1,22 @@
+name: Драйнер очереди мастер-класса
+
+# Подстраховка: если фоновый воркер /api/mc/process умер посреди анализа
+# (serverless-таймаут), застрявшие МК-результаты (analysed=False) никто не
+# перезапустит. Этот крон каждые 5 минут дёргает очередь — она сама подберёт
+# всё незавершённое. В штатном режиме анализ проходит сразу после теста, и
+# крон просто ничего не находит.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Пнуть очередь
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -m 60 https://test.go2study.kz/api/mc/process)
+          echo "HTTP $code"
+          test "$code" = "200"

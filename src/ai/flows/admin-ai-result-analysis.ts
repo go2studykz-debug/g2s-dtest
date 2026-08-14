@@ -512,12 +512,16 @@ export async function analyzeStudentResult(input: AnalyzeStudentResultInput): Pr
   let lastError: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const message = await client.messages.create({
+      // Стриминг обязателен: max_tokens=16000 — длинная генерация, а
+      // не-стриминговый запрос упирается в таймаут serverless-функции и
+      // обрывается на середине (результат застревает analysed=False).
+      // .finalMessage() собирает полный ответ, поэтому дальше всё как раньше.
+      const message = await client.messages.stream({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 16000,
         system: 'Ты аналитик. Отвечай ТОЛЬКО валидным JSON без markdown, без ```json, без пояснений.',
         messages: [{ role: 'user', content: prompt }],
-      });
+      }).finalMessage();
       let raw = (message.content[0] as { type: string; text: string }).text ?? '';
       let jsonText = raw.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
 
