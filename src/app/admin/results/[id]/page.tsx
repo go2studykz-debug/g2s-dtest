@@ -88,7 +88,7 @@ function computeSubjectScores(testQuestions: Question[], answers: StudentAnswer[
   }));
 }
 
-export default function ResultDetails({ params }: { params: Promise<{ id: string }> }) {
+export default function ResultDetails({ params, readOnly = false }: { params: Promise<{ id: string }>; readOnly?: boolean }) {
   const { id } = use(params);
   const router = useRouter();
   const [data, setData] = useState<{ 
@@ -287,9 +287,11 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
     <div className="min-h-screen bg-[#f4f7f9] p-6 md:p-10 space-y-10 max-w-7xl mx-auto text-[#081d3a]">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-4">
-          <UIButton variant="ghost" onClick={() => router.push('/admin/dashboard')} className="text-muted-foreground hover:text-[#081d3a] -ml-2 font-bold uppercase tracking-widest text-[10px]">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Назад в дашборд
-          </UIButton>
+          {!readOnly && (
+            <UIButton variant="ghost" onClick={() => router.push('/admin/dashboard')} className="text-muted-foreground hover:text-[#081d3a] -ml-2 font-bold uppercase tracking-widest text-[10px]">
+              <ChevronLeft className="w-4 h-4 mr-1" /> Назад в дашборд
+            </UIButton>
+          )}
           <div>
             <h1 className="text-4xl font-headline font-bold text-[#081d3a]">{result.student_name}</h1>
             <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -314,8 +316,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
         </div>
       </header>
 
-      {/* Anticheat banner */}
-      {result.anti_cheat_count > 0 && (
+      {/* Anticheat banner (admin only) */}
+      {!readOnly && result.anti_cheat_count > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
           <Shield className="w-5 h-5 text-red-500 shrink-0" />
           <p className="text-sm font-bold text-red-700">
@@ -357,8 +359,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 space-y-8">
+      <div className={cn("grid grid-cols-1 gap-8 items-start", !readOnly && "lg:grid-cols-3")}>
+        <div className={cn("space-y-8", !readOnly && "lg:col-span-2")}>
           {/* AI Analysis Section */}
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="border-b bg-[#081d3a] text-white py-6 px-8">
@@ -370,7 +372,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
                   </CardTitle>
                   <CardDescription className="text-white/60 mt-1">Методический анализ ошибок и стратегии подготовки.</CardDescription>
                 </div>
-                {analysis && (
+                {analysis && !readOnly && (
                   <div className="flex gap-2 shrink-0">
                     <UIButton variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 font-bold gap-1.5 text-xs h-8 bg-transparent" onClick={async () => { if (confirm('Удалить AI анализ?')) { await clearAnalysis(id); const res = await getResultDetail(id); setData(res as any); } }} disabled={analyzing}>
                       Сбросить
@@ -792,10 +794,19 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               ) : (
                 <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-2xl flex flex-col items-center gap-4 bg-muted/5">
                   <BrainCircuit className="w-14 h-14 opacity-10" />
-                  <p className="font-bold text-[#081d3a]">Анализ ещё не сформирован.</p>
-                  <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold gap-2" onClick={handleAnalyze} disabled={analyzing}>
-                    {analyzing ? <><Loader2 className="w-4 h-4 animate-spin" /> Анализируем... (~20 сек)</> : <><BrainCircuit className="w-4 h-4" /> Запустить AI анализ</>}
-                  </UIButton>
+                  {readOnly ? (
+                    <>
+                      <p className="font-bold text-[#081d3a]">Подробный разбор готовится</p>
+                      <p className="text-sm text-muted-foreground max-w-sm">Специалисты go2study формируют детальный анализ ошибок и рекомендации — он появится здесь совсем скоро.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-bold text-[#081d3a]">Анализ ещё не сформирован.</p>
+                      <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold gap-2" onClick={handleAnalyze} disabled={analyzing}>
+                        {analyzing ? <><Loader2 className="w-4 h-4 animate-spin" /> Анализируем... (~20 сек)</> : <><BrainCircuit className="w-4 h-4" /> Запустить AI анализ</>}
+                      </UIButton>
+                    </>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -868,7 +879,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
         </div>
 
         <div className="space-y-8 sticky top-6">
-          {/* Sidebar Controls */}
+          {/* Sidebar Controls (admin only) */}
+          {!readOnly && (
           <Card className="border-[#e3e8ee] bg-[#081d3a] text-white shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="bg-white/5 border-b border-white/10">
               <CardTitle className="text-[10px] font-black uppercase tracking-widest opacity-50">Контроль сессии</CardTitle>
@@ -904,6 +916,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Class Comparison */}
           {classStats && classStats.count > 1 && (() => {
@@ -960,7 +973,8 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
             );
           })()}
 
-          {/* PDF Export */}
+          {/* PDF Export + proctoring log (admin only) */}
+          {!readOnly && (<>
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
             <CardHeader className="bg-white/5 border-b py-4 px-6">
               <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Экспорт PDF</CardTitle>
@@ -1031,6 +1045,7 @@ export default function ResultDetails({ params }: { params: Promise<{ id: string
               )}
             </CardContent>
           </Card>
+          </>)}
         </div>
       </div>
     </div>

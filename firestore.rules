@@ -3,27 +3,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Тесты — читают все, пишет сервер через server actions
     match /tests/{id} {
       allow read: if true;
       allow write: if true;
     }
 
-    // Вопросы — читают все (нужно для прохождения теста), пишет сервер
     match /questions/{id} {
       allow read: if true;
       allow write: if true;
     }
 
-    // Результаты студентов — создаёт любой, читает любой, удалять нельзя
-    match /student_results/{id} {
+    match /results/{resultId} {
       allow read: if true;
       allow create: if true;
       allow update: if true;
       allow delete: if false;
+
+      match /answers/{answerId} {
+        allow read, write: if true;
+      }
+
+      match /logs/{logId} {
+        allow read, write: if true;
+      }
     }
 
-    // Всё остальное — запрещено
     match /{document=**} {
       allow read, write: if false;
     }
