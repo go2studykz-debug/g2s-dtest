@@ -6,7 +6,7 @@ import { registerForum } from '@/app/lib/actions';
 import { FORUM_EVENT } from './event';
 import {
   Sparkles, CalendarDays, Clock, MapPin, Users, User, Baby, Heart,
-  Minus, Plus, Loader2, CheckCircle2, Gift, ArrowRight,
+  Loader2, CheckCircle2, Gift, ArrowRight,
   ClipboardCheck, AlertTriangle, Route, MessagesSquare, ShieldCheck,
 } from 'lucide-react';
 
@@ -20,7 +20,6 @@ export default function ForumRegistrationPage() {
   const [whatsapp, setWhatsapp] = useState('');
   const [childName, setChildName] = useState('');
   const [hasSpouse, setHasSpouse] = useState(false);
-  const [guests, setGuests] = useState(0);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +29,7 @@ export default function ForumRegistrationPage() {
     if (r) setRef(r);
   }, []);
 
-  const total = 1 + 1 + (hasSpouse ? 1 : 0) + guests; // родитель + ребёнок + супруг + гости
+  const total = 1 + 1 + (hasSpouse ? 1 : 0); // родитель + ребёнок + (супруг)
 
   const submit = async () => {
     setError('');
@@ -41,7 +40,7 @@ export default function ForumRegistrationPage() {
     try {
       const res = await registerForum({
         parentName, parentWhatsapp: whatsapp, childName,
-        hasSpouse, guestsCount: guests, referredBy: ref,
+        hasSpouse, guestsCount: 0, referredBy: ref,
       });
       if (!res.ok) { setError(res.reason || 'Не удалось записаться, попробуйте ещё раз'); setSubmitting(false); return; }
       router.push(`/forum/ticket/${res.id}`);
@@ -149,22 +148,12 @@ export default function ForumRegistrationPage() {
                 </span>
               </button>
 
-              {/* Guests */}
-              <div className="rounded-2xl border-2 border-[#e3e8ee] px-4 py-3.5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-2.5 text-sm font-semibold">
-                    <Users className="w-4 h-4 text-[#3b3e40]/50" /> Знакомые / доп. гости
-                  </span>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button type="button" onClick={() => setGuests(g => Math.max(0, g - 1))}
-                      className="w-8 h-8 rounded-full border border-[#e3e8ee] flex items-center justify-center disabled:opacity-30"
-                      disabled={guests === 0}><Minus className="w-4 h-4" /></button>
-                    <span className="w-6 text-center font-bold tabular-nums">{guests}</span>
-                    <button type="button" onClick={() => setGuests(g => Math.min(20, g + 1))}
-                      className="w-8 h-8 rounded-full border border-[#e3e8ee] flex items-center justify-center"><Plus className="w-4 h-4" /></button>
-                  </div>
-                </div>
-                <p className="text-[11px] text-[#3b3e40]/50 mt-1.5">Приведёте друзей или родственников — укажите, сколько</p>
+              {/* Приглашение семьи — число не спрашиваем, ссылку даём после записи */}
+              <div className="rounded-2xl bg-[#E6E9F7] border border-[#2747E0]/20 px-4 py-3.5 flex items-start gap-2.5">
+                <Gift className="w-4 h-4 text-[#2747E0] shrink-0 mt-0.5" />
+                <p className="text-xs text-[#16205C] font-medium leading-relaxed">
+                  После записи вы сможете <b>бесплатно пригласить одну семью</b> — пришлём готовую ссылку, чтобы им отправить.
+                </p>
               </div>
 
               {/* Total */}
@@ -222,8 +211,8 @@ export default function ForumRegistrationPage() {
               text="Главный участник — на форуме говорим в том числе о его сильных сторонах." highlight />
             <AudienceCard icon={<Heart className="w-5 h-5" />} title="Супруг(-а)" tag="желательно"
               text="Чтобы вся семья была на одной волне по подготовке и целям." />
-            <AudienceCard icon={<Users className="w-5 h-5" />} title="Знакомые" tag="можно"
-              text="Приведите друзей, чьим детям тоже предстоит поступление." />
+            <AudienceCard icon={<Gift className="w-5 h-5" />} title="Знакомая семья" tag="бесплатно"
+              text="После регистрации получите ссылку — позовите одну семью, чьим детям тоже предстоит поступление." />
           </div>
           <div className="text-center mt-8">
             <button onClick={scrollToForm}

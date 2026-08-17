@@ -112,8 +112,8 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
               <Gift className="w-5 h-5 text-[#2747E0]" />
             </div>
             <div>
-              <h3 className="font-bold">Приведите знакомого</h3>
-              <p className="text-xs text-[#3b3e40]/70 mt-0.5">Поделитесь личной ссылкой — кого вы пригласите, зачтётся именно вам.</p>
+              <h3 className="font-bold">Пригласите семью — бесплатно</h3>
+              <p className="text-xs text-[#3b3e40]/70 mt-0.5">Отправьте эту ссылку одной семье, которую хотите позвать на форум.</p>
             </div>
           </div>
 
