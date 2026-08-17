@@ -1019,8 +1019,9 @@ export async function getClassStats(classNumber: number, language: string, mcOnl
   count: number; avg: number; max: number; min: number; median: number; percentages: number[];
 } | null> {
   const db = getDb();
-  const snap = await getDocs(collection(db, 'results'));
-  const pcts = snap.docs
+  // Отбор процентов из набора документов. MC-разбивку делаем в памяти, чтобы
+  // старые записи без поля is_masterclass считались как обычные (как раньше).
+  const pick = (docs: any[]) => docs
     .map(d => d.data())
     // Master-class results are compared only among other MK participants;
     // regular results only among regular ones.
@@ -1028,6 +1029,26 @@ export async function getClassStats(classNumber: number, language: string, mcOnl
       && (mcOnly ? r.is_masterclass : !r.is_masterclass))
     .map(r => r.percentage as number)
     .sort((a, b) => a - b);
+
+  let pcts: number[];
+  try {
+    // Читаем только когорту нужного класса/языка, а не всю коллекцию results.
+    // Фильтры-равенства не требуют составного индекса. Чтения падают с «всех
+    // результатов» до размера одного класса.
+    const snap = await getDocs(query(
+      collection(db, 'results'),
+      where('class_number', '==', classNumber),
+      where('language', '==', language),
+      where('status', '==', 'completed'),
+    ));
+    pcts = pick(snap.docs);
+  } catch (e) {
+    // Если Firestore внезапно попросит индекс — не ломаем сравнение, а
+    // разово падаем на полный скан (прежнее поведение).
+    console.warn('getClassStats: indexed query failed, fallback to full scan:', e);
+    const snap = await getDocs(collection(db, 'results'));
+    pcts = pick(snap.docs);
+  }
   if (!pcts.length) return null;
   const avg = Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length);
   return { count: pcts.length, avg, max: pcts[pcts.length - 1], min: pcts[0], median: pcts[Math.floor(pcts.length / 2)], percentages: pcts };
