@@ -28,17 +28,17 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f0f9f7] to-[#eef3fb] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#14bf96] animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-[#E6E9F7] to-[#eef3fb] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#2747E0] animate-spin" />
       </div>
     );
   }
   if (!reg) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f0f9f7] to-[#eef3fb] flex items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#E6E9F7] to-[#eef3fb] flex items-center justify-center p-6 text-center">
         <div>
-          <AlertCircle className="w-12 h-12 text-[#081d3a]/40 mx-auto mb-3" />
-          <p className="text-lg font-bold text-[#081d3a]">Билет не найден</p>
+          <AlertCircle className="w-12 h-12 text-[#16205C]/40 mx-auto mb-3" />
+          <p className="text-lg font-bold text-[#16205C]">Билет не найден</p>
           <p className="text-sm text-[#3b3e40]/70 mt-1">Проверьте ссылку или запишитесь заново.</p>
         </div>
       </div>
@@ -55,12 +55,12 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f9f7] via-white to-[#eef3fb] text-[#081d3a]">
+    <div className="min-h-screen bg-gradient-to-br from-[#E6E9F7] via-white to-[#eef3fb] text-[#16205C]">
       <div className="max-w-lg mx-auto px-4 sm:px-5 py-8 sm:py-12 space-y-5">
 
         {/* Success */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14bf96] to-[#0fa07e] flex items-center justify-center mx-auto shadow-lg shadow-[#14bf96]/25">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2747E0] to-[#1E3AC4] flex items-center justify-center mx-auto shadow-lg shadow-[#2747E0]/25">
             <CheckCircle2 className="w-9 h-9 text-white" />
           </div>
           <div>
@@ -70,14 +70,14 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Ticket */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-[#081d3a]/5 border border-[#081d3a]/5 overflow-hidden">
-          <div className="bg-[#081d3a] text-white p-6">
-            <p className="text-[#14bf96] font-black uppercase tracking-widest text-[10px] mb-1">Электронный билет</p>
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#16205C]/5 border border-[#16205C]/5 overflow-hidden">
+          <div className="bg-[#16205C] text-white p-6">
+            <p className="text-[#2747E0] font-black uppercase tracking-widest text-[10px] mb-1">Электронный билет</p>
             <h2 className="text-lg font-bold leading-tight">{FORUM_EVENT.title}</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 text-xs font-semibold text-white/80">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#14bf96]" /> {FORUM_EVENT.dateLabel}</span>
-              <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#14bf96]" /> {FORUM_EVENT.time}</span>
-              <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#14bf96]" /> {FORUM_EVENT.place}</span>
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#2747E0]" /> {FORUM_EVENT.dateLabel}</span>
+              <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2747E0]" /> {FORUM_EVENT.time}</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#2747E0]" /> {FORUM_EVENT.place}</span>
             </div>
           </div>
 
@@ -94,22 +94,22 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
           {/* Party */}
           <div className="p-6 space-y-2.5">
             <p className="text-[10px] font-black uppercase tracking-widest text-[#3b3e40]/40">Кто придёт</p>
-            <Row icon={<User className="w-4 h-4 text-[#14bf96]" />} text={reg.parent_name} tag="вы" />
-            <Row icon={<Baby className="w-4 h-4 text-[#14bf96]" />} text={reg.child_name} tag="ребёнок" />
-            {reg.has_spouse && <Row icon={<Heart className="w-4 h-4 text-[#14bf96]" />} text="Супруг(-а)" />}
-            {reg.guests_count > 0 && <Row icon={<Users className="w-4 h-4 text-[#14bf96]" />} text={`Гости: ${reg.guests_count} чел.`} />}
+            <Row icon={<User className="w-4 h-4 text-[#2747E0]" />} text={reg.parent_name} tag="вы" />
+            <Row icon={<Baby className="w-4 h-4 text-[#2747E0]" />} text={reg.child_name} tag="ребёнок" />
+            {reg.has_spouse && <Row icon={<Heart className="w-4 h-4 text-[#2747E0]" />} text="Супруг(-а)" />}
+            {reg.guests_count > 0 && <Row icon={<Users className="w-4 h-4 text-[#2747E0]" />} text={`Гости: ${reg.guests_count} чел.`} />}
             <div className="flex items-center justify-between pt-2 mt-1 border-t border-[#eef2f6]">
               <span className="text-sm font-bold">Всего</span>
-              <span className="text-lg font-bold text-[#14bf96] tabular-nums">{reg.total_people} чел.</span>
+              <span className="text-lg font-bold text-[#2747E0] tabular-nums">{reg.total_people} чел.</span>
             </div>
           </div>
         </div>
 
         {/* Invite a friend */}
-        <div className="bg-white rounded-3xl shadow-lg shadow-[#081d3a]/5 border border-[#14bf96]/20 p-6 space-y-4">
+        <div className="bg-white rounded-3xl shadow-lg shadow-[#16205C]/5 border border-[#2747E0]/20 p-6 space-y-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#f0f9f7] flex items-center justify-center shrink-0">
-              <Gift className="w-5 h-5 text-[#14bf96]" />
+            <div className="w-10 h-10 rounded-xl bg-[#E6E9F7] flex items-center justify-center shrink-0">
+              <Gift className="w-5 h-5 text-[#2747E0]" />
             </div>
             <div>
               <h3 className="font-bold">Приведите знакомого</h3>
@@ -125,14 +125,14 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
               <input readOnly value={inviteUrl}
                 className="flex-1 min-w-0 rounded-xl border border-[#e3e8ee] bg-[#f8fafc] px-3 py-2.5 text-xs text-[#3b3e40] truncate" />
               <button onClick={copyInvite}
-                className="shrink-0 px-4 py-2.5 rounded-xl bg-[#081d3a] hover:bg-[#0a2547] text-white text-xs font-bold flex items-center gap-1.5">
+                className="shrink-0 px-4 py-2.5 rounded-xl bg-[#16205C] hover:bg-[#0a2547] text-white text-xs font-bold flex items-center gap-1.5">
                 {copied ? <><Check className="w-3.5 h-3.5" /> Скопировано</> : <><Copy className="w-3.5 h-3.5" /> Копировать</>}
               </button>
             </div>
           </div>
 
           {reg.invited_count > 0 && (
-            <p className="text-center text-sm font-semibold text-[#0d7a63] bg-[#f0f9f7] rounded-xl py-2">
+            <p className="text-center text-sm font-semibold text-[#1E3AC4] bg-[#E6E9F7] rounded-xl py-2">
               🎉 По вашему приглашению уже записалось: {reg.invited_count}
             </p>
           )}
@@ -147,7 +147,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
 function Row({ icon, text, tag }: { icon: React.ReactNode; text: string; tag?: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-[#f0f9f7] flex items-center justify-center shrink-0">{icon}</div>
+      <div className="w-8 h-8 rounded-lg bg-[#E6E9F7] flex items-center justify-center shrink-0">{icon}</div>
       <span className="text-sm font-semibold flex-1">{text}</span>
       {tag && <span className="text-[10px] font-bold uppercase tracking-wider text-[#3b3e40]/40">{tag}</span>}
     </div>
