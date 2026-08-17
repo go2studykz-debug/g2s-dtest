@@ -28,6 +28,15 @@ service cloud.firestore {
       }
     }
 
+    // Регистрации на форум — создаёт любой (публичная форма), читает/обновляет
+    // сервер через server actions; удалять нельзя.
+    match /forum_registrations/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
     // Служебные документы приложения (лок очереди мастер-класса mc_lock и пр.).
     // Server actions ходят в Firestore без авторизации, поэтому нужен open-доступ.
     match /settings/{id} {

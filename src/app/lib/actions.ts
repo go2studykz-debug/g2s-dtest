@@ -7,6 +7,7 @@ import {
   Subject,
 } from './types';
 import { analyzeStudentResult } from '@/ai/flows/admin-ai-result-analysis';
+import { FORUM_EVENT } from '@/app/forum/event';
 import Anthropic from '@anthropic-ai/sdk';
 import {
   collection,
@@ -1307,4 +1308,114 @@ ${subjectHint && subjectHint !== 'auto' ? `Все вопросы относят�
   } as any));
 
   return { questions };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ФОРУМ: регистрация, билет, реферальные приглашения, админ-список.
+// Данные — коллекция forum_registrations (правила открыты, как и остальное).
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function sendForumConfirmationWA(whatsapp: string, parentName: string, regId: string) {
+  const instance = process.env.GREENAPI_INSTANCE_ID;
+  const token = process.env.GREENAPI_TOKEN;
+  const digits = (whatsapp || '').replace(/\D/g, '');
+  if (!instance || !token) return { ok: false, reason: 'not configured' };
+  if (digits.length < 10) return { ok: false, reason: 'bad phone' };
+  const base = process.env.RESULT_BASE_URL || 'https://test.go2study.kz';
+  const ticket = `${base}/forum/ticket/${regId}`;
+  const message =
+    `Здравствуйте, ${parentName}! Вы записаны на форум go2study ✅\n\n` +
+    `📅 ${FORUM_EVENT.dateLabel}, ${FORUM_EVENT.time}\n` +
+    `📍 ${FORUM_EVENT.place}\n\n` +
+    `Ваш билет (покажите на входе):\n${ticket}\n\n` +
+    `Хотите привести знакомого? В билете — ваша персональная ссылка-приглашение, поделитесь ею.`;
+  try {
+    const res = await fetch(`https://api.green-api.com/waInstance${instance}/sendMessage/${token}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId: `${digits}@c.us`, message }),
+    });
+    if (!res.ok) return { ok: false, reason: `green ${res.status}` };
+    return { ok: true, ticket };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export async function registerForum(data: {
+  parentName: string;
+  parentWhatsapp: string;
+  childName: string;
+  hasSpouse: boolean;
+  guestsCount: number;
+  referredBy?: string | null;
+}): Promise<{ ok: boolean; id?: string; reason?: string }> {
+  const db = getDb();
+  const name = (data.parentName || '').trim();
+  const child = (data.childName || '').trim();
+  const digits = (data.parentWhatsapp || '').replace(/\D/g, '');
+  if (!name || !child) return { ok: false, reason: 'Заполните имя и имя ребёнка' };
+  if (digits.length < 10) return { ok: false, reason: 'Проверьте номер WhatsApp' };
+  const guests = Math.max(0, Math.min(20, Number(data.guestsCount) || 0));
+  const total = 1 /* родитель */ + 1 /* ребёнок */ + (data.hasSpouse ? 1 : 0) + guests;
+
+  // Реферал: принимаем только существующую регистрацию, чтобы не плодить мусор.
+  let referredBy: string | null = null;
+  if (data.referredBy) {
+    const refSnap = await getDoc(doc(db, 'forum_registrations', data.referredBy));
+    if (refSnap.exists()) referredBy = data.referredBy;
+  }
+
+  const now = new Date().toISOString();
+  const ref = await addDoc(collection(db, 'forum_registrations'), {
+    parent_name: name,
+    parent_whatsapp: `+${digits}`,
+    child_name: child,
+    has_spouse: !!data.hasSpouse,
+    guests_count: guests,
+    total_people: total,
+    referred_by: referredBy,
+    checked_in: false,
+    wa_sent: false,
+    created_at: now,
+  });
+
+  // Подтверждение в WhatsApp — не критично для успеха регистрации.
+  const sent = await sendForumConfirmationWA(`+${digits}`, name, ref.id);
+  if (sent.ok) await updateDoc(doc(db, 'forum_registrations', ref.id), { wa_sent: true, wa_sent_at: now });
+
+  revalidatePath('/admin/forum');
+  return { ok: true, id: ref.id };
+}
+
+export async function getForumRegistration(id: string) {
+  const db = getDb();
+  const snap = await getDoc(doc(db, 'forum_registrations', id));
+  if (!snap.exists()) return null;
+  // Сколько человек этот участник уже привёл — для мотивации на билете.
+  const invited = await getDocs(query(collection(db, 'forum_registrations'), where('referred_by', '==', id)));
+  return serializeData({ id, ...snap.data(), invited_count: invited.size }) as any;
+}
+
+export async function getForumRegistrations() {
+  const db = getDb();
+  const snap = await getDocs(collection(db, 'forum_registrations'));
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return serializeData(list) as any[];
+}
+
+export async function toggleForumCheckin(id: string, checkedIn: boolean) {
+  const db = getDb();
+  await updateDoc(doc(db, 'forum_registrations', id), { checked_in: checkedIn });
+  revalidatePath('/admin/forum');
+  return { ok: true };
+}
+
+export async function resendForumConfirmation(id: string) {
+  const db = getDb();
+  const snap = await getDoc(doc(db, 'forum_registrations', id));
+  if (!snap.exists()) return { ok: false, reason: 'not found' };
+  const r = snap.data();
+  const sent = await sendForumConfirmationWA(r.parent_whatsapp, r.parent_name, id);
+  if (sent.ok) await updateDoc(doc(db, 'forum_registrations', id), { wa_sent: true, wa_sent_at: new Date().toISOString() });
+  return sent;
 }
