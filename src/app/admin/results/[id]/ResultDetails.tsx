@@ -284,7 +284,7 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
   const dateStr = new Date(result.started_at as any).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-[#f4f7f9] p-6 md:p-10 space-y-10 max-w-7xl mx-auto text-[#081d3a]">
+    <div className="min-h-screen bg-[#f4f7f9] p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-10 max-w-7xl mx-auto text-[#081d3a]">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-4">
           {!readOnly && (
@@ -293,7 +293,7 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
             </UIButton>
           )}
           <div>
-            <h1 className="text-4xl font-headline font-bold text-[#081d3a]">{result.student_name}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-[#081d3a] break-words">{result.student_name}</h1>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge variant="outline" className="bg-white text-primary border-primary/30 font-bold px-3 py-1">
                 {result.class_number} Класс
@@ -329,8 +329,8 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
       {/* Score Summary block */}
       {subjectScores.length > 0 && effectiveMax > 0 && (
         <Card className="border-[#e3e8ee] bg-white shadow-sm rounded-2xl">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap items-center gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6">
               <div className="shrink-0">
                 <svg width="120" height="120" viewBox="0 0 120 120">
                   <circle cx="60" cy="60" r={ringR} fill="none" strokeWidth="10" className="stroke-[#f0f4f8] dark:stroke-[#1e2d45]" />
@@ -363,14 +363,14 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
         <div className={cn("space-y-8", !readOnly && "lg:col-span-2")}>
           {/* AI Analysis Section */}
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
-            <CardHeader className="border-b bg-[#081d3a] text-white py-6 px-8">
+            <CardHeader className="border-b bg-[#081d3a] text-white py-5 px-5 sm:py-6 sm:px-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="flex items-center gap-3 font-headline text-xl font-bold">
-                    <GraduationCap className="w-7 h-7 text-[#14bf96]" />
+                  <CardTitle className="flex items-center gap-2 sm:gap-3 font-headline text-lg sm:text-xl font-bold">
+                    <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7 text-[#14bf96] shrink-0" />
                     AI Анализ go2study
                   </CardTitle>
-                  <CardDescription className="text-white/60 mt-1">Методический анализ ошибок и стратегии подготовки.</CardDescription>
+                  <CardDescription className="text-white/60 mt-1 text-xs sm:text-sm">Методический анализ ошибок и стратегии подготовки.</CardDescription>
                 </div>
                 {analysis && !readOnly && (
                   <div className="flex gap-2 shrink-0">
@@ -384,19 +384,19 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
                 )}
               </div>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-4 sm:p-6 space-y-6">
 
               {analysis ? (
                 <Tabs defaultValue="overview">
-                  <TabsList className="w-full grid grid-cols-4">
-                    <TabsTrigger value="overview">Обзор</TabsTrigger>
-                    <TabsTrigger value="behavioral">Поведение</TabsTrigger>
-                    <TabsTrigger value="errors">Ошибки {analysis.detailedAnalysis?.length > 0 && `(${analysis.detailedAnalysis.length})`}</TabsTrigger>
-                    <TabsTrigger value="strategy">Стратегия</TabsTrigger>
+                  <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
+                    <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-normal py-2 h-auto data-[state=active]:font-bold">Обзор</TabsTrigger>
+                    <TabsTrigger value="behavioral" className="text-xs sm:text-sm whitespace-normal py-2 h-auto data-[state=active]:font-bold">Поведение</TabsTrigger>
+                    <TabsTrigger value="errors" className="text-xs sm:text-sm whitespace-normal py-2 h-auto data-[state=active]:font-bold">Ошибки {analysis.detailedAnalysis?.length > 0 && `(${analysis.detailedAnalysis.length})`}</TabsTrigger>
+                    <TabsTrigger value="strategy" className="text-xs sm:text-sm whitespace-normal py-2 h-auto data-[state=active]:font-bold">Стратегия</TabsTrigger>
                   </TabsList>
 
                   {/* TAB 1: Обзор */}
-                  <TabsContent value="overview" className="space-y-8 mt-6">
+                  <TabsContent value="overview" className="space-y-6 sm:space-y-8 mt-5">
                     <div className="bg-[#f0f9f7] border-l-4 border-[#14bf96] rounded-lg p-5">
                       <p className="text-base leading-relaxed font-medium">{analysis.performanceSummary}</p>
                     </div>
@@ -456,7 +456,7 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
                   </TabsContent>
 
                   {/* TAB 2: Поведенческий анализ */}
-                  <TabsContent value="behavioral" className="space-y-8 mt-6">
+                  <TabsContent value="behavioral" className="space-y-6 sm:space-y-8 mt-5">
 
                     {/* Time per question */}
                     <div className="space-y-2">
@@ -669,7 +669,7 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
                   </TabsContent>
 
                   {/* TAB 4: Стратегия */}
-                  <TabsContent value="strategy" className="space-y-8 mt-6">
+                  <TabsContent value="strategy" className="space-y-6 sm:space-y-8 mt-5">
                     {analysis.strategyAnalysis && (
                       <div className="space-y-3">
                         <h4 className="font-bold text-sm uppercase tracking-widest text-primary flex items-center gap-2"><BrainCircuit className="w-4 h-4" /> Стратегия прохождения</h4>
@@ -814,9 +814,9 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
 
           {/* Full Questions Breakdown Table */}
           <Card className="border-[#e3e8ee] bg-white shadow-lg rounded-2xl overflow-hidden">
-            <CardHeader className="py-4 px-8 border-b flex flex-row items-center justify-between">
-              <div className="flex items-center gap-3">
-                <ListChecks className="w-6 h-6 text-primary" />
+            <CardHeader className="py-4 px-4 sm:px-8 border-b flex flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <ListChecks className="w-6 h-6 text-primary shrink-0" />
                 <div>
                   <CardTitle className="font-headline text-base font-bold">Полный список ответов</CardTitle>
                   <CardDescription className="text-xs">{testQuestions.length} вопросов · {answers.filter(a => a.is_correct).length} верных</CardDescription>
@@ -827,10 +827,11 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
               </UIButton>
             </CardHeader>
             {showQuestions && <CardContent className="p-0">
-              <Table>
+              <div className="w-full overflow-x-auto">
+              <Table className="min-w-[560px]">
                 <TableHeader className="bg-[#f8fafc]">
                   <TableRow>
-                    <TableHead className="pl-8 w-16">№</TableHead>
+                    <TableHead className="pl-4 sm:pl-8 w-12 sm:w-16">№</TableHead>
                     <TableHead>Предмет / Вопрос</TableHead>
                     <TableHead className="w-32">Ответ ученика</TableHead>
                     <TableHead className="w-32">Правильный ответ</TableHead>
@@ -874,6 +875,7 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
                   })}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>}
           </Card>
         </div>
