@@ -88,6 +88,48 @@ function computeSubjectScores(testQuestions: Question[], answers: StudentAnswer[
   }));
 }
 
+// Анимация «идёт ИИ-анализ»: показывается при ручном запуске в админке и
+// автоматически на странице результата у родителя, пока очередь готовит разбор.
+function AnalyzingAnimation({ readOnly = false }: { readOnly?: boolean }) {
+  const steps = [
+    'Анализируем ответы ученика…',
+    'Ищем закономерности и типичные ошибки…',
+    'Оцениваем стратегию и темп прохождения…',
+    'Формируем персональные рекомендации…',
+  ];
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep(s => (s + 1) % steps.length), 2200);
+    return () => clearInterval(t);
+  }, [steps.length]);
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12 sm:py-16 px-4 gap-6">
+      <div className="relative flex items-center justify-center w-24 h-24">
+        <span className="absolute inline-flex h-20 w-20 rounded-full bg-[#14bf96]/20 animate-ping" />
+        <span className="absolute inline-flex h-16 w-16 rounded-full bg-[#14bf96]/25 animate-pulse" />
+        <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#14bf96] to-[#0fa07e] flex items-center justify-center shadow-lg shadow-[#14bf96]/30">
+          <BrainCircuit className="w-8 h-8 text-white animate-pulse" />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <p className="font-bold text-lg text-[#081d3a]">Идёт ИИ-анализ</p>
+        <p className="text-sm text-muted-foreground min-h-[1.25rem]">{steps[step]}</p>
+      </div>
+      <div className="w-full max-w-[240px] h-1.5 bg-[#e8eef3] rounded-full overflow-hidden">
+        <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#14bf96] to-[#0fa07e] g2s-slide" />
+      </div>
+      <div className="flex gap-1.5">
+        {steps.map((_, i) => (
+          <span key={i} className={cn('w-2 h-2 rounded-full transition-colors', i === step ? 'bg-[#14bf96]' : 'bg-[#14bf96]/25')} />
+        ))}
+      </div>
+      {readOnly && (
+        <p className="text-xs text-muted-foreground/70 max-w-[260px]">Обычно занимает 1–2 минуты. Страница обновится сама — закрывать не нужно.</p>
+      )}
+    </div>
+  );
+}
+
 export default function ResultDetails({ params, readOnly = false }: { params: Promise<{ id: string }>; readOnly?: boolean }) {
   const { id } = use(params);
   const router = useRouter();
@@ -115,6 +157,22 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
     }
     load();
   }, [id]);
+
+  // Родитель (readOnly) открыл ссылку, а разбор ещё готовится очередью МК —
+  // тихо опрашиваем каждые 12с; как только анализ появился, страница сама
+  // покажет его без перезагрузки.
+  useEffect(() => {
+    if (!readOnly) return;
+    if (data?.result?.ai_analysis?.analysis_json) return; // уже готов
+    if (data && data.result.status !== 'completed') return; // тест не завершён
+    const t = setInterval(async () => {
+      try {
+        const res = await getResultDetail(id) as any;
+        if (res?.result?.ai_analysis?.analysis_json) setData(res);
+      } catch { /* сеть — попробуем на следующем тике */ }
+    }, 12000);
+    return () => clearInterval(t);
+  }, [readOnly, id, data]);
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
@@ -386,7 +444,9 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
             </CardHeader>
             <CardContent className="p-4 sm:p-6 space-y-6">
 
-              {analysis ? (
+              {analyzing ? (
+                <AnalyzingAnimation readOnly={readOnly} />
+              ) : analysis ? (
                 <Tabs defaultValue="overview">
                   <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
                     <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-normal py-2 h-auto data-[state=active]:font-bold">Обзор</TabsTrigger>
@@ -791,22 +851,15 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
                     )}
                   </TabsContent>
                 </Tabs>
+              ) : readOnly ? (
+                <AnalyzingAnimation readOnly />
               ) : (
                 <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-2xl flex flex-col items-center gap-4 bg-muted/5">
                   <BrainCircuit className="w-14 h-14 opacity-10" />
-                  {readOnly ? (
-                    <>
-                      <p className="font-bold text-[#081d3a]">Подробный разбор готовится</p>
-                      <p className="text-sm text-muted-foreground max-w-sm">Специалисты go2study формируют детальный анализ ошибок и рекомендации — он появится здесь совсем скоро.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-bold text-[#081d3a]">Анализ ещё не сформирован.</p>
-                      <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold gap-2" onClick={handleAnalyze} disabled={analyzing}>
-                        {analyzing ? <><Loader2 className="w-4 h-4 animate-spin" /> Анализируем... (~20 сек)</> : <><BrainCircuit className="w-4 h-4" /> Запустить AI анализ</>}
-                      </UIButton>
-                    </>
-                  )}
+                  <p className="font-bold text-[#081d3a]">Анализ ещё не сформирован.</p>
+                  <UIButton className="bg-[#14bf96] hover:bg-[#11a381] font-bold gap-2" onClick={handleAnalyze} disabled={analyzing}>
+                    <BrainCircuit className="w-4 h-4" /> Запустить AI анализ
+                  </UIButton>
                 </div>
               )}
             </CardContent>

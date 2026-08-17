@@ -168,3 +168,12 @@
   width: 0;
   height: 0;
 }
+
+/* Индикатор «идёт ИИ-анализ» — бегущая полоса (indeterminate progress) */
+@keyframes g2s-slide {
+  0%   { transform: translateX(-130%); }
+  100% { transform: translateX(360%); }
+}
+.g2s-slide {
+  animation: g2s-slide 1.4s ease-in-out infinite;
+}
