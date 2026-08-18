@@ -7,11 +7,11 @@ import { FORUM_EVENT } from './event';
 import {
   Sparkles, CalendarDays, Clock, MapPin, Users, User, Baby, Heart,
   Loader2, CheckCircle2, Gift, ArrowRight,
-  ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare, ShieldCheck,
+  ClipboardCheck, BarChart3, Presentation, CalendarRange, MessagesSquare, ShieldCheck,
   TrendingUp,
 } from 'lucide-react';
 
-const BENEFIT_ICONS = [ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare];
+const BENEFIT_ICONS = [ClipboardCheck, BarChart3, Presentation, CalendarRange, MessagesSquare];
 
 export default function ForumRegistrationPage() {
   const router = useRouter();
