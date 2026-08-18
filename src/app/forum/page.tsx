@@ -8,6 +8,7 @@ import {
   Sparkles, CalendarDays, Clock, MapPin, Users, User, Baby, Heart,
   Loader2, CheckCircle2, Gift, ArrowRight,
   ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare, ShieldCheck,
+  TrendingUp,
 } from 'lucide-react';
 
 const BENEFIT_ICONS = [ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare];
@@ -207,46 +208,80 @@ export default function ForumRegistrationPage() {
           <p className="text-sm text-[#3b3e40]/70 mt-2 leading-relaxed">Не «нормально/плохо», а конкретный балл, сравнение с проходным и список пробелов — что именно подтягивать до экзамена.</p>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-[#16205C]/8 border border-[#16205C]/5 overflow-hidden">
-          <div className="bg-[#16205C] text-white px-6 py-4 flex items-center justify-between">
-            <span className="flex items-center gap-2 font-bold text-sm"><BarChart3 className="w-4 h-4 text-[#6E8BFF]" /> Личный бланк · go2study</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#6E8BFF] bg-white/10 rounded-full px-2.5 py-1">пример</span>
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg shadow-[#16205C]/10 border border-[#16205C]/10 overflow-hidden">
+          {/* header */}
+          <div className="bg-[#16205C] text-white px-5 sm:px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0"><BarChart3 className="w-4 h-4 text-[#6E8BFF]" /></div>
+              <div className="leading-tight">
+                <div className="font-bold text-sm">Личный бланк результата</div>
+                <div className="text-[9px] text-white/50 uppercase tracking-[0.15em]">go2study · диагностика НИШ</div>
+              </div>
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest text-[#6E8BFF] bg-white/10 rounded-full px-2.5 py-1">пример</span>
           </div>
 
-          <div className="p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-              <div className="relative w-28 h-28 shrink-0">
-                <svg viewBox="0 0 100 100" className="w-28 h-28 -rotate-90">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="#E6E9F7" strokeWidth="10" />
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="#2747E0" strokeWidth="10" strokeLinecap="round" strokeDasharray="263.9" strokeDashoffset="58" />
+          {/* score + subjects */}
+          <div className="px-5 sm:px-7 py-6 flex flex-col sm:flex-row gap-6 sm:gap-7 border-b border-[#eef1f7]">
+            <div className="flex sm:flex-col items-center gap-4 sm:gap-3 sm:w-32 shrink-0">
+              <div className="relative w-24 h-24 shrink-0">
+                <svg viewBox="0 0 100 100" className="w-24 h-24 -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#E6E9F7" strokeWidth="9" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#2747E0" strokeWidth="9" strokeLinecap="round" strokeDasharray="263.9" strokeDashoffset="58" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold text-[#16205C]">78%</span>
-                  <span className="text-[10px] text-[#3b3e40]/60">312 / 400 б.</span>
+                  <span className="text-xl font-bold text-[#16205C] tabular-nums leading-none">78%</span>
+                  <span className="text-[9px] text-[#6A6E78] tabular-nums mt-0.5">312/400</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2.5 flex-1 w-full">
-                {[['Математика', '82%'], ['Логика', '74%'], ['Английский', '68%'], ['Казахский', '80%']].map(([s, v]) => (
-                  <div key={s} className="rounded-xl bg-[#E6E9F7] px-3 py-2.5">
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-[#3b3e40]/60">{s}</div>
-                    <div className="text-lg font-bold text-[#2747E0]">{v}</div>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#2747E0] bg-[#E6E9F7] rounded-full px-2 py-1"><TrendingUp className="w-3 h-3" /> +13% к проходному</span>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-[#6A6E78] mb-2.5">Баллы по предметам</div>
+              <div className="space-y-2.5">
+                {[['Математика', '82%', '164/200'], ['Логика', '76%', '38/50'], ['Английский', '70%', '70/100'], ['Казахский', '80%', '40/50']].map(([s, p, sc]) => (
+                  <div key={s} className="flex items-center gap-2.5">
+                    <span className="w-[74px] text-xs font-semibold text-[#16205C] shrink-0">{s}</span>
+                    <div className="flex-1 h-2 rounded-full bg-[#E6E9F7] overflow-hidden"><div className="h-full rounded-full bg-[#2747E0]" style={{ width: p }} /></div>
+                    <span className="w-[76px] text-right text-[11px] tabular-nums shrink-0"><b className="text-[#16205C]">{p}</b> <span className="text-[#6A6E78]">{sc}</span></span>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            <div className="mt-5 flex items-center gap-2.5 bg-[#E6E9F7] rounded-2xl px-4 py-3">
-              <CheckCircle2 className="w-5 h-5 text-[#2747E0] shrink-0" />
-              <span className="text-sm font-semibold text-[#16205C]">Проходной балл 65% — ребёнок проходит с запасом.</span>
+          {/* benchmark */}
+          <div className="px-5 sm:px-7 py-5 border-b border-[#eef1f7]">
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#6A6E78] mb-3">Сравнение с группой</div>
+            <div className="space-y-2">
+              {[['Этот ученик', 78, '#2747E0'], ['Средний по группе', 71, '#6E8BFF'], ['Проходной балл', 65, '#16205C']].map(([l, v, c]) => (
+                <div key={l as string} className="flex items-center gap-2.5">
+                  <span className="w-[112px] text-[11px] text-[#6A6E78] shrink-0">{l}</span>
+                  <div className="flex-1 h-2.5 rounded-full bg-[#F1F2F7] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${v}%`, background: c as string }} /></div>
+                  <span className="w-9 text-right text-[11px] font-bold tabular-nums text-[#16205C] shrink-0">{v}%</span>
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="mt-5">
-              <p className="text-[11px] font-black uppercase tracking-widest text-[#3b3e40]/40 mb-2">Что подтянуть — 3 пробела</p>
-              <div className="flex flex-wrap gap-2">
-                {['Преобразование единиц', 'Задачи на движение', 'Понимание текста (англ.)'].map(g => (
-                  <span key={g} className="text-xs font-semibold bg-white border border-[#2747E0]/20 text-[#16205C] rounded-full px-3 py-1.5">{g}</span>
-                ))}
-              </div>
+          {/* gaps + forecast */}
+          <div className="px-5 sm:px-7 py-5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-[#6A6E78] mb-3">Зоны роста · что подтянуть</div>
+            <div className="space-y-2.5">
+              {[['Преобразование единиц', '4 ошибки', 'таблица коэффициентов + 50 задач'], ['Задачи на движение', '3 ошибки', 'схемы встречного движения, разбор формулы'], ['Понимание текста (англ.)', 'серия из 5', 'чтение по 10–15 минут в день']].map(([t, m, r]) => (
+                <div key={t} className="flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2747E0] mt-[7px] shrink-0" />
+                  <div className="text-xs leading-snug">
+                    <span className="font-bold text-[#16205C]">{t}</span> <span className="text-[#6A6E78]">· {m}</span>
+                    <div className="text-[#6A6E78]">→ {r}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center gap-2 bg-[#E6E9F7] rounded-xl px-3.5 py-2.5">
+              <TrendingUp className="w-4 h-4 text-[#2747E0] shrink-0" />
+              <span className="text-xs font-semibold text-[#16205C]">Прогноз при системной подготовке: <b className="tabular-nums">78% → 88%</b> к марту.</span>
             </div>
           </div>
         </div>
