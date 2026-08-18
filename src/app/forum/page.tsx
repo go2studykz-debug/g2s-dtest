@@ -7,10 +7,10 @@ import { FORUM_EVENT } from './event';
 import {
   Sparkles, CalendarDays, Clock, MapPin, Users, User, Baby, Heart,
   Loader2, CheckCircle2, Gift, ArrowRight,
-  ClipboardCheck, AlertTriangle, Route, MessagesSquare, ShieldCheck,
+  ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare, ShieldCheck,
 } from 'lucide-react';
 
-const BENEFIT_ICONS = [ClipboardCheck, AlertTriangle, Route, MessagesSquare];
+const BENEFIT_ICONS = [ClipboardCheck, BarChart3, Presentation, CalendarRange, Zap, MessagesSquare];
 
 export default function ForumRegistrationPage() {
   const router = useRouter();
@@ -197,6 +197,60 @@ export default function ForumRegistrationPage() {
             );
           })}
         </div>
+      </section>
+
+      {/* Result preview — что получите на руки */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-6">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <p className="text-[11px] font-black uppercase tracking-widest text-[#2747E0]">Что заберёте с собой</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">Личный бланк результата ребёнка</h2>
+          <p className="text-sm text-[#3b3e40]/70 mt-2 leading-relaxed">Не «нормально/плохо», а конкретный балл, сравнение с проходным и список пробелов — что именно подтягивать до экзамена.</p>
+        </div>
+
+        <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-[#16205C]/8 border border-[#16205C]/5 overflow-hidden">
+          <div className="bg-[#16205C] text-white px-6 py-4 flex items-center justify-between">
+            <span className="flex items-center gap-2 font-bold text-sm"><BarChart3 className="w-4 h-4 text-[#6E8BFF]" /> Личный бланк · go2study</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#6E8BFF] bg-white/10 rounded-full px-2.5 py-1">пример</span>
+          </div>
+
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+              <div className="relative w-28 h-28 shrink-0">
+                <svg viewBox="0 0 100 100" className="w-28 h-28 -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#E6E9F7" strokeWidth="10" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#2747E0" strokeWidth="10" strokeLinecap="round" strokeDasharray="263.9" strokeDashoffset="58" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold text-[#16205C]">78%</span>
+                  <span className="text-[10px] text-[#3b3e40]/60">312 / 400 б.</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 flex-1 w-full">
+                {[['Математика', '82%'], ['Логика', '74%'], ['Английский', '68%'], ['Казахский', '80%']].map(([s, v]) => (
+                  <div key={s} className="rounded-xl bg-[#E6E9F7] px-3 py-2.5">
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-[#3b3e40]/60">{s}</div>
+                    <div className="text-lg font-bold text-[#2747E0]">{v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center gap-2.5 bg-[#E6E9F7] rounded-2xl px-4 py-3">
+              <CheckCircle2 className="w-5 h-5 text-[#2747E0] shrink-0" />
+              <span className="text-sm font-semibold text-[#16205C]">Проходной балл 65% — ребёнок проходит с запасом.</span>
+            </div>
+
+            <div className="mt-5">
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#3b3e40]/40 mb-2">Что подтянуть — 3 пробела</p>
+              <div className="flex flex-wrap gap-2">
+                {['Преобразование единиц', 'Задачи на движение', 'Понимание текста (англ.)'].map(g => (
+                  <span key={g} className="text-xs font-semibold bg-white border border-[#2747E0]/20 text-[#16205C] rounded-full px-3 py-1.5">{g}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <p className="text-center text-[11px] text-[#3b3e40]/45 mt-3">Так выглядит бланк, который вы получаете в конце форума. Цифры — пример.</p>
       </section>
 
       {/* Who to bring */}
