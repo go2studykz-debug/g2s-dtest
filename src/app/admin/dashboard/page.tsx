@@ -204,6 +204,13 @@ export default function AdminDashboard() {
             <Home className="w-5 h-5 mr-2 text-primary" /> На главную
           </Button>
           <Button
+            onClick={() => router.push('/admin/forum')}
+            variant="outline"
+            className="border-[#2747E0]/30 bg-white text-[#2747E0] hover:bg-[#2747E0]/5 font-bold shadow-sm h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
+          >
+            <CalendarDays className="w-5 h-5 mr-2" /> Форум
+          </Button>
+          <Button
             onClick={() => router.push('/admin/tests')}
             className="bg-[#14bf96] hover:bg-[#11a381] font-bold shadow-md h-12 px-6 rounded-xl transition-all hover:translate-y-[-2px]"
           >

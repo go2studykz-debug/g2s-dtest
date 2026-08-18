@@ -2,11 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { getForumRegistrations, toggleForumCheckin, toggleForumPaid, resendForumConfirmation } from '@/app/lib/actions';
+import { getForumRegistrations, toggleForumCheckin, toggleForumPaid, deleteForumRegistration, resendForumConfirmation } from '@/app/lib/actions';
 import { FORUM_EVENT } from '@/app/forum/event';
 import {
   Users, UserCheck, Gift, Loader2, Copy, Check, Download, Search,
-  CalendarDays, RefreshCw, Send, CreditCard,
+  CalendarDays, RefreshCw, Send, CreditCard, Trash2,
 } from 'lucide-react';
 
 export default function ForumAdminPage() {
@@ -73,6 +73,11 @@ export default function ForumAdminPage() {
   const onPaid = async (id: string, v: boolean) => {
     setList(l => l.map(r => r.id === id ? { ...r, paid: v } : r));
     await toggleForumPaid(id, v);
+  };
+  const onDelete = async (id: string, name: string) => {
+    if (!confirm(`Удалить запись «${name}» из списка? Действие необратимо.`)) return;
+    setList(l => l.filter(r => r.id !== id));
+    await deleteForumRegistration(id);
   };
   const onResend = async (id: string) => {
     setBusy(id);
@@ -148,11 +153,12 @@ export default function ForumAdminPage() {
                 <th className="text-center px-4 py-3">Оплата</th>
                 <th className="text-center px-4 py-3">WhatsApp</th>
                 <th className="text-center px-4 py-3">Отметка</th>
+                <th className="px-2 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#eef2f6]">
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="text-center py-10 text-[#3b3e40]/50 italic">Пока никто не записался</td></tr>
+                <tr><td colSpan={9} className="text-center py-10 text-[#3b3e40]/50 italic">Пока никто не записался</td></tr>
               )}
               {filtered.map(r => (
                 <tr key={r.id} className="hover:bg-[#f8fafc]">
@@ -197,6 +203,12 @@ export default function ForumAdminPage() {
                     <button onClick={() => onCheckin(r.id, !r.checked_in)}
                       className={`text-xs font-bold rounded-full px-3 py-1.5 ${r.checked_in ? 'bg-[#14bf96] text-white' : 'bg-[#f0f4f8] text-[#3b3e40]/60'}`}>
                       {r.checked_in ? 'Пришёл ✓' : 'Отметить'}
+                    </button>
+                  </td>
+                  <td className="px-2 py-3 text-center">
+                    <button onClick={() => onDelete(r.id, r.parent_name)} title="Удалить запись"
+                      className="text-[#3b3e40]/30 hover:text-red-600 transition-colors">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>

@@ -1406,7 +1406,7 @@ export async function getForumRegistration(id: string) {
 export async function getForumRegistrations() {
   const db = getDb();
   const snap = await getDocs(collection(db, 'forum_registrations'));
-  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => !r.deleted);
   return serializeData(list) as any[];
 }
 
@@ -1423,6 +1423,18 @@ export async function toggleForumPaid(id: string, paid: boolean) {
   await updateDoc(doc(db, 'forum_registrations', id), {
     paid,
     paid_at: paid ? new Date().toISOString() : null,
+  });
+  revalidatePath('/admin/forum');
+  return { ok: true };
+}
+
+// Мягкое удаление записи (правила Firestore разрешают update, но не delete).
+// Помеченные deleted скрываются из списка в getForumRegistrations.
+export async function deleteForumRegistration(id: string) {
+  const db = getDb();
+  await updateDoc(doc(db, 'forum_registrations', id), {
+    deleted: true,
+    deleted_at: new Date().toISOString(),
   });
   revalidatePath('/admin/forum');
   return { ok: true };
