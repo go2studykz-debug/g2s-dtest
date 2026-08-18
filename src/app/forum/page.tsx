@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { registerForum } from '@/app/lib/actions';
 import { FORUM_EVENT } from './event';
 import {
-  Sparkles, CalendarDays, Clock, MapPin, Users, User, Baby, Heart,
-  Loader2, CheckCircle2, Gift, ArrowRight,
+  CalendarDays, Clock, MapPin, Users, User, Phone, GraduationCap, UserPlus,
+  Loader2, CheckCircle2, ArrowRight,
   ClipboardCheck, BarChart3, Presentation, CalendarRange, MessagesSquare, ShieldCheck,
   TrendingUp,
 } from 'lucide-react';
@@ -94,7 +94,7 @@ export default function ForumRegistrationPage() {
         {/* Pitch */}
         <div className="space-y-6 lg:pt-6">
           <p className="inline-flex items-center gap-2 bg-white border border-[#2747E0]/25 rounded-full px-3.5 py-1.5 text-[11px] font-black uppercase tracking-widest text-[#1E3AC4]">
-            <Sparkles className="w-3.5 h-3.5" /> Форум для родителей
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2747E0]" /> Форум для родителей
           </p>
           <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight">
             {FORUM_EVENT.title}
@@ -106,7 +106,7 @@ export default function ForumRegistrationPage() {
           {/* Event meta */}
           <div className="flex flex-wrap gap-2.5">
             <MetaChip icon={<CalendarDays className="w-4 h-4 text-[#2747E0]" />} text={FORUM_EVENT.dateLabel} />
-            <MetaChip icon={<Clock className="w-4 h-4 text-[#2747E0]" />} text={FORUM_EVENT.time} />
+            {FORUM_EVENT.time && <MetaChip icon={<Clock className="w-4 h-4 text-[#2747E0]" />} text={FORUM_EVENT.time} />}
             <MetaChip icon={<MapPin className="w-4 h-4 text-[#2747E0]" />} text={FORUM_EVENT.place} />
           </div>
 
@@ -142,7 +142,7 @@ export default function ForumRegistrationPage() {
             <div className="p-6 sm:p-7 space-y-5">
               {ref && (
                 <div className="bg-[#E6E9F7] border border-[#2747E0]/30 rounded-2xl px-4 py-3 flex items-center gap-2 text-sm text-[#1E3AC4] font-semibold">
-                  <Gift className="w-4 h-4 shrink-0" /> Вы пришли по личному приглашению — добро пожаловать!
+                  <UserPlus className="w-4 h-4 shrink-0" /> Вы пришли по личному приглашению — добро пожаловать!
                 </div>
               )}
 
@@ -151,12 +151,12 @@ export default function ForumRegistrationPage() {
                   placeholder="Как к вам обращаться" className={inputCls} />
               </Field>
 
-              <Field label="WhatsApp" icon={<span className="text-[#2747E0] text-sm">✆</span>} hint="Пришлём подтверждение и билет">
+              <Field label="WhatsApp" icon={<Phone className="w-4 h-4" />} hint="Пришлём подтверждение и билет">
                 <input value={whatsapp} onChange={handlePhoneChange} inputMode="tel" maxLength={16}
                   placeholder="+7 7XX XXX XX XX" className={inputCls} />
               </Field>
 
-              <Field label="Имя ребёнка" icon={<Baby className="w-4 h-4" />} hint="Присутствие ребёнка обязательно">
+              <Field label="Имя ребёнка" icon={<GraduationCap className="w-4 h-4" />} hint="Присутствие ребёнка обязательно">
                 <input value={childName} onChange={e => setChildName(e.target.value)}
                   placeholder="Имя и фамилия ребёнка" className={inputCls} />
               </Field>
@@ -165,7 +165,7 @@ export default function ForumRegistrationPage() {
               <button type="button" onClick={() => setHasSpouse(v => !v)}
                 className={`w-full flex items-center justify-between rounded-2xl border-2 px-4 py-3.5 transition-colors ${hasSpouse ? 'border-[#2747E0] bg-[#E6E9F7]' : 'border-[#e3e8ee] bg-white'}`}>
                 <span className="flex items-center gap-2.5 text-sm font-semibold">
-                  <Heart className={`w-4 h-4 ${hasSpouse ? 'text-[#2747E0]' : 'text-[#3b3e40]/40'}`} />
+                  <Users className={`w-4 h-4 ${hasSpouse ? 'text-[#2747E0]' : 'text-[#3b3e40]/40'}`} />
                   Приду с супругом(-ой)
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#3b3e40]/40">желательно</span>
                 </span>
@@ -176,7 +176,7 @@ export default function ForumRegistrationPage() {
 
               {/* Приглашение семьи — число не спрашиваем, ссылку даём после записи */}
               <div className="rounded-2xl bg-[#E6E9F7] border border-[#2747E0]/20 px-4 py-3.5 flex items-start gap-2.5">
-                <Gift className="w-4 h-4 text-[#2747E0] shrink-0 mt-0.5" />
+                <UserPlus className="w-4 h-4 text-[#2747E0] shrink-0 mt-0.5" />
                 <p className="text-xs text-[#16205C] font-medium leading-relaxed">
                   После записи вы сможете <b>бесплатно пригласить одну семью</b> — пришлём готовую ссылку, чтобы им отправить.
                 </p>
@@ -321,11 +321,11 @@ export default function ForumRegistrationPage() {
             <p className="text-white/60 text-sm mt-2">Форум полезнее, когда решение о подготовке принимается вместе.</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
-            <AudienceCard icon={<Baby className="w-5 h-5" />} title="Ребёнок" tag="обязательно"
+            <AudienceCard icon={<GraduationCap className="w-5 h-5" />} title="Ребёнок" tag="обязательно"
               text="Главный участник — на форуме говорим в том числе о его сильных сторонах." highlight />
-            <AudienceCard icon={<Heart className="w-5 h-5" />} title="Супруг(-а)" tag="желательно"
+            <AudienceCard icon={<Users className="w-5 h-5" />} title="Супруг(-а)" tag="желательно"
               text="Чтобы вся семья была на одной волне по подготовке и целям." />
-            <AudienceCard icon={<Gift className="w-5 h-5" />} title="Знакомая семья" tag="бесплатно"
+            <AudienceCard icon={<UserPlus className="w-5 h-5" />} title="Знакомая семья" tag="бесплатно"
               text="После регистрации получите ссылку — позовите одну семью, чьим детям тоже предстоит поступление." />
           </div>
           <div className="text-center mt-8">

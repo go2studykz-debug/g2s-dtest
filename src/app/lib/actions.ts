@@ -1325,7 +1325,7 @@ async function sendForumConfirmationWA(whatsapp: string, parentName: string, reg
   const ticket = `${base}/forum/ticket/${regId}`;
   const message =
     `Здравствуйте, ${parentName}! Вы записаны на форум go2study ✅\n\n` +
-    `📅 ${FORUM_EVENT.dateLabel}, ${FORUM_EVENT.time}\n` +
+    `📅 ${FORUM_EVENT.dateLabel}${FORUM_EVENT.time ? ', ' + FORUM_EVENT.time : ''}\n` +
     `📍 ${FORUM_EVENT.place}\n\n` +
     `Ваш билет (покажите на входе):\n${ticket}\n\n` +
     `Хотите привести знакомого? В билете — ваша персональная ссылка-приглашение, поделитесь ею.`;

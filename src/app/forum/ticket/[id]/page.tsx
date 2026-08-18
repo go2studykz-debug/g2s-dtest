@@ -5,8 +5,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { getForumRegistration } from '@/app/lib/actions';
 import { FORUM_EVENT } from '../../event';
 import {
-  CheckCircle2, CalendarDays, Clock, MapPin, Users, Baby, Heart, User,
-  Loader2, AlertCircle, Gift, Copy, Check, QrCode,
+  CheckCircle2, CalendarDays, Clock, MapPin, Users, GraduationCap, User, UserPlus,
+  Loader2, AlertCircle, Copy, Check, QrCode,
 } from 'lucide-react';
 
 export default function ForumTicketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -76,7 +76,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
             <h2 className="text-lg font-bold leading-tight">{FORUM_EVENT.title}</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 text-xs font-semibold text-white/80">
               <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.dateLabel}</span>
-              <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.time}</span>
+              {FORUM_EVENT.time && <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.time}</span>}
               <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.place}</span>
             </div>
           </div>
@@ -95,8 +95,8 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
           <div className="p-6 space-y-2.5">
             <p className="text-[10px] font-black uppercase tracking-widest text-[#3b3e40]/40">Кто придёт</p>
             <Row icon={<User className="w-4 h-4 text-[#2747E0]" />} text={reg.parent_name} tag="вы" />
-            <Row icon={<Baby className="w-4 h-4 text-[#2747E0]" />} text={reg.child_name} tag="ребёнок" />
-            {reg.has_spouse && <Row icon={<Heart className="w-4 h-4 text-[#2747E0]" />} text="Супруг(-а)" />}
+            <Row icon={<GraduationCap className="w-4 h-4 text-[#2747E0]" />} text={reg.child_name} tag="ребёнок" />
+            {reg.has_spouse && <Row icon={<Users className="w-4 h-4 text-[#2747E0]" />} text="Супруг(-а)" />}
             {reg.guests_count > 0 && <Row icon={<Users className="w-4 h-4 text-[#2747E0]" />} text={`Гости: ${reg.guests_count} чел.`} />}
             <div className="flex items-center justify-between pt-2 mt-1 border-t border-[#eef2f6]">
               <span className="text-sm font-bold">Всего</span>
@@ -109,7 +109,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
         <div className="bg-white rounded-3xl shadow-lg shadow-[#16205C]/5 border border-[#2747E0]/20 p-6 space-y-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#E6E9F7] flex items-center justify-center shrink-0">
-              <Gift className="w-5 h-5 text-[#2747E0]" />
+              <UserPlus className="w-5 h-5 text-[#2747E0]" />
             </div>
             <div>
               <h3 className="font-bold">Пригласите семью — бесплатно</h3>
@@ -133,7 +133,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
 
           {reg.invited_count > 0 && (
             <p className="text-center text-sm font-semibold text-[#1E3AC4] bg-[#E6E9F7] rounded-xl py-2">
-              🎉 По вашему приглашению уже записалось: {reg.invited_count}
+              По вашему приглашению уже записалось: {reg.invited_count}
             </p>
           )}
         </div>
