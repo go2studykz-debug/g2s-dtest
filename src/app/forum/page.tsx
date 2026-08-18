@@ -158,7 +158,7 @@ export default function ForumRegistrationPage() {
 
               {/* Total */}
               <div className="flex items-center justify-between bg-[#16205C] text-white rounded-2xl px-4 py-3">
-                <span className="text-sm font-semibold flex items-center gap-2"><Users className="w-4 h-4 text-[#8AA2F5]" /> Всего придёт</span>
+                <span className="text-sm font-semibold flex items-center gap-2"><Users className="w-4 h-4 text-[#6E8BFF]" /> Всего придёт</span>
                 <span className="text-xl font-bold tabular-nums">{total} чел.</span>
               </div>
 
@@ -244,10 +244,10 @@ function AudienceCard({ icon, title, tag, text, highlight }: { icon: React.React
   return (
     <div className={`rounded-2xl p-5 ${highlight ? 'bg-[#2747E0]/15 border border-[#2747E0]/30' : 'bg-white/5 border border-white/10'}`}>
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-[#8AA2F5]">{icon}</div>
+        <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-[#6E8BFF]">{icon}</div>
         <div>
           <p className="font-bold leading-none">{title}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[#8AA2F5] mt-1">{tag}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#6E8BFF] mt-1">{tag}</p>
         </div>
       </div>
       <p className="text-xs text-white/60 leading-relaxed">{text}</p>

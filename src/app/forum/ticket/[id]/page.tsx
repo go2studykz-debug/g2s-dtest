@@ -72,12 +72,12 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
         {/* Ticket */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#16205C]/5 border border-[#16205C]/5 overflow-hidden">
           <div className="bg-[#16205C] text-white p-6">
-            <p className="text-[#8AA2F5] font-black uppercase tracking-widest text-[10px] mb-1">Электронный билет</p>
+            <p className="text-[#6E8BFF] font-black uppercase tracking-widest text-[10px] mb-1">Электронный билет</p>
             <h2 className="text-lg font-bold leading-tight">{FORUM_EVENT.title}</h2>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 text-xs font-semibold text-white/80">
-              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#8AA2F5]" /> {FORUM_EVENT.dateLabel}</span>
-              <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#8AA2F5]" /> {FORUM_EVENT.time}</span>
-              <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#8AA2F5]" /> {FORUM_EVENT.place}</span>
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.dateLabel}</span>
+              <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.time}</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#6E8BFF]" /> {FORUM_EVENT.place}</span>
             </div>
           </div>
 
