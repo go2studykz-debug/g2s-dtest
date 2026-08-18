@@ -1365,6 +1365,10 @@ export async function registerForum(data: {
     if (refSnap.exists()) referredBy = data.referredBy;
   }
 
+  // Приглашённая семья (пришла по чьей-то реф-ссылке) участвует бесплатно;
+  // все остальные оплачивают участие. paid=true у бесплатных сразу.
+  const isFree = !!referredBy;
+
   const now = new Date().toISOString();
   const ref = await addDoc(collection(db, 'forum_registrations'), {
     parent_name: name,
@@ -1374,6 +1378,9 @@ export async function registerForum(data: {
     guests_count: guests,
     total_people: total,
     referred_by: referredBy,
+    is_free: isFree,
+    paid: isFree,
+    paid_at: isFree ? now : null,
     checked_in: false,
     wa_sent: false,
     created_at: now,
@@ -1406,6 +1413,17 @@ export async function getForumRegistrations() {
 export async function toggleForumCheckin(id: string, checkedIn: boolean) {
   const db = getDb();
   await updateDoc(doc(db, 'forum_registrations', id), { checked_in: checkedIn });
+  revalidatePath('/admin/forum');
+  return { ok: true };
+}
+
+// Подтверждение оплаты вручную (сверив с Kaspi) — Kaspi-ссылка не шлёт callback.
+export async function toggleForumPaid(id: string, paid: boolean) {
+  const db = getDb();
+  await updateDoc(doc(db, 'forum_registrations', id), {
+    paid,
+    paid_at: paid ? new Date().toISOString() : null,
+  });
   revalidatePath('/admin/forum');
   return { ok: true };
 }

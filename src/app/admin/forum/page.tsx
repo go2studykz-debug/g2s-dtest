@@ -2,11 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { getForumRegistrations, toggleForumCheckin, resendForumConfirmation } from '@/app/lib/actions';
+import { getForumRegistrations, toggleForumCheckin, toggleForumPaid, resendForumConfirmation } from '@/app/lib/actions';
 import { FORUM_EVENT } from '@/app/forum/event';
 import {
   Users, UserCheck, Gift, Loader2, Copy, Check, Download, Search,
-  CalendarDays, RefreshCw, Send,
+  CalendarDays, RefreshCw, Send, CreditCard,
 } from 'lucide-react';
 
 export default function ForumAdminPage() {
@@ -51,6 +51,8 @@ export default function ForumAdminPage() {
     people: list.reduce((s, r) => s + (r.total_people || 0), 0),
     checkedIn: list.filter(r => r.checked_in).length,
     viaInvite: list.filter(r => r.referred_by).length,
+    paid: list.filter(r => !r.is_free && r.paid).length,
+    awaiting: list.filter(r => !r.is_free && !r.paid).length,
   }), [list]);
 
   const formUrl = `${origin}/forum`;
@@ -67,6 +69,10 @@ export default function ForumAdminPage() {
   const onCheckin = async (id: string, v: boolean) => {
     setList(l => l.map(r => r.id === id ? { ...r, checked_in: v } : r));
     await toggleForumCheckin(id, v);
+  };
+  const onPaid = async (id: string, v: boolean) => {
+    setList(l => l.map(r => r.id === id ? { ...r, paid: v } : r));
+    await toggleForumPaid(id, v);
   };
   const onResend = async (id: string) => {
     setBusy(id);
@@ -94,9 +100,10 @@ export default function ForumAdminPage() {
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <Stat icon={<Users className="w-4 h-4" />} label="Записей" value={stats.regs} />
         <Stat icon={<Users className="w-4 h-4" />} label="Всего человек" value={stats.people} accent />
+        <Stat icon={<CreditCard className="w-4 h-4" />} label="Оплатило" value={stats.paid} />
         <Stat icon={<UserCheck className="w-4 h-4" />} label="Отметилось" value={stats.checkedIn} />
         <Stat icon={<Gift className="w-4 h-4" />} label="По приглашениям" value={stats.viaInvite} />
       </div>
@@ -138,13 +145,14 @@ export default function ForumAdminPage() {
                 <th className="text-left px-4 py-3">Состав</th>
                 <th className="text-left px-4 py-3">Пригласил</th>
                 <th className="text-center px-4 py-3">Привёл</th>
+                <th className="text-center px-4 py-3">Оплата</th>
                 <th className="text-center px-4 py-3">WhatsApp</th>
                 <th className="text-center px-4 py-3">Отметка</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#eef2f6]">
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-10 text-[#3b3e40]/50 italic">Пока никто не записался</td></tr>
+                <tr><td colSpan={8} className="text-center py-10 text-[#3b3e40]/50 italic">Пока никто не записался</td></tr>
               )}
               {filtered.map(r => (
                 <tr key={r.id} className="hover:bg-[#f8fafc]">
@@ -167,6 +175,16 @@ export default function ForumAdminPage() {
                   </td>
                   <td className="px-4 py-3 text-center font-bold tabular-nums">
                     {invitedCount[r.id] ? <span className="text-[#14bf96]">{invitedCount[r.id]}</span> : <span className="text-[#3b3e40]/30">0</span>}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {r.is_free ? (
+                      <span className="text-[10px] font-bold bg-[#f0f9f7] text-[#0d7a63] rounded-full px-2.5 py-1">бесплатно</span>
+                    ) : (
+                      <button onClick={() => onPaid(r.id, !r.paid)}
+                        className={`text-xs font-bold rounded-full px-3 py-1.5 ${r.paid ? 'bg-[#14bf96] text-white' : 'bg-amber-50 text-amber-600'}`}>
+                        {r.paid ? 'Оплачено ✓' : 'Ожидает'}
+                      </button>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button onClick={() => onResend(r.id)} disabled={busy === r.id}

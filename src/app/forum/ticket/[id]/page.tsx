@@ -6,7 +6,7 @@ import { getForumRegistration } from '@/app/lib/actions';
 import { FORUM_EVENT } from '../../event';
 import {
   CheckCircle2, CalendarDays, Clock, MapPin, Users, GraduationCap, User, UserPlus,
-  Loader2, AlertCircle, Copy, Check, QrCode,
+  Loader2, AlertCircle, Copy, Check, QrCode, CreditCard, ArrowUpRight,
 } from 'lucide-react';
 
 export default function ForumTicketPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,6 +47,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
 
   const ticketUrl = `${origin}/forum/ticket/${id}`;
   const inviteUrl = `${origin}/forum?ref=${id}`;
+  const needsPay = !reg.is_free && !reg.paid; // платная регистрация, оплата не подтверждена
 
   const copyInvite = () => {
     navigator.clipboard.writeText(inviteUrl);
@@ -67,7 +68,43 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
             <h1 className="text-2xl font-bold">Вы записаны!</h1>
             <p className="text-sm text-[#3b3e40]/70 mt-1">{reg.parent_name}, ждём вас на форуме go2study.</p>
           </div>
+          {/* Статус участия */}
+          <div className="flex justify-center">
+            {reg.is_free ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1E3AC4] bg-[#E6E9F7] rounded-full px-3 py-1.5">
+                <UserPlus className="w-3.5 h-3.5" /> Гость по приглашению · участие бесплатное
+              </span>
+            ) : reg.paid ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0d7a63] bg-[#e7f6f1] rounded-full px-3 py-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Участие оплачено
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 rounded-full px-3 py-1.5">
+                <CreditCard className="w-3.5 h-3.5" /> Ожидает оплаты {FORUM_EVENT.priceLabel}
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Оплата участия — только если платно и ещё не оплачено */}
+        {needsPay && (
+          <div className="bg-white rounded-3xl shadow-lg shadow-[#16205C]/5 border border-[#2747E0]/30 p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#E6E9F7] flex items-center justify-center shrink-0">
+                <CreditCard className="w-5 h-5 text-[#2747E0]" />
+              </div>
+              <div>
+                <h3 className="font-bold">Оплатите участие — {FORUM_EVENT.priceLabel}</h3>
+                <p className="text-xs text-[#3b3e40]/70 mt-0.5">Место подтверждается после оплаты. Оплата — через Kaspi.</p>
+              </div>
+            </div>
+            <a href={FORUM_EVENT.paymentUrl} target="_blank" rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 bg-[#2747E0] hover:bg-[#1E3AC4] text-white font-bold py-3.5 rounded-2xl transition-colors">
+              Оплатить {FORUM_EVENT.priceLabel} через Kaspi <ArrowUpRight className="w-4 h-4" />
+            </a>
+            <p className="text-[11px] text-center text-[#3b3e40]/50">После оплаты организатор подтвердит ваше место.</p>
+          </div>
+        )}
 
         {/* Ticket */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#16205C]/5 border border-[#16205C]/5 overflow-hidden">
@@ -113,7 +150,7 @@ export default function ForumTicketPage({ params }: { params: Promise<{ id: stri
             </div>
             <div>
               <h3 className="font-bold">Пригласите семью</h3>
-              <p className="text-xs text-[#3b3e40]/70 mt-0.5">Отправьте эту ссылку одной семье, которую хотите позвать на форум.</p>
+              <p className="text-xs text-[#3b3e40]/70 mt-0.5">Отправьте эту ссылку одной семье — для приглашённых по ней участие <b>бесплатное</b>.</p>
             </div>
           </div>
 
