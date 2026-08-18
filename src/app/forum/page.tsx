@@ -32,6 +32,31 @@ export default function ForumRegistrationPage() {
 
   const total = 1 + 1 + (hasSpouse ? 1 : 0); // родитель + ребёнок + (супруг)
 
+  // Форматирование номера как на тест-сайте: +7 7XX XXX XX XX
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    const isDeleting = input.length < whatsapp.length;
+    if (!input) { setWhatsapp(''); return; }
+    let digits = input.replace(/\D/g, '');
+    if (!isDeleting) {
+      if (digits.startsWith('8')) digits = '7' + digits.substring(1);
+      if (digits.length > 0 && !digits.startsWith('7')) digits = '7' + digits;
+    }
+    digits = digits.substring(0, 11);
+    let formatted = '';
+    if (digits.length > 0) {
+      formatted += '+7';
+      if (digits.length > 1) {
+        const rest = digits.substring(1);
+        if (rest.length > 0) formatted += ' ' + rest.substring(0, 3);
+        if (rest.length > 3) formatted += ' ' + rest.substring(3, 6);
+        if (rest.length > 6) formatted += ' ' + rest.substring(6, 8);
+        if (rest.length > 8) formatted += ' ' + rest.substring(8, 10);
+      }
+    }
+    setWhatsapp(formatted);
+  };
+
   const submit = async () => {
     setError('');
     if (!parentName.trim()) return setError('Укажите ваше имя');
@@ -127,8 +152,8 @@ export default function ForumRegistrationPage() {
               </Field>
 
               <Field label="WhatsApp" icon={<span className="text-[#2747E0] text-sm">✆</span>} hint="Пришлём подтверждение и билет">
-                <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} inputMode="tel"
-                  placeholder="+7 700 000 00 00" className={inputCls} />
+                <input value={whatsapp} onChange={handlePhoneChange} inputMode="tel" maxLength={16}
+                  placeholder="+7 7XX XXX XX XX" className={inputCls} />
               </Field>
 
               <Field label="Имя ребёнка" icon={<Baby className="w-4 h-4" />} hint="Присутствие ребёнка обязательно">
