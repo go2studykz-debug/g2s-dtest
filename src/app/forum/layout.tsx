@@ -5,7 +5,7 @@ import { FORUM_EVENT } from './event';
 // layout (там «Диагностика НИШ»), не затрагивая страницы тестов/результатов.
 export const metadata: Metadata = {
   title: `go2study | ${FORUM_EVENT.title}`,
-  description: `Форум для родителей о поступлении в НИШ, БИЛ и РФМШ. ${FORUM_EVENT.dateLabel}, ${FORUM_EVENT.place}. Участие бесплатное, регистрация онлайн.`,
+  description: `Форум для родителей о поступлении в НИШ, БИЛ и РФМШ. ${FORUM_EVENT.dateLabel}, ${FORUM_EVENT.place}. Регистрация онлайн.`,
   openGraph: {
     title: `go2study | ${FORUM_EVENT.title}`,
     description: `Форум для родителей о поступлении в НИШ, БИЛ и РФМШ. ${FORUM_EVENT.dateLabel}.`,

@@ -84,9 +84,6 @@ export default function ForumRegistrationPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/wordmark-transparent.png" alt="go2study" className="h-6 sm:h-7 w-auto" />
-        <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#2747E0]/10 text-[#1E3AC4] rounded-full px-3 py-1.5 text-xs font-bold">
-          <ShieldCheck className="w-3.5 h-3.5" /> Участие бесплатное
-        </span>
       </div>
 
       {/* Hero */}
@@ -178,7 +175,7 @@ export default function ForumRegistrationPage() {
               <div className="rounded-2xl bg-[#E6E9F7] border border-[#2747E0]/20 px-4 py-3.5 flex items-start gap-2.5">
                 <UserPlus className="w-4 h-4 text-[#2747E0] shrink-0 mt-0.5" />
                 <p className="text-xs text-[#16205C] font-medium leading-relaxed">
-                  После записи вы сможете <b>бесплатно пригласить одну семью</b> — пришлём готовую ссылку, чтобы им отправить.
+                  После записи вы сможете <b>пригласить одну семью</b> — пришлём готовую ссылку, чтобы им отправить.
                 </p>
               </div>
 
@@ -325,7 +322,7 @@ export default function ForumRegistrationPage() {
               text="Главный участник — на форуме говорим в том числе о его сильных сторонах." highlight />
             <AudienceCard icon={<Users className="w-5 h-5" />} title="Супруг(-а)" tag="желательно"
               text="Чтобы вся семья была на одной волне по подготовке и целям." />
-            <AudienceCard icon={<UserPlus className="w-5 h-5" />} title="Знакомая семья" tag="бесплатно"
+            <AudienceCard icon={<UserPlus className="w-5 h-5" />} title="Знакомая семья" tag="по желанию"
               text="После регистрации получите ссылку — позовите одну семью, чьим детям тоже предстоит поступление." />
           </div>
           <div className="text-center mt-8">
