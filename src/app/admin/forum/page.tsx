@@ -51,8 +51,7 @@ export default function ForumAdminPage() {
     people: list.reduce((s, r) => s + (r.total_people || 0), 0),
     checkedIn: list.filter(r => r.checked_in).length,
     viaInvite: list.filter(r => r.referred_by).length,
-    paid: list.filter(r => !r.is_free && r.paid).length,
-    awaiting: list.filter(r => !r.is_free && !r.paid).length,
+    paid: list.filter(r => r.paid).length,
   }), [list]);
 
   const formUrl = `${origin}/forum`;
@@ -183,14 +182,10 @@ export default function ForumAdminPage() {
                     {invitedCount[r.id] ? <span className="text-[#14bf96]">{invitedCount[r.id]}</span> : <span className="text-[#3b3e40]/30">0</span>}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {r.is_free ? (
-                      <span className="text-[10px] font-bold bg-[#f0f9f7] text-[#0d7a63] rounded-full px-2.5 py-1">бесплатно</span>
-                    ) : (
-                      <button onClick={() => onPaid(r.id, !r.paid)}
-                        className={`text-xs font-bold rounded-full px-3 py-1.5 ${r.paid ? 'bg-[#14bf96] text-white' : 'bg-amber-50 text-amber-600'}`}>
-                        {r.paid ? 'Оплачено ✓' : 'Ожидает'}
-                      </button>
-                    )}
+                    <button onClick={() => onPaid(r.id, !r.paid)}
+                      className={`text-xs font-bold rounded-full px-3 py-1.5 ${r.paid ? 'bg-[#14bf96] text-white' : 'bg-[#f0f4f8] text-[#3b3e40]/60'}`}>
+                      {r.paid ? 'Оплачено ✓' : 'Отметить'}
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button onClick={() => onResend(r.id)} disabled={busy === r.id}

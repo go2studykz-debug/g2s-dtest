@@ -1365,10 +1365,6 @@ export async function registerForum(data: {
     if (refSnap.exists()) referredBy = data.referredBy;
   }
 
-  // Приглашённая семья (пришла по чьей-то реф-ссылке) участвует бесплатно;
-  // все остальные оплачивают участие. paid=true у бесплатных сразу.
-  const isFree = !!referredBy;
-
   const now = new Date().toISOString();
   const ref = await addDoc(collection(db, 'forum_registrations'), {
     parent_name: name,
@@ -1378,9 +1374,8 @@ export async function registerForum(data: {
     guests_count: guests,
     total_people: total,
     referred_by: referredBy,
-    is_free: isFree,
-    paid: isFree,
-    paid_at: isFree ? now : null,
+    paid: false, // оплата собирается вручную — организатор отмечает в админке
+    paid_at: null,
     checked_in: false,
     wa_sent: false,
     created_at: now,
