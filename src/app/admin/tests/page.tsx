@@ -178,23 +178,23 @@ export default function TestsManagement() {
 
 function QrModal({ test, onClose }: { test: Test; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
-  const [mk, setMk] = useState(false);
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const link = `${origin}/?test=${test.id}${mk ? '&mk=1' : ''}`;
+  // QR всегда для мастер-класса: результаты помечаются «МК» и уходят родителю в WhatsApp.
+  const link = `${origin}/?test=${test.id}&mk=1`;
   const copy = () => { navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   const download = () => {
     const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement | null;
     if (!canvas) return;
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
-    a.download = `qr-${test.name}${mk ? '-МК' : ''}.png`;
+    a.download = `qr-${test.name}-МК.png`;
     a.click();
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
-          <p className="font-bold text-[#081d3a]">QR теста {mk && <span className="text-[#6366f1]">· МК</span>}</p>
+          <p className="font-bold text-[#081d3a]">QR теста <span className="text-[#6366f1]">· МК</span></p>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
         <p className="text-sm font-semibold text-[#081d3a] mb-3">{test.name}</p>
@@ -209,10 +209,9 @@ function QrModal({ test, onClose }: { test: Test; onClose: () => void }) {
           <Button onClick={download} variant="outline" className="flex-1"><Download className="w-4 h-4 mr-2" /> Скачать QR</Button>
           <Button onClick={copy} variant="outline" className="flex-1">{copied ? 'Скопировано' : 'Копировать'}</Button>
         </div>
-        <label className="flex items-center gap-2 mt-4 text-sm text-[#081d3a] cursor-pointer bg-[#f0f9f7] rounded-lg px-3 py-2.5">
-          <input type="checkbox" checked={mk} onChange={(e) => setMk(e.target.checked)} className="w-4 h-4 accent-[#6366f1]" />
-          <span>Ссылка <b>для мастер-класса</b> — результаты пометятся «МК»</span>
-        </label>
+        <p className="mt-4 text-xs text-[#081d3a] bg-[#f0f9f7] rounded-lg px-3 py-2.5 leading-relaxed">
+          Этот QR — <b>для мастер-класса</b>: результаты автоматически помечаются «МК» и после анализа уходят родителю в WhatsApp.
+        </p>
         {!test.is_active && <p className="text-[11px] text-amber-600 mt-2">⚠ Тест не активен — по QR будет недоступен. Активируйте в «Настроить».</p>}
       </div>
     </div>
