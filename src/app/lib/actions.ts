@@ -1138,7 +1138,8 @@ export async function analyzeResult(resultId: string) {
     if (/credit|balance|too low|billing|insufficient|purchase more|quota/i.test(msg)) {
       return { error: 'no_credits' as const };
     }
-    throw e;
+    console.error('analyzeResult failed:', msg);
+    return { error: 'analysis_failed' as const };
   }
 
   const ai_analysis = { analysis_json: analysis, student_name: detail.result.student_name, class_number: detail.result.class_number, percentage: weightedPct };

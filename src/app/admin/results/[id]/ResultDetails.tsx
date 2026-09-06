@@ -182,10 +182,15 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
         alert('На балансе ИИ закончились средства. Пополните баланс, чтобы продолжить анализ.');
         return;
       }
+      if (out && (out as any).error === 'analysis_failed') {
+        alert('Не удалось сгенерировать отчёт с первой попытки. Нажмите «Анализировать» ещё раз — обычно срабатывает.');
+        return;
+      }
       const res = await getResultDetail(id);
       setData(res as any);
     } catch (e: any) {
-      alert('Ошибка анализа: ' + (e?.message || 'Неизвестная ошибка'));
+      alert('Не удалось выполнить анализ. Попробуйте ещё раз через минуту.');
+      console.error('analyze error:', e);
     } finally {
       setAnalyzing(false);
     }

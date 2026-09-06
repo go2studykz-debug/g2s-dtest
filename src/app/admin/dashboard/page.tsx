@@ -139,6 +139,10 @@ export default function AdminDashboard() {
         toast({ variant: 'destructive', title: 'Нет средств на балансе ИИ', description: 'Пополните баланс, чтобы продолжить анализ.' });
         return;
       }
+      if (out && (out as any).error === 'analysis_failed') {
+        toast({ variant: 'destructive', title: 'Анализ не удался', description: 'Попробуйте запустить ещё раз — обычно срабатывает со второй попытки.' });
+        return;
+      }
       await loadData();
       toast({ title: 'Успех', description: 'Анализ завершен успешно.' });
     } catch (error) {

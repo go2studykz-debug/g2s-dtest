@@ -497,6 +497,58 @@ function repairTruncatedJson(text: string): string {
 
 // ─── Main Export ─────────────────────────────────────────────────────────────
 
+// ─── Санитайзер: любой распарсенный объект → гарантированно валидный вывод ────
+const _str = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const _num = (v: unknown, d = 0): number => { const n = Number(v); return Number.isFinite(n) ? n : d; };
+const _arr = (v: unknown): any[] => (Array.isArray(v) ? v : []);
+const _lvl = (v: unknown): 'сильная зона' | 'средняя зона' | 'слабая зона' =>
+  (['сильная зона', 'средняя зона', 'слабая зона'] as const).includes(v as any) ? (v as any) : 'средняя зона';
+const _status = (v: unknown): 'Ошибка' | 'Пропуск' => (v === 'Пропуск' ? 'Пропуск' : 'Ошибка');
+
+function sanitizeOutput(p: any, chances: any[]): AnalyzeStudentResultOutput {
+  p = p ?? {};
+  return {
+    performanceSummary: _str(p.performanceSummary),
+    strongSides: _arr(p.strongSides).map((s) => ({ direction: _str(s?.direction), description: _str(s?.description) })),
+    growthZones: _arr(p.growthZones).map((s) => ({ zone: _str(s?.zone), description: _str(s?.description) })),
+    skillsMap: _arr(p.skillsMap).map((s) => ({ skill: _str(s?.skill), subject: _str(s?.subject), level: _lvl(s?.level), examImportance: _str(s?.examImportance) || 'Среднее' })),
+    detailedAnalysis: _arr(p.detailedAnalysis).map((d) => ({
+      questionNumber: _num(d?.questionNumber),
+      subject: _str(d?.subject),
+      topic: _str(d?.topic),
+      studentAnswer: d?.studentAnswer == null ? null : _str(d.studentAnswer),
+      correctAnswer: _str(d?.correctAnswer),
+      status: _status(d?.status),
+      errorType: _str(d?.errorType),
+      timeCategory: _str(d?.timeCategory),
+      examInfluence: _str(d?.examInfluence),
+      recommendation: _str(d?.recommendation),
+    })),
+    strategyAnalysis: _str(p.strategyAnalysis),
+    thinkingType: _str(p.thinkingType),
+    growthPotential: _str(p.growthPotential),
+    priorityDirections: _arr(p.priorityDirections).map((x) => ({ priority: _num(x?.priority, 1), direction: _str(x?.direction), justification: _str(x?.justification) })),
+    strategicDevelopment: {
+      pointA: _str(p.strategicDevelopment?.pointA),
+      stages: _arr(p.strategicDevelopment?.stages).map((s) => ({ name: _str(s?.name), period: _str(s?.period), content: _str(s?.content) })),
+      pointB: _str(p.strategicDevelopment?.pointB),
+    },
+    conclusion: _str(p.conclusion),
+    admissionChances: chances,
+    antiCheatBehaviorAnalysis: p.antiCheatBehaviorAnalysis != null ? _str(p.antiCheatBehaviorAnalysis) : undefined,
+  };
+}
+
+// Достаёт JSON-объект из ответа модели (срезает markdown/прозу вокруг)
+function extractJson(raw: string, truncated: boolean): string {
+  let t = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const first = t.indexOf('{');
+  const last = t.lastIndexOf('}');
+  if (first >= 0 && last > first) t = t.slice(first, last + 1);
+  if (truncated) t = repairTruncatedJson(t);
+  return t;
+}
+
 export async function analyzeStudentResult(input: AnalyzeStudentResultInput): Promise<AnalyzeStudentResultOutput> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const admissionChances = calcAdmissionChances(input.classNumber, input.percentage);
@@ -513,51 +565,41 @@ export async function analyzeStudentResult(input: AnalyzeStudentResultInput): Pr
   let lastError: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      // Стриминг обязателен: max_tokens=16000 — длинная генерация, а
-      // не-стриминговый запрос упирается в таймаут serverless-функции и
-      // обрывается на середине (результат застревает analysed=False).
-      // .finalMessage() собирает полный ответ, поэтому дальше всё как раньше.
       const message = await client.messages.stream({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 16000,
         system: 'Ты аналитик. Отвечай ТОЛЬКО валидным JSON без markdown, без ```json, без пояснений.',
         messages: [{ role: 'user', content: prompt }],
       }).finalMessage();
-      let raw = (message.content[0] as { type: string; text: string }).text ?? '';
-      let jsonText = raw.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
 
-      if (message.stop_reason === 'max_tokens') {
-        console.warn('Ответ обрезан по лимиту токенов, пытаемся восстановить JSON...');
-        jsonText = repairTruncatedJson(jsonText);
+      const textBlock = message.content.find((b: any) => b.type === 'text') as { text?: string } | undefined;
+      const raw = textBlock?.text ?? '';
+      if (!raw.trim()) throw new Error('empty model response');
+
+      const jsonText = extractJson(raw, message.stop_reason === 'max_tokens');
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch {
+        parsed = JSON.parse(repairTruncatedJson(jsonText));
       }
 
-      const parsed = JSON.parse(jsonText);
-      parsed.admissionChances = admissionChances;
-
-      const validation = AnalyzeStudentResultOutputSchema.safeParse(parsed);
-      if (validation.success) return validation.data;
-
-      console.error('Ошибка валидации анализа:', JSON.stringify(validation.error.errors));
-      return AnalyzeStudentResultOutputSchema.parse({
-        ...parsed,
-        admissionChances,
-        skillsMap: (parsed.skillsMap ?? []).map((s: any) => ({
-          skill: s.skill ?? '',
-          subject: s.subject ?? '',
-          level: ['сильная зона', 'средняя зона', 'слабая зона'].includes(s.level) ? s.level : 'средняя зона',
-          examImportance: s.examImportance ?? 'Среднее',
-        })),
-      });
+      // Санитайзер делает любой распарсенный JSON валидным — падений схемы больше нет
+      return sanitizeOutput(parsed, admissionChances);
     } catch (err: unknown) {
       lastError = err;
-      const is429 = err instanceof Error && (err.message.includes('429') || err.message.includes('Too Many Requests') || err.message.includes('rate_limit') || err.message.includes('overloaded'));
-      if (is429 && attempt < 2) {
-        const delay = extractRetryDelay(err);
-        console.warn(`Claude 429, повтор через ${delay / 1000}с (попытка ${attempt + 1}/3)`);
+      const msg = err instanceof Error ? err.message : String(err);
+      const is429 = /429|Too Many Requests|rate_limit|overloaded/i.test(msg);
+      if (attempt < 2) {
+        // Повтор на любой сбой: 429, кривой/пустой JSON, сетевой блип
+        const delay = is429 ? extractRetryDelay(err) : 1500;
+        console.warn(`Анализ: сбой (${msg.slice(0, 120)}), повтор через ${delay / 1000}с (попытка ${attempt + 1}/3)`);
         await sleep(delay);
         continue;
       }
-      throw err;
+      console.error('Анализ не удался после 3 попыток:', msg);
+      throw new Error('AI_ANALYSIS_FAILED');
     }
   }
   throw lastError;
