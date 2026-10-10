@@ -11,7 +11,7 @@ import {
   Target, Zap, GraduationCap, ListChecks, History, Timer,
   FileDown, Loader2, Users
 } from 'lucide-react';
-import { getResultDetail, analyzeResult, clearAnalysis, getClassStats, resendResultLink } from '@/app/lib/actions';
+import { getResultDetail, analyzeResult, clearAnalysis, getClassStats, resendResultLink, isAnalysisReady } from '@/app/lib/actions';
 import { StudentResult, StudentAnswer, AntiCheatLog, Question } from '@/app/lib/types';
 import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -165,8 +165,13 @@ export default function ResultDetails({ params, readOnly = false }: { params: Pr
     if (!readOnly) return;
     if (data?.result?.ai_analysis?.analysis_json) return; // уже готов
     if (data && data.result.status !== 'completed') return; // тест не завершён
+    // опрашиваем лёгким флагом, полный результат тянем один раз — когда готов; через 15 минут перестаём
+    const started = Date.now();
     const t = setInterval(async () => {
+      if (Date.now() - started > 15 * 60_000) { clearInterval(t); return; }
       try {
+        if (!(await isAnalysisReady(id))) return;
+        clearInterval(t);
         const res = await getResultDetail(id) as any;
         if (res?.result?.ai_analysis?.analysis_json) setData(res);
       } catch { /* сеть — попробуем на следующем тике */ }

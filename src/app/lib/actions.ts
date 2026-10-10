@@ -1012,8 +1012,20 @@ export async function getResultDetail(id: string) {
 export async function getAllResults() {
   const db = getDb();
   const qSnapshot = await getDocs(collection(db, 'results'));
-  const results = qSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Дашборд опрашивает это раз в минуту: полный ИИ-анализ в таблице не нужен,
+  // а с ним каждый опрос весил мегабайты (лимит трафика Vercel). Флаг is_analysed остаётся.
+  const results = qSnapshot.docs.map(d => {
+    const { ai_analysis: _skip, ...rest } = d.data();
+    return { id: d.id, ...rest };
+  });
   return serializeData(results) as any;
+}
+
+/** Лёгкая проверка для страницы родителя: готов ли ИИ-разбор (без ответов и вопросов) */
+export async function isAnalysisReady(id: string): Promise<boolean> {
+  const db = getDb();
+  const snap = await getDoc(doc(db, 'results', id));
+  return !!snap.data()?.ai_analysis?.analysis_json;
 }
 
 export async function getClassStats(classNumber: number, language: string, mcOnly = false): Promise<{
